@@ -214,25 +214,6 @@ Syntax highlighting and snippets for `.typemux` files are available in the `vsco
 - **Contract Testing** - Ensure API contracts are consistent
 - **Documentation** - Auto-generate up-to-date API docs
 
-## Roadmap
-
-### Current
-- [x] Type system (primitives, enums, types, unions)
-- [x] Service definitions with RPC methods
-- [x] GraphQL, Protobuf, and OpenAPI generation
-- [x] Namespace support
-- [x] YAML annotations
-- [x] Multi-file imports
-- [x] Documentation comments
-
-### Planned
-- [ ] Custom scalar types
-- [ ] Field validation annotations
-- [ ] Client/server code generation
-- [ ] JSON Schema output
-- [ ] TypeScript type definitions
-- [ ] Language Server Protocol (LSP)
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
