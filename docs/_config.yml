@@ -29,6 +29,10 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
 
+# Plugins
+plugins:
+  - jekyll-readme-index
+
 # Exclude from build
 exclude:
   - Gemfile
