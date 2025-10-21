@@ -102,6 +102,7 @@ issues:
     - vendor
     - examples/output
     - examples/proto-import-output
+    - internal/importers  # Importers are separate tools with their own style
 
 output:
   format: colored-line-number
