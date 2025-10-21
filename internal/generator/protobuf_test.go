@@ -1303,8 +1303,7 @@ func TestProtobufGenerator_FindRequiredNamespaces(t *testing.T) {
 		},
 	}
 
-	fullSchema := &ast.Schema{}
-	required := gen.findRequiredNamespaces(nsSchema, fullSchema)
+	required := gen.findRequiredNamespaces(nsSchema)
 
 	// Should find com.example.users namespace
 	found := false

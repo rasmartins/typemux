@@ -109,7 +109,7 @@ func (g *ProtobufGenerator) generateForNamespace(nsSchema *ast.Schema, fullSchem
 	}
 
 	// Collect required imports from other namespaces
-	requiredNamespaces := g.findRequiredNamespaces(nsSchema, fullSchema)
+	requiredNamespaces := g.findRequiredNamespaces(nsSchema)
 
 	// Add imports for other namespace proto files
 	for _, reqNs := range requiredNamespaces {
@@ -150,7 +150,7 @@ func (g *ProtobufGenerator) generateForNamespace(nsSchema *ast.Schema, fullSchem
 }
 
 // findRequiredNamespaces finds all namespaces that are referenced by types in the given schema
-func (g *ProtobufGenerator) findRequiredNamespaces(nsSchema *ast.Schema, fullSchema *ast.Schema) []string {
+func (g *ProtobufGenerator) findRequiredNamespaces(nsSchema *ast.Schema) []string {
 	required := make(map[string]bool)
 
 	// Check all field types in messages

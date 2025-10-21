@@ -30,6 +30,7 @@ func (p *Parser) nextToken() {
 	p.peekTok = p.lexer.NextToken()
 }
 
+// Errors returns all parsing errors encountered during parsing.
 func (p *Parser) Errors() []string {
 	return p.errors
 }
@@ -47,6 +48,7 @@ func (p *Parser) expectToken(t lexer.TokenType) bool {
 	return false
 }
 
+// Parse parses the input tokens into an abstract syntax tree (AST) representing a TypeMux schema.
 func (p *Parser) Parse() *ast.Schema {
 	schema := &ast.Schema{
 		Namespace: "api", // default namespace
@@ -863,6 +865,7 @@ func (p *Parser) parseStatusCodeList() []string {
 	return codes
 }
 
+// PrintErrors returns all parsing errors as a single formatted string.
 func (p *Parser) PrintErrors() string {
 	return strings.Join(p.errors, "\n")
 }
