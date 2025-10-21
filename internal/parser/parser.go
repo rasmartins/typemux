@@ -1,0 +1,967 @@
+package parser
+
+import (
+	"fmt"
+	"regexp"
+	"strings"
+
+	"github.com/rasmartins/typemux/internal/ast"
+	"github.com/rasmartins/typemux/internal/lexer"
+)
+
+type Parser struct {
+	lexer   *lexer.Lexer
+	curTok  lexer.Token
+	peekTok lexer.Token
+	errors  []string
+}
+
+func New(l *lexer.Lexer) *Parser {
+	p := &Parser{lexer: l}
+	p.nextToken()
+	p.nextToken()
+	return p
+}
+
+func (p *Parser) nextToken() {
+	p.curTok = p.peekTok
+	p.peekTok = p.lexer.NextToken()
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
+func (p *Parser) addError(msg string) {
+	p.errors = append(p.errors, fmt.Sprintf("Line %d:%d - %s", p.curTok.Line, p.curTok.Column, msg))
+}
+
+func (p *Parser) expectToken(t lexer.TokenType) bool {
+	if p.curTok.Type == t {
+		p.nextToken()
+		return true
+	}
+	p.addError(fmt.Sprintf("expected %s, got %s", t, p.curTok.Type))
+	return false
+}
+
+func (p *Parser) Parse() *ast.Schema {
+	schema := &ast.Schema{
+		Namespace: "api", // default namespace
+		Imports:   []string{},
+		Enums:     []*ast.Enum{},
+		Types:     []*ast.Type{},
+		Unions:    []*ast.Union{},
+		Services:  []*ast.Service{},
+	}
+
+	for p.curTok.Type != lexer.TOKEN_EOF {
+		// Collect documentation that might precede the next declaration
+		doc := p.parseDocumentation()
+
+		// Collect leading annotations that might precede the next declaration
+		leadingAnnotations := p.parseLeadingAnnotations()
+
+		switch p.curTok.Type {
+		case lexer.TOKEN_NAMESPACE:
+			namespace := p.parseNamespace()
+			if namespace != "" {
+				schema.Namespace = namespace
+			}
+		case lexer.TOKEN_IMPORT:
+			importPath := p.parseImport()
+			if importPath != "" {
+				schema.Imports = append(schema.Imports, importPath)
+			}
+		case lexer.TOKEN_ENUM:
+			enum := p.parseEnumWithDocAndAnnotations(doc, leadingAnnotations, schema.Namespace)
+			if enum != nil {
+				schema.Enums = append(schema.Enums, enum)
+			}
+		case lexer.TOKEN_TYPE:
+			typ := p.parseTypeWithDocAndAnnotations(doc, leadingAnnotations, schema.Namespace)
+			if typ != nil {
+				schema.Types = append(schema.Types, typ)
+			}
+		case lexer.TOKEN_UNION:
+			union := p.parseUnionWithDocAndAnnotations(doc, leadingAnnotations, schema.Namespace)
+			if union != nil {
+				schema.Unions = append(schema.Unions, union)
+			}
+		case lexer.TOKEN_SERVICE:
+			service := p.parseServiceWithDocAndAnnotations(doc, leadingAnnotations, schema.Namespace)
+			if service != nil {
+				schema.Services = append(schema.Services, service)
+			}
+		case lexer.TOKEN_EOF:
+			// Exit the loop
+			break
+		default:
+			p.nextToken()
+		}
+	}
+
+	return schema
+}
+
+func (p *Parser) parseEnumWithDoc(doc *ast.Documentation, namespace string) *ast.Enum {
+	return p.parseEnumWithDocAndAnnotations(doc, nil, namespace)
+}
+
+func (p *Parser) parseEnumWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Enum {
+	p.nextToken() // consume 'enum'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected enum name")
+		return nil
+	}
+
+	enum := &ast.Enum{
+		Name:      p.curTok.Literal,
+		Namespace: namespace,
+		Values:    []*ast.EnumValue{},
+		Doc:       doc,
+	}
+
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_LBRACE) {
+		return nil
+	}
+
+	for p.curTok.Type == lexer.TOKEN_IDENT || p.curTok.Type == lexer.TOKEN_DOC_COMMENT {
+		// Parse documentation for enum value
+		valueDoc := p.parseDocumentation()
+
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected enum value name")
+			return nil
+		}
+
+		enumValue := &ast.EnumValue{
+			Name: p.curTok.Literal,
+			Doc:  valueDoc,
+		}
+		p.nextToken()
+
+		// Check for optional = number syntax
+		if p.curTok.Type == lexer.TOKEN_EQUALS {
+			p.nextToken()
+			if p.curTok.Type == lexer.TOKEN_NUMBER {
+				// Parse the number
+				var num int
+				fmt.Sscanf(p.curTok.Literal, "%d", &num)
+				enumValue.Number = num
+				enumValue.HasNumber = true
+				p.nextToken()
+			} else {
+				p.addError("expected number after =")
+				return nil
+			}
+		}
+
+		enum.Values = append(enum.Values, enumValue)
+	}
+
+	if !p.expectToken(lexer.TOKEN_RBRACE) {
+		return nil
+	}
+
+	return enum
+}
+
+func (p *Parser) parseTypeWithDoc(doc *ast.Documentation, namespace string) *ast.Type {
+	return p.parseTypeWithDocAndAnnotations(doc, nil, namespace)
+}
+
+func (p *Parser) parseTypeWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Type {
+	p.nextToken() // consume 'type'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected type name")
+		return nil
+	}
+
+	typ := &ast.Type{
+		Name:      p.curTok.Literal,
+		Namespace: namespace,
+		Fields:    []*ast.Field{},
+		Doc:       doc,
+	}
+
+	p.nextToken()
+
+	// Parse trailing type-level annotations like @graphql.directive(...) @openapi.extension(...)
+	trailingAnnotations := p.parseLeadingAnnotations() // reuse the same method
+
+	// Merge leading and trailing annotations
+	typ.Annotations = p.mergeAnnotations(leadingAnnotations, trailingAnnotations)
+
+	if !p.expectToken(lexer.TOKEN_LBRACE) {
+		return nil
+	}
+
+	for p.curTok.Type == lexer.TOKEN_IDENT || p.curTok.Type == lexer.TOKEN_DOC_COMMENT || p.curTok.Type == lexer.TOKEN_AT {
+		// Collect field documentation
+		fieldDoc := p.parseDocumentation()
+
+		// Collect field leading annotations and attributes
+		fieldLeadingAnnotations := ast.NewFormatAnnotations()
+		leadingAttributes := make(map[string]string)
+
+		for p.curTok.Type == lexer.TOKEN_AT {
+			// Peek ahead to determine if this is a simple attribute or format annotation
+			p.nextToken() // consume @
+
+			if p.curTok.Type != lexer.TOKEN_IDENT {
+				p.addError("expected annotation name")
+				break
+			}
+
+			attrName := p.curTok.Literal
+			p.nextToken()
+
+			// Check if this is a format-specific annotation (has a dot)
+			if p.curTok.Type == lexer.TOKEN_DOT && (attrName == "proto" || attrName == "graphql" || attrName == "openapi") {
+				// This is a format annotation like @proto.name("foo")
+				// Back up and let parseSingleAnnotation handle it
+				p.curTok = lexer.Token{Type: lexer.TOKEN_AT, Literal: "@"}
+				p.parseSingleAnnotation(fieldLeadingAnnotations)
+			} else {
+				// This is a simple attribute like @required
+				leadingAttributes[attrName] = ""
+			}
+		}
+
+		field := p.parseFieldWithLeadingAnnotations(fieldDoc, fieldLeadingAnnotations, leadingAttributes)
+		if field != nil {
+			typ.Fields = append(typ.Fields, field)
+		}
+	}
+
+	if !p.expectToken(lexer.TOKEN_RBRACE) {
+		return nil
+	}
+
+	return typ
+}
+
+func (p *Parser) parseUnionWithDoc(doc *ast.Documentation, namespace string) *ast.Union {
+	return p.parseUnionWithDocAndAnnotations(doc, nil, namespace)
+}
+
+func (p *Parser) parseUnionWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Union {
+	p.nextToken() // consume 'union'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected union name")
+		return nil
+	}
+
+	union := &ast.Union{
+		Name:      p.curTok.Literal,
+		Namespace: namespace,
+		Options:   []string{},
+		Doc:       doc,
+	}
+
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_LBRACE) {
+		return nil
+	}
+
+	// Parse union options (list of type names)
+	for p.curTok.Type != lexer.TOKEN_RBRACE && p.curTok.Type != lexer.TOKEN_EOF {
+		if p.curTok.Type == lexer.TOKEN_IDENT {
+			union.Options = append(union.Options, p.curTok.Literal)
+			p.nextToken()
+		} else {
+			p.addError("expected type name in union")
+			p.nextToken()
+		}
+	}
+
+	if !p.expectToken(lexer.TOKEN_RBRACE) {
+		return nil
+	}
+
+	return union
+}
+
+func (p *Parser) parseField() *ast.Field {
+	// Collect documentation before field name
+	doc := p.parseDocumentation()
+	// Collect leading annotations
+	leadingAnnotations := p.parseLeadingAnnotations()
+	return p.parseFieldWithAnnotations(doc, leadingAnnotations)
+}
+
+func (p *Parser) parseFieldWithAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations) *ast.Field {
+	return p.parseFieldWithLeadingAnnotations(doc, leadingAnnotations, nil)
+}
+
+func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, leadingAttributes map[string]string) *ast.Field {
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected field name")
+		return nil
+	}
+
+	field := &ast.Field{
+		Name:       p.curTok.Literal,
+		Attributes: make(map[string]string),
+		Doc:        doc,
+	}
+
+	// Apply leading attributes (like @required)
+	for k, v := range leadingAttributes {
+		field.Attributes[k] = v
+		if k == "required" {
+			field.Required = true
+		}
+	}
+
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_COLON) {
+		return nil
+	}
+
+	// Parse field type
+	field.Type = p.parseFieldType()
+	if field.Type == nil {
+		return nil
+	}
+
+	// Check for optional = number syntax (for protobuf field numbers)
+	fieldLine := p.curTok.Line // Track the line where the field type/number is
+	if p.curTok.Type == lexer.TOKEN_EQUALS {
+		p.nextToken()
+		if p.curTok.Type == lexer.TOKEN_NUMBER {
+			// Parse the number
+			var num int
+			fmt.Sscanf(p.curTok.Literal, "%d", &num)
+			field.Number = num
+			field.HasNumber = true
+			fieldLine = p.curTok.Line // Update to the line of the number
+			p.nextToken()
+		} else {
+			p.addError("expected number after =")
+			return nil
+		}
+	}
+
+	// Parse attributes (@required, @default, @exclude, @only, etc.) and trailing annotations
+	// Only consume @ tokens on the same line as the field (to avoid consuming leading annotations for the next field)
+	trailingFieldAnnotations := ast.NewFormatAnnotations()
+	for p.curTok.Type == lexer.TOKEN_AT && p.curTok.Line == fieldLine {
+		p.nextToken()
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected attribute name")
+			return nil
+		}
+
+		attrName := p.curTok.Literal
+		p.nextToken()
+
+		if attrName == "required" {
+			field.Required = true
+			field.Attributes[attrName] = ""
+		} else if attrName == "default" {
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_IDENT || p.curTok.Type == lexer.TOKEN_NUMBER {
+					field.Default = p.curTok.Literal
+					p.nextToken()
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			}
+			field.Attributes[attrName] = ""
+		} else if attrName == "exclude" {
+			// Parse @exclude(proto,graphql)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				generators := p.parseGeneratorList()
+				field.ExcludeFrom = generators
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
+			field.Attributes[attrName] = ""
+		} else if attrName == "only" {
+			// Parse @only(openapi)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				generators := p.parseGeneratorList()
+				field.OnlyFor = generators
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
+			field.Attributes[attrName] = ""
+		} else if attrName == "proto" || attrName == "graphql" || attrName == "openapi" {
+			// Parse format-specific annotations like @proto.option([packed = false]) or @proto.name("TypeName")
+			// Expect a dot
+			if p.curTok.Type != lexer.TOKEN_DOT {
+				p.addError(fmt.Sprintf("expected . after @%s", attrName))
+				return nil
+			}
+			p.nextToken()
+
+			// Expect subtype identifier
+			if p.curTok.Type != lexer.TOKEN_IDENT {
+				p.addError(fmt.Sprintf("expected subtype after @%s.", attrName))
+				return nil
+			}
+			subtype := p.curTok.Literal
+			p.nextToken()
+
+			// Parse the content in parentheses
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				content := p.parseAnnotationContent()
+				p.expectToken(lexer.TOKEN_RPAREN)
+
+				// Handle name annotation specially
+				if subtype == "name" {
+					name := strings.Trim(content, "\"'")
+					if attrName == "proto" {
+						trailingFieldAnnotations.ProtoName = name
+					} else if attrName == "graphql" {
+						trailingFieldAnnotations.GraphQLName = name
+					} else if attrName == "openapi" {
+						trailingFieldAnnotations.OpenAPIName = name
+					}
+				} else {
+					// Store in appropriate list for other subtypes
+					if attrName == "proto" {
+						trailingFieldAnnotations.Proto = append(trailingFieldAnnotations.Proto, content)
+					} else if attrName == "graphql" {
+						trailingFieldAnnotations.GraphQL = append(trailingFieldAnnotations.GraphQL, content)
+					} else if attrName == "openapi" {
+						trailingFieldAnnotations.OpenAPI = append(trailingFieldAnnotations.OpenAPI, content)
+					}
+				}
+			}
+		} else {
+			field.Attributes[attrName] = ""
+		}
+	}
+
+	// Merge leading and trailing field annotations
+	field.Annotations = p.mergeAnnotations(leadingAnnotations, trailingFieldAnnotations)
+
+	return field
+}
+
+// parseAnnotationContent reads everything inside annotation parentheses as a string
+func (p *Parser) parseAnnotationContent() string {
+	var content string
+	depth := 1 // We're already inside the first (
+
+	for depth > 0 && p.curTok.Type != lexer.TOKEN_EOF {
+		if p.curTok.Type == lexer.TOKEN_LPAREN {
+			depth++
+			content += "("
+		} else if p.curTok.Type == lexer.TOKEN_RPAREN {
+			depth--
+			if depth > 0 {
+				content += ")"
+			}
+		} else if p.curTok.Type == lexer.TOKEN_LBRACKET {
+			content += "["
+		} else if p.curTok.Type == lexer.TOKEN_RBRACKET {
+			content += "]"
+		} else if p.curTok.Type == lexer.TOKEN_COLON {
+			content += ":"
+		} else if p.curTok.Type == lexer.TOKEN_COMMA {
+			content += ", "
+		} else if p.curTok.Type == lexer.TOKEN_EQUALS {
+			content += " = "
+		} else if p.curTok.Type == lexer.TOKEN_AT {
+			content += "@"
+		} else if p.curTok.Type == lexer.TOKEN_STRING {
+			content += "\"" + p.curTok.Literal + "\""
+		} else {
+			content += p.curTok.Literal
+		}
+
+		if depth > 0 {
+			p.nextToken()
+		}
+	}
+
+	return content
+}
+
+// parseGeneratorList parses a comma-separated list of generator names
+func (p *Parser) parseGeneratorList() []string {
+	var generators []string
+
+	if p.curTok.Type == lexer.TOKEN_IDENT {
+		generators = append(generators, p.curTok.Literal)
+		p.nextToken()
+	}
+
+	for p.curTok.Type == lexer.TOKEN_COMMA {
+		p.nextToken()
+		if p.curTok.Type == lexer.TOKEN_IDENT {
+			generators = append(generators, p.curTok.Literal)
+			p.nextToken()
+		}
+	}
+
+	return generators
+}
+
+func (p *Parser) parseFieldType() *ast.FieldType {
+	fieldType := &ast.FieldType{}
+
+	// Check for array type []
+	if p.curTok.Type == lexer.TOKEN_LBRACKET {
+		p.nextToken()
+		if p.curTok.Type == lexer.TOKEN_RBRACKET {
+			p.nextToken()
+			fieldType.IsArray = true
+		}
+	}
+
+	// Check for map type
+	if p.curTok.Type == lexer.TOKEN_IDENT && p.curTok.Literal == "map" {
+		p.nextToken()
+		if p.curTok.Type == lexer.TOKEN_LT {
+			p.nextToken()
+			if p.curTok.Type == lexer.TOKEN_IDENT {
+				fieldType.MapKey = p.curTok.Literal
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_COMMA {
+					p.nextToken()
+					if p.curTok.Type == lexer.TOKEN_IDENT {
+						fieldType.MapValue = p.curTok.Literal
+						p.nextToken()
+						if p.curTok.Type == lexer.TOKEN_GT {
+							p.nextToken()
+							fieldType.IsMap = true
+							fieldType.Name = "map"
+							fieldType.IsBuiltin = false
+							return fieldType
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Parse base type name (may be qualified like com.example.User)
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected type name")
+		return nil
+	}
+
+	// Build the type name, supporting dotted notation for qualified names
+	var nameParts []string
+	nameParts = append(nameParts, p.curTok.Literal)
+	p.nextToken()
+
+	// Continue reading dots and identifiers for qualified type names
+	for p.curTok.Type == lexer.TOKEN_DOT {
+		p.nextToken() // consume '.'
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected identifier after '.' in type name")
+			break
+		}
+		nameParts = append(nameParts, p.curTok.Literal)
+		p.nextToken()
+	}
+
+	fieldType.Name = strings.Join(nameParts, ".")
+	fieldType.IsBuiltin = ast.IsBuiltinType(fieldType.Name)
+
+	return fieldType
+}
+
+func (p *Parser) parseServiceWithDoc(doc *ast.Documentation, namespace string) *ast.Service {
+	return p.parseServiceWithDocAndAnnotations(doc, nil, namespace)
+}
+
+func (p *Parser) parseServiceWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Service {
+	p.nextToken() // consume 'service'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected service name")
+		return nil
+	}
+
+	service := &ast.Service{
+		Name:      p.curTok.Literal,
+		Namespace: namespace,
+		Methods:   []*ast.Method{},
+		Doc:       doc,
+	}
+
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_LBRACE) {
+		return nil
+	}
+
+	for p.curTok.Type == lexer.TOKEN_RPC || p.curTok.Type == lexer.TOKEN_DOC_COMMENT {
+		method := p.parseMethod()
+		if method != nil {
+			service.Methods = append(service.Methods, method)
+		}
+	}
+
+	if !p.expectToken(lexer.TOKEN_RBRACE) {
+		return nil
+	}
+
+	return service
+}
+
+func (p *Parser) parseMethod() *ast.Method {
+	// Collect documentation before 'rpc' keyword
+	doc := p.parseDocumentation()
+
+	p.nextToken() // consume 'rpc'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected method name")
+		return nil
+	}
+
+	method := &ast.Method{
+		Name: p.curTok.Literal,
+		Doc:  doc,
+	}
+
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_LPAREN) {
+		return nil
+	}
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected input type")
+		return nil
+	}
+
+	method.InputType = p.curTok.Literal
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_RPAREN) {
+		return nil
+	}
+
+	if !p.expectToken(lexer.TOKEN_RETURNS) {
+		return nil
+	}
+
+	if !p.expectToken(lexer.TOKEN_LPAREN) {
+		return nil
+	}
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected output type")
+		return nil
+	}
+
+	method.OutputType = p.curTok.Literal
+	p.nextToken()
+
+	if !p.expectToken(lexer.TOKEN_RPAREN) {
+		return nil
+	}
+
+	// Parse method attributes (@http, @graphql)
+	for p.curTok.Type == lexer.TOKEN_AT {
+		p.nextToken()
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected attribute name")
+			return nil
+		}
+
+		attrName := p.curTok.Literal
+		p.nextToken()
+
+		if attrName == "http" {
+			// Parse @http(GET) or @http(POST)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_IDENT {
+					method.HTTPMethod = strings.ToUpper(p.curTok.Literal)
+					p.nextToken()
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			}
+		} else if attrName == "graphql" {
+			// Parse @graphql(query) or @graphql(mutation)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_IDENT {
+					method.GraphQLType = strings.ToLower(p.curTok.Literal)
+					p.nextToken()
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			}
+		} else if attrName == "path" {
+			// Parse @path("/users/{id}")
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_STRING {
+					method.PathTemplate = p.curTok.Literal
+					p.nextToken()
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			}
+		} else if attrName == "success" {
+			// Parse @success(201,204)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				successCodes := p.parseStatusCodeList()
+				method.SuccessCodes = successCodes
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
+		} else if attrName == "errors" {
+			// Parse @errors(400,404,500)
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				errorCodes := p.parseStatusCodeList()
+				method.ErrorCodes = errorCodes
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
+		}
+	}
+
+	return method
+}
+
+// parseStatusCodeList parses a comma-separated list of HTTP status codes
+func (p *Parser) parseStatusCodeList() []string {
+	var codes []string
+
+	if p.curTok.Type == lexer.TOKEN_NUMBER {
+		codes = append(codes, p.curTok.Literal)
+		p.nextToken()
+
+		for p.curTok.Type == lexer.TOKEN_COMMA {
+			p.nextToken()
+			if p.curTok.Type == lexer.TOKEN_NUMBER {
+				codes = append(codes, p.curTok.Literal)
+				p.nextToken()
+			}
+		}
+	}
+
+	return codes
+}
+
+func (p *Parser) PrintErrors() string {
+	return strings.Join(p.errors, "\n")
+}
+
+// parseImport parses an import statement: import "path/to/file.typemux"
+func (p *Parser) parseImport() string {
+	p.nextToken() // consume 'import'
+
+	if p.curTok.Type != lexer.TOKEN_STRING {
+		p.addError("expected string after import")
+		return ""
+	}
+
+	importPath := p.curTok.Literal
+	p.nextToken()
+
+	return importPath
+}
+
+func (p *Parser) parseNamespace() string {
+	p.nextToken() // consume 'namespace'
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected namespace identifier")
+		return ""
+	}
+
+	// Build the namespace, supporting dotted notation (e.g., com.example.api)
+	var parts []string
+	parts = append(parts, p.curTok.Literal)
+	p.nextToken()
+
+	// Continue reading dots and identifiers for dotted namespaces
+	for p.curTok.Type == lexer.TOKEN_DOT {
+		p.nextToken() // consume '.'
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected identifier after '.' in namespace")
+			return strings.Join(parts, ".")
+		}
+		parts = append(parts, p.curTok.Literal)
+		p.nextToken()
+	}
+
+	return strings.Join(parts, ".")
+}
+
+// parseDocumentation collects doc comments and parses them into Documentation
+func (p *Parser) parseDocumentation() *ast.Documentation {
+	var docLines []string
+
+	// Collect all consecutive doc comment tokens
+	for p.curTok.Type == lexer.TOKEN_DOC_COMMENT {
+		docLines = append(docLines, p.curTok.Literal)
+		p.nextToken()
+	}
+
+	if len(docLines) == 0 {
+		return nil
+	}
+
+	doc := &ast.Documentation{
+		Specific: make(map[string]string),
+	}
+
+	// Regex to match language-specific comments: @proto, @graphql, @openapi
+	langRegex := regexp.MustCompile(`^@(proto|graphql|openapi)\s+(.*)$`)
+
+	var generalLines []string
+
+	for _, line := range docLines {
+		if matches := langRegex.FindStringSubmatch(line); matches != nil {
+			lang := matches[1]
+			text := matches[2]
+			// Append to existing doc for this language
+			if existing := doc.Specific[lang]; existing != "" {
+				doc.Specific[lang] = existing + "\n" + text
+			} else {
+				doc.Specific[lang] = text
+			}
+		} else {
+			// General documentation
+			generalLines = append(generalLines, line)
+		}
+	}
+
+	if len(generalLines) > 0 {
+		doc.General = strings.Join(generalLines, "\n")
+	}
+
+	return doc
+}
+
+// parseLeadingAnnotations parses annotations that appear before a declaration
+// It collects all @format.subtype(...) annotations until it hits a non-@ token
+func (p *Parser) parseLeadingAnnotations() *ast.FormatAnnotations {
+	annotations := ast.NewFormatAnnotations()
+
+	for p.curTok.Type == lexer.TOKEN_AT {
+		p.parseSingleAnnotation(annotations)
+	}
+
+	return annotations
+}
+
+// parseSingleAnnotation parses a single @format.subtype(...) annotation
+// and adds it to the provided FormatAnnotations object
+func (p *Parser) parseSingleAnnotation(annotations *ast.FormatAnnotations) {
+	p.nextToken() // consume @
+
+	if p.curTok.Type != lexer.TOKEN_IDENT {
+		p.addError("expected annotation name")
+		return
+	}
+
+	formatName := p.curTok.Literal
+	p.nextToken()
+
+	// Check for dot notation: @format.subtype(...)
+	if formatName == "proto" || formatName == "graphql" || formatName == "openapi" {
+		// Expect a dot
+		if p.curTok.Type != lexer.TOKEN_DOT {
+			p.addError(fmt.Sprintf("expected . after @%s", formatName))
+			return
+		}
+		p.nextToken()
+
+		// Expect subtype identifier (option, directive, extension, name)
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError(fmt.Sprintf("expected subtype after @%s.", formatName))
+			return
+		}
+		subtype := p.curTok.Literal
+		p.nextToken()
+
+		// Parse the content in parentheses
+		if p.curTok.Type == lexer.TOKEN_LPAREN {
+			p.nextToken()
+			content := p.parseAnnotationContent()
+			p.expectToken(lexer.TOKEN_RPAREN)
+
+			// Handle name annotation specially
+			if subtype == "name" {
+				// Extract the name from quotes
+				name := strings.Trim(content, "\"'")
+				if formatName == "proto" {
+					annotations.ProtoName = name
+				} else if formatName == "graphql" {
+					annotations.GraphQLName = name
+				} else if formatName == "openapi" {
+					annotations.OpenAPIName = name
+				}
+			} else {
+				// Store in appropriate list for other subtypes
+				if formatName == "proto" {
+					annotations.Proto = append(annotations.Proto, content)
+				} else if formatName == "graphql" {
+					annotations.GraphQL = append(annotations.GraphQL, content)
+				} else if formatName == "openapi" {
+					annotations.OpenAPI = append(annotations.OpenAPI, content)
+				}
+			}
+		}
+	}
+}
+
+// mergeAnnotations merges leading and trailing annotations
+// If both have the same annotation, trailing takes precedence
+func (p *Parser) mergeAnnotations(leading, trailing *ast.FormatAnnotations) *ast.FormatAnnotations {
+	if leading == nil && trailing == nil {
+		return nil
+	}
+	if leading == nil {
+		return trailing
+	}
+	if trailing == nil {
+		return leading
+	}
+
+	merged := ast.NewFormatAnnotations()
+
+	// Merge Proto annotations
+	merged.Proto = append(merged.Proto, leading.Proto...)
+	merged.Proto = append(merged.Proto, trailing.Proto...)
+
+	// Merge GraphQL annotations
+	merged.GraphQL = append(merged.GraphQL, leading.GraphQL...)
+	merged.GraphQL = append(merged.GraphQL, trailing.GraphQL...)
+
+	// Merge OpenAPI annotations
+	merged.OpenAPI = append(merged.OpenAPI, leading.OpenAPI...)
+	merged.OpenAPI = append(merged.OpenAPI, trailing.OpenAPI...)
+
+	// For name annotations, trailing takes precedence
+	if trailing.ProtoName != "" {
+		merged.ProtoName = trailing.ProtoName
+	} else {
+		merged.ProtoName = leading.ProtoName
+	}
+
+	if trailing.GraphQLName != "" {
+		merged.GraphQLName = trailing.GraphQLName
+	} else {
+		merged.GraphQLName = leading.GraphQLName
+	}
+
+	if trailing.OpenAPIName != "" {
+		merged.OpenAPIName = trailing.OpenAPIName
+	} else {
+		merged.OpenAPIName = leading.OpenAPIName
+	}
+
+	return merged
+}

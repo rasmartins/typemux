@@ -1,0 +1,25 @@
+# Invalid annotations for testing validation
+
+types:
+  NonExistentType:
+    proto:
+      name: "Foo"
+    fields:
+      nonexistentField:
+        required: true
+
+  User:
+    fields:
+      nonexistent:
+        required: true
+
+services:
+  NonExistentService:
+    methods:
+      SomeMethod:
+        http: "GET"
+
+  UserService:
+    methods:
+      NonExistentMethod:
+        http: "POST"

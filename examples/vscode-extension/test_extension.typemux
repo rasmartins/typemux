@@ -1,0 +1,11 @@
+import "imports/common.typemux"
+
+enum Status {
+ACTIVE = 1
+INACTIVE = 2
+}
+
+type User {
+id: string
+name: string
+}

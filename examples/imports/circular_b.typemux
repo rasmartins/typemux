@@ -1,0 +1,6 @@
+import "circular_a.typemux"
+
+type TypeB {
+    id: string @required
+    a: TypeA
+}

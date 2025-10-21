@@ -1,0 +1,256 @@
+{
+  "Namespace": {
+    "prefix": "namespace",
+    "body": [
+      "namespace ${1:com.example.api}"
+    ],
+    "description": "Declare a namespace for the schema"
+  },
+  "Import": {
+    "prefix": "import",
+    "body": [
+      "import \"${1:path/to/file.typemux}\""
+    ],
+    "description": "Import another TypeMux file"
+  },
+  "Enum": {
+    "prefix": "enum",
+    "body": [
+      "enum ${1:Name} {",
+      "\t${2:VALUE}",
+      "}"
+    ],
+    "description": "Create an enum definition"
+  },
+  "Enum with Numbers": {
+    "prefix": "enumnum",
+    "body": [
+      "enum ${1:Name} {",
+      "\t${2:VALUE1} = ${3:1}",
+      "\t${4:VALUE2} = ${5:2}",
+      "}"
+    ],
+    "description": "Create an enum with custom numbers"
+  },
+  "Type": {
+    "prefix": "type",
+    "body": [
+      "type ${1:Name} {",
+      "\t${2:field}: ${3:string} @required",
+      "}"
+    ],
+    "description": "Create a type definition"
+  },
+  "Union": {
+    "prefix": "union",
+    "body": [
+      "union ${1:Name} {",
+      "\t${2:TypeA}",
+      "\t${3:TypeB}",
+      "\t${4:TypeC}",
+      "}"
+    ],
+    "description": "Create a union/oneOf definition"
+  },
+  "Type with Field Numbers": {
+    "prefix": "typenum",
+    "body": [
+      "type ${1:Name} {",
+      "\t${2:id}: ${3:string} = 1 @required",
+      "\t${4:name}: ${5:string} = 2 @required",
+      "}"
+    ],
+    "description": "Create a type with custom field numbers"
+  },
+  "Service": {
+    "prefix": "service",
+    "body": [
+      "service ${1:ServiceName} {",
+      "\trpc ${2:MethodName}(${3:Request}) returns (${4:Response})",
+      "}"
+    ],
+    "description": "Create a service definition"
+  },
+  "RPC Method": {
+    "prefix": "rpc",
+    "body": [
+      "rpc ${1:MethodName}(${2:Request}) returns (${3:Response})"
+    ],
+    "description": "Create an RPC method"
+  },
+  "Field": {
+    "prefix": "field",
+    "body": [
+      "${1:name}: ${2:string}"
+    ],
+    "description": "Create a field"
+  },
+  "Field Required": {
+    "prefix": "fieldreq",
+    "body": [
+      "${1:name}: ${2:string} @required"
+    ],
+    "description": "Create a required field"
+  },
+  "Field with Default": {
+    "prefix": "fielddef",
+    "body": [
+      "${1:name}: ${2:bool} @default(${3:true})"
+    ],
+    "description": "Create a field with default value"
+  },
+  "Field with Number": {
+    "prefix": "fieldnum",
+    "body": [
+      "${1:name}: ${2:string} = ${3:1} @required"
+    ],
+    "description": "Create a field with custom number"
+  },
+  "Array Field": {
+    "prefix": "array",
+    "body": [
+      "${1:items}: []${2:string}"
+    ],
+    "description": "Create an array field"
+  },
+  "Map Field": {
+    "prefix": "map",
+    "body": [
+      "${1:metadata}: map<${2:string}, ${3:string}>"
+    ],
+    "description": "Create a map field"
+  },
+  "Documentation Comment": {
+    "prefix": "doc",
+    "body": [
+      "/// ${1:Description}"
+    ],
+    "description": "Add documentation comment"
+  },
+  "Multi-generator Documentation": {
+    "prefix": "doct",
+    "body": [
+      "/// ${1:General description}",
+      "/// @proto ${2:Protobuf-specific}",
+      "/// @graphql ${3:GraphQL-specific}",
+      "/// @openapi ${4:OpenAPI-specific}"
+    ],
+    "description": "Add multi-generator documentation"
+  },
+  "HTTP Annotation": {
+    "prefix": "http",
+    "body": [
+      "@http(${1|GET,POST,PUT,DELETE,PATCH|}) @path(\"${2:/api/v1/resource}\")"
+    ],
+    "description": "Add HTTP method and path annotations"
+  },
+  "GraphQL Annotation": {
+    "prefix": "graphql",
+    "body": [
+      "@graphql(${1|query,mutation,subscription|})"
+    ],
+    "description": "Add GraphQL operation type annotation"
+  },
+  "Exclude From": {
+    "prefix": "exclude",
+    "body": [
+      "@exclude(${1|proto,graphql,openapi|})"
+    ],
+    "description": "Exclude field from specific generators"
+  },
+  "Only For": {
+    "prefix": "only",
+    "body": [
+      "@only(${1|proto,graphql,openapi|})"
+    ],
+    "description": "Include field only in specific generators"
+  },
+  "Success Codes": {
+    "prefix": "success",
+    "body": [
+      "@success(${1|201,202,204|})"
+    ],
+    "description": "Specify additional HTTP success codes for RPC method"
+  },
+  "Error Codes": {
+    "prefix": "errors",
+    "body": [
+      "@errors(${1:400},${2:404},${3:500})"
+    ],
+    "description": "Specify expected HTTP error codes for RPC method"
+  },
+  "Complete Schema": {
+    "prefix": "schema",
+    "body": [
+      "/// ${1:Description}",
+      "namespace ${2:com.example.api}",
+      "",
+      "enum ${3:Status} {",
+      "\tACTIVE = 1",
+      "\tINACTIVE = 2",
+      "}",
+      "",
+      "type ${4:Entity} {",
+      "\tid: string = 1 @required",
+      "\tname: string = 2 @required",
+      "\tstatus: ${3:Status} = 3 @required",
+      "\tcreatedAt: timestamp = 4 @required",
+      "}",
+      "",
+      "type ${5:CreateRequest} {",
+      "\tname: string @required",
+      "}",
+      "",
+      "type ${6:CreateResponse} {",
+      "\tentity: ${4:Entity} @required",
+      "\tsuccess: bool @required",
+      "}",
+      "",
+      "service ${7:EntityService} {",
+      "\trpc Create${4:Entity}(${5:CreateRequest}) returns (${6:CreateResponse})",
+      "}"
+    ],
+    "description": "Create a complete schema template"
+  },
+  "Proto Name Annotation": {
+    "prefix": "protoname",
+    "body": [
+      "@proto.name(\"${1:CustomName}\")"
+    ],
+    "description": "Add Protobuf-specific name annotation"
+  },
+  "GraphQL Name Annotation": {
+    "prefix": "graphqlname",
+    "body": [
+      "@graphql.name(\"${1:CustomName}\")"
+    ],
+    "description": "Add GraphQL-specific name annotation"
+  },
+  "OpenAPI Name Annotation": {
+    "prefix": "openapiname",
+    "body": [
+      "@openapi.name(\"${1:CustomName}\")"
+    ],
+    "description": "Add OpenAPI-specific name annotation"
+  },
+  "Type with Leading Name Annotations": {
+    "prefix": "typenames",
+    "body": [
+      "@proto.name(\"${1:ProtoName}\")",
+      "@graphql.name(\"${2:GraphQLName}\")",
+      "@openapi.name(\"${3:OpenAPIName}\")",
+      "type ${4:Name} {",
+      "\t${5:field}: ${6:string} @required",
+      "}"
+    ],
+    "description": "Create a type with leading name annotations for all formats"
+  },
+  "Field with Leading Required": {
+    "prefix": "fieldleading",
+    "body": [
+      "@required",
+      "${1:name}: ${2:string}"
+    ],
+    "description": "Create a field with leading @required annotation"
+  }
+}
