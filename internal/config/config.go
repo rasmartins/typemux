@@ -191,7 +191,7 @@ func (c *Config) ApplyDefaults() {
 // ShouldGenerateFormat checks if a specific format should be generated
 func (c *Config) ShouldGenerateFormat(format string) bool {
 	for _, f := range c.Output.Formats {
-		if f == "all" || f == format || (f == "proto" && format == "protobuf") {
+		if f == "all" || f == format || (f == "proto" && format == "protobuf") || (f == "golang" && format == "go") {
 			return true
 		}
 	}

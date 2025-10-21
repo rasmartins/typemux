@@ -120,7 +120,7 @@ func main() {
 
 	// Direct flags (used when no config file is provided)
 	inputFile := flag.String("input", "", "Input IDL schema file")
-	outputFormat := flag.String("format", "all", "Output format: graphql, protobuf, openapi, or all")
+	outputFormat := flag.String("format", "all", "Output format: graphql, protobuf, openapi, go, or all")
 	outputDir := flag.String("output", "./generated", "Output directory for generated files")
 
 	var annotationFiles arrayFlags
@@ -160,6 +160,9 @@ func main() {
 			}
 			if cfg.ShouldGenerateFormat("openapi") {
 				formats = append(formats, "openapi")
+			}
+			if cfg.ShouldGenerateFormat("go") {
+				formats = append(formats, "go")
 			}
 		}
 
@@ -231,12 +234,15 @@ func main() {
 			generateProtobuf(schema, outputDirectory)
 		case "openapi":
 			generateOpenAPI(schema, outputDirectory)
+		case "go", "golang":
+			generateGo(schema, outputDirectory)
 		case "docs", "markdown", "md":
 			generateMarkdownDocs(schema, outputDirectory)
 		case "all":
 			generateGraphQL(schema, outputDirectory)
 			generateProtobuf(schema, outputDirectory)
 			generateOpenAPI(schema, outputDirectory)
+			generateGo(schema, outputDirectory)
 			generateMarkdownDocs(schema, outputDirectory)
 		default:
 			fmt.Printf("Unknown format: %s\n", format)
@@ -351,6 +357,18 @@ func generateOpenAPI(schema *ast.Schema, outputDir string) {
 		return
 	}
 	fmt.Printf("Generated OpenAPI schema: %s\n", outputPath)
+}
+
+func generateGo(schema *ast.Schema, outputDir string) {
+	gen := generator.NewGoGenerator()
+	output := gen.Generate(schema)
+
+	outputPath := filepath.Join(outputDir, "types.go")
+	if err := os.WriteFile(outputPath, []byte(output), 0o600); err != nil {
+		fmt.Printf("Error writing Go code: %v\n", err)
+		return
+	}
+	fmt.Printf("Generated Go code: %s\n", outputPath)
 }
 
 func generateMarkdownDocs(schema *ast.Schema, outputDir string) {
