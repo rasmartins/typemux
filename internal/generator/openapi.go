@@ -23,8 +23,9 @@ type OpenAPISpec struct {
 }
 
 type OpenAPIInfo struct {
-	Title   string `json:"title" yaml:"title"`
-	Version string `json:"version" yaml:"version"`
+	Title       string `json:"title" yaml:"title"`
+	Version     string `json:"version" yaml:"version"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
 type OpenAPIOperation struct {
@@ -100,15 +101,43 @@ type OpenAPIPropertyItems struct {
 func (g *OpenAPIGenerator) Generate(schema *ast.Schema) string {
 	// Use namespace for title if available
 	title := "Generated API"
+	version := "1.0.0"
+	description := ""
+
 	if schema.Namespace != "" {
 		title = schema.Namespace + " API"
+	}
+
+	// Apply namespace-level OpenAPI info from annotations
+	if schema.NamespaceAnnotations != nil && len(schema.NamespaceAnnotations.OpenAPI) > 0 {
+		for _, info := range schema.NamespaceAnnotations.OpenAPI {
+			// Parse info string format: "key:value"
+			parts := strings.SplitN(info, ":", 2)
+			if len(parts) == 2 {
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+
+				// Handle info section keys (non x- prefixed)
+				if !strings.HasPrefix(key, "x-") {
+					switch key {
+					case "title":
+						title = value
+					case "version":
+						version = value
+					case "description":
+						description = value
+					}
+				}
+			}
+		}
 	}
 
 	spec := OpenAPISpec{
 		OpenAPI: "3.0.0",
 		Info: OpenAPIInfo{
-			Title:   title,
-			Version: "1.0.0",
+			Title:       title,
+			Version:     version,
+			Description: description,
 		},
 		Paths:      make(map[string]map[string]OpenAPIOperation),
 		Components: OpenAPIComponents{

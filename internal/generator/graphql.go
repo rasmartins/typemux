@@ -30,6 +30,14 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 	}
 	sb.WriteString("\n")
 
+	// Add namespace-level GraphQL directives (e.g., federation directives)
+	if schema.NamespaceAnnotations != nil && len(schema.NamespaceAnnotations.GraphQL) > 0 {
+		for _, directive := range schema.NamespaceAnnotations.GraphQL {
+			sb.WriteString(fmt.Sprintf("extend schema %s\n", directive))
+		}
+		sb.WriteString("\n")
+	}
+
 	// Add JSON scalar definition for map types
 	sb.WriteString("scalar JSON\n\n")
 
