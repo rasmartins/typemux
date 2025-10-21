@@ -216,7 +216,7 @@ Syntax highlighting and snippets for `.typemux` files are available in the `vsco
 
 ## Development
 
-This project was mostly **vibe-coded** - built through rapid iteration with AI assistance, extensive testing, and real-world validation. The codebase maintains 90%+ test coverage and passes comprehensive CI/CD checks.
+This project was mostly **vibe-coded** with AI assistance. Despite that, it has 90%+ test coverage and passes all CI/CD checks.
 
 ## License
 
