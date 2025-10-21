@@ -18,6 +18,22 @@ func NewProtobufGenerator() *ProtobufGenerator {
 func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]string {
 	result := make(map[string]string)
 
+	// Helper function to create namespace schema with annotations
+	createNamespaceSchema := func(ns string) *ast.Schema {
+		nsSchema := &ast.Schema{
+			Namespace: ns,
+			Enums:     []*ast.Enum{},
+			Types:     []*ast.Type{},
+			Unions:    []*ast.Union{},
+			Services:  []*ast.Service{},
+		}
+		// Copy namespace annotations if this is the main namespace
+		if ns == schema.Namespace && schema.NamespaceAnnotations != nil {
+			nsSchema.NamespaceAnnotations = schema.NamespaceAnnotations
+		}
+		return nsSchema
+	}
+
 	// Group types, enums, unions, and services by namespace
 	namespaceData := make(map[string]*ast.Schema)
 
@@ -27,13 +43,7 @@ func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]s
 			ns = "api"
 		}
 		if namespaceData[ns] == nil {
-			namespaceData[ns] = &ast.Schema{
-				Namespace: ns,
-				Enums:     []*ast.Enum{},
-				Types:     []*ast.Type{},
-				Unions:    []*ast.Union{},
-				Services:  []*ast.Service{},
-			}
+			namespaceData[ns] = createNamespaceSchema(ns)
 		}
 		namespaceData[ns].Enums = append(namespaceData[ns].Enums, enum)
 	}
@@ -44,13 +54,7 @@ func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]s
 			ns = "api"
 		}
 		if namespaceData[ns] == nil {
-			namespaceData[ns] = &ast.Schema{
-				Namespace: ns,
-				Enums:     []*ast.Enum{},
-				Types:     []*ast.Type{},
-				Unions:    []*ast.Union{},
-				Services:  []*ast.Service{},
-			}
+			namespaceData[ns] = createNamespaceSchema(ns)
 		}
 		namespaceData[ns].Types = append(namespaceData[ns].Types, typ)
 	}
@@ -61,13 +65,7 @@ func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]s
 			ns = "api"
 		}
 		if namespaceData[ns] == nil {
-			namespaceData[ns] = &ast.Schema{
-				Namespace: ns,
-				Enums:     []*ast.Enum{},
-				Types:     []*ast.Type{},
-				Unions:    []*ast.Union{},
-				Services:  []*ast.Service{},
-			}
+			namespaceData[ns] = createNamespaceSchema(ns)
 		}
 		namespaceData[ns].Unions = append(namespaceData[ns].Unions, union)
 	}
@@ -78,13 +76,7 @@ func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]s
 			ns = "api"
 		}
 		if namespaceData[ns] == nil {
-			namespaceData[ns] = &ast.Schema{
-				Namespace: ns,
-				Enums:     []*ast.Enum{},
-				Types:     []*ast.Type{},
-				Unions:    []*ast.Union{},
-				Services:  []*ast.Service{},
-			}
+			namespaceData[ns] = createNamespaceSchema(ns)
 		}
 		namespaceData[ns].Services = append(namespaceData[ns].Services, service)
 	}
