@@ -85,14 +85,14 @@ func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]s
 
 	// Generate a proto file for each namespace
 	for ns, nsSchema := range namespaceData {
-		result[ns] = g.generateForNamespace(nsSchema, schema)
+		result[ns] = g.generateForNamespace(nsSchema)
 	}
 
 	return result
 }
 
 // generateForNamespace generates a single proto file for a specific namespace
-func (g *ProtobufGenerator) generateForNamespace(nsSchema *ast.Schema, fullSchema *ast.Schema) string {
+func (g *ProtobufGenerator) generateForNamespace(nsSchema *ast.Schema) string {
 	var sb strings.Builder
 
 	sb.WriteString("// Generated Protobuf Schema\n")
