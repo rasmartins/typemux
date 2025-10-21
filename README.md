@@ -1,5 +1,8 @@
 # TypeMux
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rasmartins/typemux)](https://goreportcard.com/report/github.com/rasmartins/typemux)
+
 A powerful Interface Definition Language (IDL) that can generate GraphQL schemas, Protobuf definitions, and OpenAPI specifications from a single schema definition.
 
 ## Features
@@ -329,3 +332,7 @@ The generator creates an OpenAPI 3.0 specification with:
 - [ ] JSON Schema output format
 - [ ] TypeScript type definitions
 - [ ] gRPC gateway annotations
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
