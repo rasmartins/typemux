@@ -60,7 +60,7 @@ type Lexer struct {
 }
 
 // New creates a new lexer for the given input string.
-func New(input string) *Lexer{
+func New(input string) *Lexer {
 	l := &Lexer{input: input, line: 1, column: 0}
 	l.readChar()
 	return l
