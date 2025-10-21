@@ -35,7 +35,15 @@ jobs:
       run: go mod verify
 
     - name: Run tests
-      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Windows: run without coverage due to PowerShell parsing issues
+          go test -v -race ./...
+        else
+          # Unix: run with coverage
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        fi
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
