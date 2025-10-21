@@ -1,5 +1,6 @@
 @typemux("1.0.0")
 
+@go.package("ecommerce")
 namespace example.go
 
 /// Product represents an item in the inventory
@@ -57,9 +58,7 @@ type Order {
 /// Payment method union type
 union PaymentMethod {
     CreditCard
-    DebitCard
     PayPal
-    BankTransfer
 }
 
 /// Credit card payment details

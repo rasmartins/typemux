@@ -106,7 +106,7 @@ func (p *Parser) Parse() *ast.Schema {
 				schema.Namespace = namespace
 
 				// Only store leading annotations if they exist (these would be annotations before the namespace keyword)
-				if leadingAnnotations != nil && (len(leadingAnnotations.Proto) > 0 || len(leadingAnnotations.GraphQL) > 0 || len(leadingAnnotations.OpenAPI) > 0) {
+				if leadingAnnotations != nil && (len(leadingAnnotations.Proto) > 0 || len(leadingAnnotations.GraphQL) > 0 || len(leadingAnnotations.OpenAPI) > 0 || len(leadingAnnotations.Go) > 0) {
 					schema.NamespaceAnnotations = leadingAnnotations
 				}
 				// Note: We do NOT parse trailing annotations here because annotations that appear
@@ -984,7 +984,7 @@ func (p *Parser) parseSingleAnnotation(annotations *ast.FormatAnnotations) {
 	p.nextToken()
 
 	// Check for dot notation: @format.subtype(...)
-	if formatName == "proto" || formatName == "graphql" || formatName == "openapi" {
+	if formatName == "proto" || formatName == "graphql" || formatName == "openapi" || formatName == "go" {
 		// Expect a dot
 		if p.curTok.Type != lexer.TOKEN_DOT {
 			p.addError(fmt.Sprintf("expected . after @%s", formatName))
@@ -1016,7 +1016,13 @@ func (p *Parser) parseSingleAnnotation(annotations *ast.FormatAnnotations) {
 					annotations.GraphQLName = name
 				} else if formatName == "openapi" {
 					annotations.OpenAPIName = name
+				} else if formatName == "go" {
+					annotations.GoName = name
 				}
+			} else if subtype == "package" && formatName == "go" {
+				// Handle @go.package("packagename") for namespace-level annotations
+				packageName := strings.Trim(content, "\"'")
+				annotations.Go = append(annotations.Go, fmt.Sprintf("package = \"%s\"", packageName))
 			} else {
 				// Store in appropriate list for other subtypes
 				if formatName == "proto" {
@@ -1025,6 +1031,8 @@ func (p *Parser) parseSingleAnnotation(annotations *ast.FormatAnnotations) {
 					annotations.GraphQL = append(annotations.GraphQL, content)
 				} else if formatName == "openapi" {
 					annotations.OpenAPI = append(annotations.OpenAPI, content)
+				} else if formatName == "go" {
+					annotations.Go = append(annotations.Go, content)
 				}
 			}
 		}
@@ -1058,6 +1066,10 @@ func (p *Parser) mergeAnnotations(leading, trailing *ast.FormatAnnotations) *ast
 	merged.OpenAPI = append(merged.OpenAPI, leading.OpenAPI...)
 	merged.OpenAPI = append(merged.OpenAPI, trailing.OpenAPI...)
 
+	// Merge Go annotations
+	merged.Go = append(merged.Go, leading.Go...)
+	merged.Go = append(merged.Go, trailing.Go...)
+
 	// For name annotations, trailing takes precedence
 	if trailing.ProtoName != "" {
 		merged.ProtoName = trailing.ProtoName
@@ -1075,6 +1087,12 @@ func (p *Parser) mergeAnnotations(leading, trailing *ast.FormatAnnotations) *ast
 		merged.OpenAPIName = trailing.OpenAPIName
 	} else {
 		merged.OpenAPIName = leading.OpenAPIName
+	}
+
+	if trailing.GoName != "" {
+		merged.GoName = trailing.GoName
+	} else {
+		merged.GoName = leading.GoName
 	}
 
 	return merged

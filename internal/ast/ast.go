@@ -189,9 +189,11 @@ type FormatAnnotations struct {
 	Proto       []string // Protobuf options: ["packed = false", "retention = RETENTION_SOURCE"]
 	GraphQL     []string // GraphQL directives: ["@key(fields: \"id\")", "@external"]
 	OpenAPI     []string // OpenAPI extensions: ["x-internal-id: prod", "x-format: currency"]
+	Go          []string // Go options: ["package = \"mypackage\""]
 	ProtoName   string   // Override name for Protobuf generation (from @proto.name annotation)
 	GraphQLName string   // Override name for GraphQL generation (from @graphql.name annotation)
 	OpenAPIName string   // Override name for OpenAPI generation (from @openapi.name annotation)
+	GoName      string   // Override name for Go generation (from @go.name annotation)
 }
 
 // NewFormatAnnotations creates a new FormatAnnotations instance

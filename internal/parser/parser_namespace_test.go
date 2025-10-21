@@ -194,3 +194,38 @@ type Data {
 		}
 	}
 }
+
+func TestNamespaceAnnotations_Go(t *testing.T) {
+	input := `
+@go.package("mypackage")
+namespace com.example.api
+
+type User {
+	id: string
+}
+`
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) != 0 {
+		t.Fatalf("parser had errors: %v", p.Errors())
+	}
+
+	if schema.Namespace != "com.example.api" {
+		t.Errorf("expected namespace 'com.example.api', got '%s'", schema.Namespace)
+	}
+
+	if schema.NamespaceAnnotations == nil {
+		t.Fatal("expected NamespaceAnnotations to be set, got nil")
+	}
+
+	if len(schema.NamespaceAnnotations.Go) != 1 {
+		t.Fatalf("expected 1 go annotation, got %d", len(schema.NamespaceAnnotations.Go))
+	}
+
+	expected := `package = "mypackage"`
+	if schema.NamespaceAnnotations.Go[0] != expected {
+		t.Errorf("expected go annotation '%s', got '%s'", expected, schema.NamespaceAnnotations.Go[0])
+	}
+}

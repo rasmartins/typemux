@@ -19,14 +19,14 @@ This tutorial will teach you TypeMux from the ground up, building a complete e-c
 
 TypeMux supports these primitive types:
 
-- `string` - Text data
-- `int32` - 32-bit integer
-- `int64` - 64-bit integer
-- `float32` - 32-bit floating point
-- `float64` - 64-bit floating point
-- `bool` - Boolean (true/false)
-- `timestamp` - Date and time
-- `bytes` - Binary data
+- **string** - Text data
+- **int32** - 32-bit integer
+- **int64** - 64-bit integer
+- **float32** - 32-bit floating point
+- **float64** - 64-bit floating point
+- **bool** - Boolean (true/false)
+- **timestamp** - Date and time
+- **bytes** - Binary data
 
 Let's create a simple product type:
 

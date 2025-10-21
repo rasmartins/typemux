@@ -400,3 +400,55 @@ func TestGoGenerator_ExportFieldName(t *testing.T) {
 		})
 	}
 }
+
+func TestGoGenerator_PackageAnnotation(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "com.example.api",
+		NamespaceAnnotations: &ast.FormatAnnotations{
+			Go: []string{`package = "custompackage"`},
+		},
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	if !strings.Contains(output, "package custompackage") {
+		t.Errorf("Expected package custompackage, got:\n%s", output)
+	}
+}
+
+func TestGoGenerator_PackageAnnotationDefault(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "com.example.api",
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	// Should use default package name derived from namespace
+	if !strings.Contains(output, "package api") {
+		t.Errorf("Expected package api, got:\n%s", output)
+	}
+}
