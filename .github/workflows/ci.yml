@@ -206,7 +206,7 @@ jobs:
           # Skip circular import examples (expected to fail)
           if [[ "$file" == *"circular"* ]]; then
             echo "⏭️  SKIPPED (circular import test)"
-            ((skipped++))
+            skipped=$((skipped + 1))
             echo ""
             continue
           fi
@@ -217,14 +217,14 @@ jobs:
           # Try to generate all formats
           if ./typemux -input "$file" -format all -output "$output_dir" 2>&1; then
             echo "✅ PASSED"
-            ((passed++))
+            passed=$((passed + 1))
 
             # List generated files
             echo "Generated files:"
             ls -lh "$output_dir"
           else
             echo "❌ FAILED"
-            ((failed++))
+            failed=$((failed + 1))
           fi
 
           # Cleanup
