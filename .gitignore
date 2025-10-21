@@ -1,10 +1,10 @@
-# Binaries
+# Binaries (at root level only)
 bin/
-typemux
-proto2typemux
-graphql2typemux
-openapi2typemux
-idl-codegen
+/typemux
+/proto2typemux
+/graphql2typemux
+/openapi2typemux
+/idl-codegen
 *.exe
 *.dll
 *.so
