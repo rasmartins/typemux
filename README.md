@@ -214,6 +214,10 @@ Syntax highlighting and snippets for `.typemux` files are available in the `vsco
 - **Contract Testing** - Ensure API contracts are consistent
 - **Documentation** - Auto-generate up-to-date API docs
 
+## Development
+
+This project was mostly **vibe-coded** - built through rapid iteration with AI assistance, extensive testing, and real-world validation. The codebase maintains 90%+ test coverage and passes comprehensive CI/CD checks.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
