@@ -32,7 +32,8 @@ linters-settings:
   govet:
     enable-all: true
     disable:
-      - shadow      # Too strict for this project
+      - shadow          # Too strict for this project
+      - fieldalignment  # Memory optimization not priority
 
   revive:
     rules:
@@ -51,6 +52,9 @@ linters-settings:
     disabled-checks:
       - unnamedResult
       - hugeParam
+      - ifElseChain        # Style preference
+      - paramTypeCombine   # Style preference
+      - sprintfQuotedString  # Already using %q where needed
 
   gosec:
     excludes:
@@ -72,6 +76,7 @@ issues:
         - gosec
         - errcheck
         - gocritic
+        - govet  # Allow unused writes in table-driven tests
 
     # Exclude generated code
     - path: (.*)?_generated\.go

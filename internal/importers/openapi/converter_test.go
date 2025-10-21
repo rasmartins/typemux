@@ -50,7 +50,6 @@ func TestConvertBasicSchema(t *testing.T) {
 	}
 }
 
-
 func TestConvertArrayType(t *testing.T) {
 	spec := &OpenAPISpec{
 		OpenAPI: "3.0.0",
@@ -117,10 +116,6 @@ func TestConvertRequiredFields(t *testing.T) {
 	}
 }
 
-
-
-
-
 func TestConvertDescription(t *testing.T) {
 	spec := &OpenAPISpec{
 		OpenAPI: "3.0.0",
@@ -175,7 +170,6 @@ func TestConvertEmptySpec(t *testing.T) {
 	}
 }
 
-
 func TestConvertRef(t *testing.T) {
 	spec := &OpenAPISpec{
 		OpenAPI: "3.0.0",
@@ -205,4 +199,3 @@ func TestConvertRef(t *testing.T) {
 		t.Error("expected owner field with User type")
 	}
 }
-

@@ -12,8 +12,8 @@ func TestMerger_NamespaceAnnotations_Proto(t *testing.T) {
 			"com.example.users": {
 				Proto: &NamespaceProtoAnnotations{
 					Options: map[string]string{
-						"go_package":         "github.com/example/proto",
-						"java_package":       "com.example.proto",
+						"go_package":          "github.com/example/proto",
+						"java_package":        "com.example.proto",
 						"java_multiple_files": "true",
 					},
 				},
@@ -44,9 +44,9 @@ func TestMerger_NamespaceAnnotations_Proto(t *testing.T) {
 	}
 
 	expectedOptions := map[string]bool{
-		"go_package=\"github.com/example/proto\"":       true,
-		"java_package=\"com.example.proto\"":            true,
-		"java_multiple_files=\"true\"":                  true,
+		"go_package=\"github.com/example/proto\"": true,
+		"java_package=\"com.example.proto\"":      true,
+		"java_multiple_files=\"true\"":            true,
 	}
 
 	for expected := range expectedOptions {

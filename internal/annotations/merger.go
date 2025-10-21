@@ -342,7 +342,7 @@ func (m *Merger) mergeNamespaceAnnotations(schema *ast.Schema, annotations *Name
 	if annotations.Proto != nil && annotations.Proto.Options != nil {
 		for optionName, optionValue := range annotations.Proto.Options {
 			// Format as protobuf option: go_package="value" or java_package="value"
-			optionStr := fmt.Sprintf("%s=\"%s\"", optionName, optionValue)
+			optionStr := fmt.Sprintf("%s=%q", optionName, optionValue)
 			schema.NamespaceAnnotations.Proto = append(schema.NamespaceAnnotations.Proto, optionStr)
 		}
 	}

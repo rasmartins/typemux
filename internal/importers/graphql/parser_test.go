@@ -309,8 +309,6 @@ func TestParseListType(t *testing.T) {
 	}
 }
 
-
-
 func TestParseCompleteSchema(t *testing.T) {
 	input := `scalar DateTime
 

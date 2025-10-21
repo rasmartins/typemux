@@ -7,8 +7,10 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
+// ProtobufGenerator generates Protocol Buffers (proto3) schemas from TypeMux schemas.
 type ProtobufGenerator struct{}
 
+// NewProtobufGenerator creates a new Protobuf schema generator.
 func NewProtobufGenerator() *ProtobufGenerator {
 	return &ProtobufGenerator{}
 }
@@ -194,6 +196,7 @@ func (g *ProtobufGenerator) findRequiredNamespaces(nsSchema *ast.Schema, fullSch
 	return result
 }
 
+// Generate creates a Protocol Buffers (proto3) schema string from the given schema.
 func (g *ProtobufGenerator) Generate(schema *ast.Schema) string {
 	var sb strings.Builder
 
@@ -399,14 +402,14 @@ func (g *ProtobufGenerator) generateUnion(union *ast.Union) string {
 	}
 
 	sb.WriteString(fmt.Sprintf("message %s {\n", union.Name))
-	sb.WriteString(fmt.Sprintf("  oneof value {\n"))
+	sb.WriteString("  oneof value {\n")
 
 	// Generate oneof options
 	fieldNum := 1
 	for _, option := range union.Options {
 		sb.WriteString(fmt.Sprintf("    %s %s = %d;\n",
 			option,
-			strings.ToLower(option[:1]) + option[1:], // camelCase the field name
+			strings.ToLower(option[:1])+option[1:], // camelCase the field name
 			fieldNum))
 		fieldNum++
 	}
@@ -484,22 +487,6 @@ func (g *ProtobufGenerator) generateMessageFieldWithNamespaceAndMap(field *ast.F
 
 	// Proto3 doesn't have required keyword, all fields are optional by default
 	return fmt.Sprintf("%s %s = %d%s;", protoType, field.Name, fieldNum, options)
-}
-
-func (g *ProtobufGenerator) mapTypeToProtobuf(fieldType *ast.FieldType) string {
-	if fieldType.IsMap {
-		return "map"
-	}
-
-	return g.mapScalarType(fieldType.Name)
-}
-
-func (g *ProtobufGenerator) mapTypeToProtobufWithNamespace(fieldType *ast.FieldType, currentNamespace string) string {
-	if fieldType.IsMap {
-		return "map"
-	}
-
-	return g.mapScalarTypeWithPackage(fieldType.Name, currentNamespace)
 }
 
 func (g *ProtobufGenerator) mapScalarType(typeName string) string {

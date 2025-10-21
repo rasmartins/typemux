@@ -9,25 +9,30 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// OpenAPIGenerator generates OpenAPI 3.0 specifications from TypeMux schemas.
 type OpenAPIGenerator struct{}
 
+// NewOpenAPIGenerator creates a new OpenAPI specification generator.
 func NewOpenAPIGenerator() *OpenAPIGenerator {
 	return &OpenAPIGenerator{}
 }
 
+// OpenAPISpec represents the root OpenAPI 3.0 specification structure.
 type OpenAPISpec struct {
-	OpenAPI    string                       `json:"openapi" yaml:"openapi"`
-	Info       OpenAPIInfo                  `json:"info" yaml:"info"`
+	OpenAPI    string                                 `json:"openapi" yaml:"openapi"`
+	Info       OpenAPIInfo                            `json:"info" yaml:"info"`
 	Paths      map[string]map[string]OpenAPIOperation `json:"paths" yaml:"paths"`
-	Components OpenAPIComponents            `json:"components" yaml:"components"`
+	Components OpenAPIComponents                      `json:"components" yaml:"components"`
 }
 
+// OpenAPIInfo contains metadata about the API.
 type OpenAPIInfo struct {
 	Title       string `json:"title" yaml:"title"`
 	Version     string `json:"version" yaml:"version"`
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
 }
 
+// OpenAPIOperation describes a single API operation on a path.
 type OpenAPIOperation struct {
 	Summary     string                     `json:"summary" yaml:"summary"`
 	OperationID string                     `json:"operationId" yaml:"operationId"`
@@ -36,6 +41,7 @@ type OpenAPIOperation struct {
 	Responses   map[string]OpenAPIResponse `json:"responses" yaml:"responses"`
 }
 
+// OpenAPIParameter describes a single operation parameter.
 type OpenAPIParameter struct {
 	Name        string                 `json:"name" yaml:"name"`
 	In          string                 `json:"in" yaml:"in"` // "path", "query", "header", "cookie"
@@ -44,50 +50,59 @@ type OpenAPIParameter struct {
 	Schema      OpenAPIParameterSchema `json:"schema" yaml:"schema"`
 }
 
+// OpenAPIParameterSchema describes the schema of a parameter.
 type OpenAPIParameterSchema struct {
 	Type string `json:"type" yaml:"type"`
 }
 
+// OpenAPIRequestBody describes a request body.
 type OpenAPIRequestBody struct {
-	Required bool                       `json:"required" yaml:"required"`
+	Required bool                        `json:"required" yaml:"required"`
 	Content  map[string]OpenAPIMediaType `json:"content" yaml:"content"`
 }
 
+// OpenAPIMediaType describes the media type of a request or response body.
 type OpenAPIMediaType struct {
 	Schema OpenAPISchemaRef `json:"schema" yaml:"schema"`
 }
 
+// OpenAPIResponse describes a single response from an API operation.
 type OpenAPIResponse struct {
 	Description string                      `json:"description" yaml:"description"`
 	Content     map[string]OpenAPIMediaType `json:"content,omitempty" yaml:"content,omitempty"`
 }
 
+// OpenAPISchemaRef is a reference to a schema or an inline schema definition.
 type OpenAPISchemaRef struct {
 	Ref        string                     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Type       string                     `json:"type,omitempty" yaml:"type,omitempty"`
 	Properties map[string]OpenAPIProperty `json:"properties,omitempty" yaml:"properties,omitempty"`
 }
 
+// OpenAPIComponents holds reusable schema definitions.
 type OpenAPIComponents struct {
 	Schemas map[string]OpenAPISchema `json:"schemas" yaml:"schemas"`
 }
 
+// OpenAPIDiscriminator specifies the discriminator for polymorphic types.
 type OpenAPIDiscriminator struct {
 	PropertyName string            `json:"propertyName" yaml:"propertyName"`
 	Mapping      map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 }
 
+// OpenAPISchema describes the structure of request/response bodies or schema components.
 type OpenAPISchema struct {
-	Type          string                      `json:"type,omitempty" yaml:"type,omitempty"`
-	Description   string                      `json:"description,omitempty" yaml:"description,omitempty"`
-	Properties    map[string]OpenAPIProperty  `json:"properties,omitempty" yaml:"properties,omitempty"`
-	Required      []string                    `json:"required,omitempty" yaml:"required,omitempty"`
-	Enum          []string                    `json:"enum,omitempty" yaml:"enum,omitempty"`
-	OneOf         []OpenAPISchemaRef          `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
-	Discriminator *OpenAPIDiscriminator       `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
-	Extensions    map[string]interface{}      `json:",inline" yaml:",inline"` // x- prefixed extensions
+	Type          string                     `json:"type,omitempty" yaml:"type,omitempty"`
+	Description   string                     `json:"description,omitempty" yaml:"description,omitempty"`
+	Properties    map[string]OpenAPIProperty `json:"properties,omitempty" yaml:"properties,omitempty"`
+	Required      []string                   `json:"required,omitempty" yaml:"required,omitempty"`
+	Enum          []string                   `json:"enum,omitempty" yaml:"enum,omitempty"`
+	OneOf         []OpenAPISchemaRef         `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
+	Discriminator *OpenAPIDiscriminator      `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
+	Extensions    map[string]interface{}     `json:",inline" yaml:",inline"` // x- prefixed extensions
 }
 
+// OpenAPIProperty describes a property within a schema including validation constraints.
 type OpenAPIProperty struct {
 	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
 	Format           string                 `json:"format,omitempty" yaml:"format,omitempty"`
@@ -111,11 +126,13 @@ type OpenAPIProperty struct {
 	Extensions       map[string]interface{} `json:",inline" yaml:",inline"` // x- prefixed extensions
 }
 
+// OpenAPIPropertyItems describes the items of an array-type property.
 type OpenAPIPropertyItems struct {
 	Type string `json:"type,omitempty" yaml:"type,omitempty"`
 	Ref  string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 }
 
+// Generate creates an OpenAPI 3.0 YAML specification from the given schema.
 func (g *OpenAPIGenerator) Generate(schema *ast.Schema) string {
 	// Use namespace for title if available
 	title := "Generated API"
@@ -157,7 +174,7 @@ func (g *OpenAPIGenerator) Generate(schema *ast.Schema) string {
 			Version:     version,
 			Description: description,
 		},
-		Paths:      make(map[string]map[string]OpenAPIOperation),
+		Paths: make(map[string]map[string]OpenAPIOperation),
 		Components: OpenAPIComponents{
 			Schemas: make(map[string]OpenAPISchema),
 		},
@@ -461,13 +478,17 @@ func (g *OpenAPIGenerator) convertDefaultValue(defaultStr string, typeName strin
 	case "int32", "int64":
 		// Parse as integer
 		var val int64
-		fmt.Sscanf(defaultStr, "%d", &val)
-		return val
+		if _, err := fmt.Sscanf(defaultStr, "%d", &val); err == nil {
+			return val
+		}
+		return defaultStr
 	case "float32", "float64":
 		// Parse as float
 		var val float64
-		fmt.Sscanf(defaultStr, "%f", &val)
-		return val
+		if _, err := fmt.Sscanf(defaultStr, "%f", &val); err == nil {
+			return val
+		}
+		return defaultStr
 	case "bool":
 		// Parse as boolean
 		return defaultStr == "true"

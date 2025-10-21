@@ -583,9 +583,9 @@ func TestGraphQLGenerator_TimestampType(t *testing.T) {
 
 func TestGraphQLGenerator_Namespace(t *testing.T) {
 	tests := []struct {
-		name              string
-		namespace         string
-		expectedInOutput  string
+		name             string
+		namespace        string
+		expectedInOutput string
 	}{
 		{
 			name:             "namespace in comment",

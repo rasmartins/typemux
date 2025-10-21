@@ -15,9 +15,9 @@ func TestGenerateUnionProtobuf(t *testing.T) {
 				Name: "TextMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "content",
-						Type: &ast.FieldType{Name: "string"},
-						Number: 1,
+						Name:      "content",
+						Type:      &ast.FieldType{Name: "string"},
+						Number:    1,
 						HasNumber: true,
 					},
 				},
@@ -26,9 +26,9 @@ func TestGenerateUnionProtobuf(t *testing.T) {
 				Name: "ImageMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "imageUrl",
-						Type: &ast.FieldType{Name: "string"},
-						Number: 1,
+						Name:      "imageUrl",
+						Type:      &ast.FieldType{Name: "string"},
+						Number:    1,
 						HasNumber: true,
 					},
 				},
@@ -36,7 +36,7 @@ func TestGenerateUnionProtobuf(t *testing.T) {
 		},
 		Unions: []*ast.Union{
 			{
-				Name: "Message",
+				Name:    "Message",
 				Options: []string{"TextMessage", "ImageMessage"},
 				Doc: &ast.Documentation{
 					General: "A message union",
@@ -80,8 +80,8 @@ func TestGenerateUnionGraphQL(t *testing.T) {
 				Name: "TextMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "content",
-						Type: &ast.FieldType{Name: "string"},
+						Name:     "content",
+						Type:     &ast.FieldType{Name: "string"},
 						Required: true,
 					},
 				},
@@ -90,8 +90,8 @@ func TestGenerateUnionGraphQL(t *testing.T) {
 				Name: "ImageMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "imageUrl",
-						Type: &ast.FieldType{Name: "string"},
+						Name:     "imageUrl",
+						Type:     &ast.FieldType{Name: "string"},
 						Required: true,
 					},
 				},
@@ -99,7 +99,7 @@ func TestGenerateUnionGraphQL(t *testing.T) {
 		},
 		Unions: []*ast.Union{
 			{
-				Name: "Message",
+				Name:    "Message",
 				Options: []string{"TextMessage", "ImageMessage"},
 				Doc: &ast.Documentation{
 					General: "A message union",
@@ -143,8 +143,8 @@ func TestGenerateUnionOpenAPI(t *testing.T) {
 				Name: "TextMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "content",
-						Type: &ast.FieldType{Name: "string"},
+						Name:     "content",
+						Type:     &ast.FieldType{Name: "string"},
 						Required: true,
 					},
 				},
@@ -153,8 +153,8 @@ func TestGenerateUnionOpenAPI(t *testing.T) {
 				Name: "ImageMessage",
 				Fields: []*ast.Field{
 					{
-						Name: "imageUrl",
-						Type: &ast.FieldType{Name: "string"},
+						Name:     "imageUrl",
+						Type:     &ast.FieldType{Name: "string"},
 						Required: true,
 					},
 				},
@@ -162,7 +162,7 @@ func TestGenerateUnionOpenAPI(t *testing.T) {
 		},
 		Unions: []*ast.Union{
 			{
-				Name: "Message",
+				Name:    "Message",
 				Options: []string{"TextMessage", "ImageMessage"},
 				Doc: &ast.Documentation{
 					General: "A message union",
@@ -217,7 +217,7 @@ func TestUnionWithManyOptions(t *testing.T) {
 		Namespace: "test",
 		Unions: []*ast.Union{
 			{
-				Name: "MultiUnion",
+				Name:    "MultiUnion",
 				Options: []string{"Type1", "Type2", "Type3", "Type4", "Type5"},
 			},
 		},

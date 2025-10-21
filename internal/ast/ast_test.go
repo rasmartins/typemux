@@ -676,29 +676,29 @@ func TestTypeRegistry_ResolveType(t *testing.T) {
 
 func TestGetUnqualifiedName(t *testing.T) {
 	tests := []struct {
-		name         string
+		name          string
 		qualifiedName string
-		expected     string
+		expected      string
 	}{
 		{
-			name:         "fully qualified name",
+			name:          "fully qualified name",
 			qualifiedName: "com.example.users.User",
-			expected:     "User",
+			expected:      "User",
 		},
 		{
-			name:         "simple qualified name",
+			name:          "simple qualified name",
 			qualifiedName: "api.User",
-			expected:     "User",
+			expected:      "User",
 		},
 		{
-			name:         "unqualified name",
+			name:          "unqualified name",
 			qualifiedName: "User",
-			expected:     "User",
+			expected:      "User",
 		},
 		{
-			name:         "empty string",
+			name:          "empty string",
 			qualifiedName: "",
-			expected:     "",
+			expected:      "",
 		},
 	}
 

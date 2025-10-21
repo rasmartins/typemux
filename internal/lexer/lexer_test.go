@@ -665,12 +665,12 @@ func TestTokenizeOptionalSyntax(t *testing.T) {
 
 	expectedTokens := []TokenType{
 		TOKEN_TYPE,
-		TOKEN_IDENT,      // User
+		TOKEN_IDENT, // User
 		TOKEN_LBRACE,
-		TOKEN_IDENT,      // name
+		TOKEN_IDENT, // name
 		TOKEN_COLON,
-		TOKEN_IDENT,      // string
-		TOKEN_QUESTION,   // ?
+		TOKEN_IDENT,    // string
+		TOKEN_QUESTION, // ?
 		TOKEN_RBRACE,
 	}
 

@@ -944,7 +944,7 @@ func TestParseFieldExclusion(t *testing.T) {
 			input: `type User {
   passwordHash: string @only(proto)
 }`,
-			fieldName:   "passwordHash",
+			fieldName:    "passwordHash",
 			expectedOnly: []string{"proto"},
 			shouldIncludeMap: map[string]bool{
 				"proto":   true,
@@ -957,7 +957,7 @@ func TestParseFieldExclusion(t *testing.T) {
 			input: `type User {
   publicField: string @only(graphql,openapi)
 }`,
-			fieldName:   "publicField",
+			fieldName:    "publicField",
 			expectedOnly: []string{"graphql", "openapi"},
 			shouldIncludeMap: map[string]bool{
 				"proto":   false,
@@ -982,7 +982,7 @@ func TestParseFieldExclusion(t *testing.T) {
 			input: `type User {
   score: int32 @default(0) @only(openapi)
 }`,
-			fieldName:   "score",
+			fieldName:    "score",
 			expectedOnly: []string{"openapi"},
 			shouldIncludeMap: map[string]bool{
 				"proto":   false,
@@ -1048,12 +1048,12 @@ func TestParseFieldExclusion(t *testing.T) {
 
 func TestParseMethodAnnotations(t *testing.T) {
 	tests := []struct {
-		name               string
-		input              string
-		methodName         string
-		expectedHTTP       string
-		expectedGraphQL    string
-		expectedHTTPLower  string
+		name                string
+		input               string
+		methodName          string
+		expectedHTTP        string
+		expectedGraphQL     string
+		expectedHTTPLower   string
 		expectedGQLResolved string
 	}{
 		{
@@ -1061,9 +1061,9 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc CreateUser(Req) returns (Res) @http(POST)
 }`,
-			methodName:         "CreateUser",
-			expectedHTTP:       "POST",
-			expectedHTTPLower:  "post",
+			methodName:        "CreateUser",
+			expectedHTTP:      "POST",
+			expectedHTTPLower: "post",
 		},
 		{
 			name: "explicit HTTP GET",
@@ -1106,8 +1106,8 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc CreateUser(Req) returns (Res) @graphql(query)
 }`,
-			methodName:         "CreateUser",
-			expectedGraphQL:    "query",
+			methodName:          "CreateUser",
+			expectedGraphQL:     "query",
 			expectedGQLResolved: "query",
 		},
 		{
@@ -1115,8 +1115,8 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc GetUser(Req) returns (Res) @graphql(mutation)
 }`,
-			methodName:         "GetUser",
-			expectedGraphQL:    "mutation",
+			methodName:          "GetUser",
+			expectedGraphQL:     "mutation",
 			expectedGQLResolved: "mutation",
 		},
 		{
@@ -1124,10 +1124,10 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc CreateUser(Req) returns (Res) @http(POST) @graphql(mutation)
 }`,
-			methodName:         "CreateUser",
-			expectedHTTP:       "POST",
-			expectedHTTPLower:  "post",
-			expectedGraphQL:    "mutation",
+			methodName:          "CreateUser",
+			expectedHTTP:        "POST",
+			expectedHTTPLower:   "post",
+			expectedGraphQL:     "mutation",
 			expectedGQLResolved: "mutation",
 		},
 		{
@@ -1135,8 +1135,8 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc GetUser(Req) returns (Res)
 }`,
-			methodName:         "GetUser",
-			expectedHTTPLower:  "get",
+			methodName:          "GetUser",
+			expectedHTTPLower:   "get",
 			expectedGQLResolved: "query",
 		},
 		{
@@ -1144,8 +1144,8 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc ListUsers(Req) returns (Res)
 }`,
-			methodName:         "ListUsers",
-			expectedHTTPLower:  "get",
+			methodName:          "ListUsers",
+			expectedHTTPLower:   "get",
 			expectedGQLResolved: "query",
 		},
 		{
@@ -1153,8 +1153,8 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc CreateUser(Req) returns (Res)
 }`,
-			methodName:         "CreateUser",
-			expectedHTTPLower:  "post",
+			methodName:          "CreateUser",
+			expectedHTTPLower:   "post",
 			expectedGQLResolved: "mutation",
 		},
 		{
@@ -1162,10 +1162,10 @@ func TestParseMethodAnnotations(t *testing.T) {
 			input: `service UserService {
   rpc GetUser(Req) returns (Res) @http(POST) @graphql(mutation)
 }`,
-			methodName:         "GetUser",
-			expectedHTTP:       "POST",
-			expectedHTTPLower:  "post",
-			expectedGraphQL:    "mutation",
+			methodName:          "GetUser",
+			expectedHTTP:        "POST",
+			expectedHTTPLower:   "post",
+			expectedGraphQL:     "mutation",
 			expectedGQLResolved: "mutation",
 		},
 	}
@@ -1274,9 +1274,9 @@ service UserService {
 
 func TestParsePathTemplate(t *testing.T) {
 	tests := []struct {
-		name             string
-		input            string
-		expectedPath     string
+		name         string
+		input        string
+		expectedPath string
 	}{
 		{
 			name: "simple path template",

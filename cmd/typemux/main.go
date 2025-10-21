@@ -16,7 +16,7 @@ import (
 	"github.com/rasmartins/typemux/internal/parser"
 )
 
-// Current TypeMux IDL version supported by this compiler
+// CurrentTypeMuxVersion is the TypeMux IDL version supported by this compiler.
 const CurrentTypeMuxVersion = "1.0.0"
 
 // arrayFlags is a custom flag type that accumulates multiple values
@@ -217,7 +217,7 @@ func main() {
 	}
 
 	// Create output directory
-	if err := os.MkdirAll(outputDirectory, 0755); err != nil {
+	if err := os.MkdirAll(outputDirectory, 0o750); err != nil {
 		fmt.Printf("Error creating output directory: %v\n", err)
 		os.Exit(1)
 	}
@@ -252,7 +252,7 @@ func generateGraphQL(schema *ast.Schema, outputDir string) {
 	output := gen.Generate(schema)
 
 	outputPath := filepath.Join(outputDir, "schema.graphql")
-	if err := os.WriteFile(outputPath, []byte(output), 0644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(output), 0o600); err != nil {
 		fmt.Printf("Error writing GraphQL schema: %v\n", err)
 		return
 	}
@@ -273,14 +273,14 @@ func generateProtobuf(schema *ast.Schema, outputDir string) {
 			// Create namespace directory structure (e.g., com/example/users/)
 			nsPath := strings.ReplaceAll(ns, ".", "/")
 			nsDir := filepath.Join(outputDir, filepath.Dir(nsPath))
-			if err := os.MkdirAll(nsDir, 0755); err != nil {
+			if err := os.MkdirAll(nsDir, 0o750); err != nil {
 				fmt.Printf("Error creating namespace directory: %v\n", err)
 				continue
 			}
 
 			// Write proto file (e.g., com/example/users.proto)
 			outputPath := filepath.Join(outputDir, nsPath+".proto")
-			if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(outputPath, []byte(content), 0o600); err != nil {
 				fmt.Printf("Error writing Protobuf schema for %s: %v\n", ns, err)
 				continue
 			}
@@ -290,7 +290,7 @@ func generateProtobuf(schema *ast.Schema, outputDir string) {
 		// Single namespace - generate single file
 		output := gen.Generate(schema)
 		outputPath := filepath.Join(outputDir, "schema.proto")
-		if err := os.WriteFile(outputPath, []byte(output), 0644); err != nil {
+		if err := os.WriteFile(outputPath, []byte(output), 0o600); err != nil {
 			fmt.Printf("Error writing Protobuf schema: %v\n", err)
 			return
 		}
@@ -346,7 +346,7 @@ func generateOpenAPI(schema *ast.Schema, outputDir string) {
 	output := gen.Generate(schema)
 
 	outputPath := filepath.Join(outputDir, "openapi.yaml")
-	if err := os.WriteFile(outputPath, []byte(output), 0644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(output), 0o600); err != nil {
 		fmt.Printf("Error writing OpenAPI schema: %v\n", err)
 		return
 	}
@@ -358,7 +358,7 @@ func generateMarkdownDocs(schema *ast.Schema, outputDir string) {
 	output := gen.Generate(schema)
 
 	outputPath := filepath.Join(outputDir, "API.md")
-	if err := os.WriteFile(outputPath, []byte(output), 0644); err != nil {
+	if err := os.WriteFile(outputPath, []byte(output), 0o600); err != nil {
 		fmt.Printf("Error writing Markdown documentation: %v\n", err)
 		return
 	}

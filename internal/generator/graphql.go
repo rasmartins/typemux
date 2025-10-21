@@ -7,12 +7,15 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
+// GraphQLGenerator generates GraphQL schema definitions from TypeMux schemas.
 type GraphQLGenerator struct{}
 
+// NewGraphQLGenerator creates a new GraphQL schema generator.
 func NewGraphQLGenerator() *GraphQLGenerator {
 	return &GraphQLGenerator{}
 }
 
+// Generate creates a GraphQL schema string from the given schema.
 func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 	var sb strings.Builder
 
@@ -250,7 +253,7 @@ func (g *GraphQLGenerator) generateEnum(enum *ast.Enum) string {
 	if doc := enum.Doc.GetDoc("graphql"); doc != "" {
 		// Replace newlines with spaces to create a single-line description
 		singleLineDoc := strings.ReplaceAll(doc, "\n", " ")
-		sb.WriteString(fmt.Sprintf("\"%s\"\n", singleLineDoc))
+		sb.WriteString(fmt.Sprintf("%q\n", singleLineDoc))
 	}
 
 	sb.WriteString(fmt.Sprintf("enum %s {\n", enum.Name))
@@ -267,7 +270,7 @@ func (g *GraphQLGenerator) generateUnion(union *ast.Union) string {
 	// Add documentation
 	if doc := union.Doc.GetDoc("graphql"); doc != "" {
 		singleLineDoc := strings.ReplaceAll(doc, "\n", " ")
-		sb.WriteString(fmt.Sprintf("\"%s\"\n", singleLineDoc))
+		sb.WriteString(fmt.Sprintf("%q\n", singleLineDoc))
 	}
 
 	sb.WriteString(fmt.Sprintf("union %s = ", union.Name))
@@ -281,7 +284,7 @@ func (g *GraphQLGenerator) generateUnionInput(union *ast.Union) string {
 	// Add documentation
 	if doc := union.Doc.GetDoc("graphql"); doc != "" {
 		singleLineDoc := strings.ReplaceAll(doc, "\n", " ")
-		sb.WriteString(fmt.Sprintf("\"%s (Input variant with @oneOf)\"\n", singleLineDoc))
+		sb.WriteString(fmt.Sprintf("%q\n", singleLineDoc+" (Input variant with @oneOf)"))
 	}
 
 	sb.WriteString(fmt.Sprintf("input %sInput @oneOf {\n", union.Name))
@@ -301,7 +304,7 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 	if doc := typ.Doc.GetDoc("graphql"); doc != "" {
 		// Replace newlines with spaces to create a single-line description
 		singleLineDoc := strings.ReplaceAll(doc, "\n", " ")
-		sb.WriteString(fmt.Sprintf("\"%s\"\n", singleLineDoc))
+		sb.WriteString(fmt.Sprintf("%q\n", singleLineDoc))
 	}
 
 	// Use 'input' keyword for types used as input parameters
@@ -343,9 +346,9 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 		if !isInput && field.Deprecated != nil {
 			var deprecationReason string
 			if field.Deprecated.Reason != "" {
-				// Escape quotes in reason
-				deprecationReason = strings.ReplaceAll(field.Deprecated.Reason, "\"", "\\\"")
-				fieldDirectiveParts = append(fieldDirectiveParts, fmt.Sprintf("@deprecated(reason: \"%s\")", deprecationReason))
+				// Use %q to properly escape the reason string
+				deprecationReason = field.Deprecated.Reason
+				fieldDirectiveParts = append(fieldDirectiveParts, fmt.Sprintf("@deprecated(reason: %q)", deprecationReason))
 			} else {
 				fieldDirectiveParts = append(fieldDirectiveParts, "@deprecated")
 			}
@@ -408,7 +411,7 @@ func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, type
 	// If the field is explicitly optional (has ?), don't add !
 	// If the field is required (@required), add !
 	if field.Required && !field.Type.Optional {
-		gqlType = gqlType + "!"
+		gqlType += "!"
 	} else if !field.Type.Optional && !field.Required {
 		// By default, if not marked as optional and not explicitly required,
 		// GraphQL leaves it nullable (no ! suffix)

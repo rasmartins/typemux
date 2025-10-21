@@ -4,22 +4,22 @@ import "strings"
 
 // Schema represents the entire IDL schema
 type Schema struct {
-	Namespace            string              // Optional namespace (e.g., "com.example.api")
-	TypeMuxVersion       string              // TypeMux IDL format version (e.g., "1.0.0")
-	Version              string              // Schema version (e.g., "1.0.0", "2.1.3")
-	NamespaceAnnotations *FormatAnnotations  // Namespace-level annotations
-	Imports              []string            // Imported file paths
+	Namespace            string             // Optional namespace (e.g., "com.example.api")
+	TypeMuxVersion       string             // TypeMux IDL format version (e.g., "1.0.0")
+	Version              string             // Schema version (e.g., "1.0.0", "2.1.3")
+	NamespaceAnnotations *FormatAnnotations // Namespace-level annotations
+	Imports              []string           // Imported file paths
 	Enums                []*Enum
 	Types                []*Type
 	Unions               []*Union
 	Services             []*Service
-	TypeRegistry         *TypeRegistry       // Registry for resolving qualified type names
+	TypeRegistry         *TypeRegistry // Registry for resolving qualified type names
 }
 
 // Enum represents an enumeration type
 type Enum struct {
 	Name        string
-	Namespace   string             // Namespace this enum belongs to
+	Namespace   string // Namespace this enum belongs to
 	Values      []*EnumValue
 	Doc         *Documentation
 	Annotations *FormatAnnotations // Format-specific annotations
@@ -36,7 +36,7 @@ type EnumValue struct {
 // Type represents a data type definition
 type Type struct {
 	Name        string
-	Namespace   string             // Namespace this type belongs to
+	Namespace   string // Namespace this type belongs to
 	Fields      []*Field
 	Doc         *Documentation
 	Annotations *FormatAnnotations // Format-specific annotations
@@ -45,8 +45,8 @@ type Type struct {
 // Union represents a union/oneOf type (can be one of several types)
 type Union struct {
 	Name        string
-	Namespace   string             // Namespace this union belongs to
-	Options     []string           // Names of the types that can be in this union
+	Namespace   string   // Namespace this union belongs to
+	Options     []string // Names of the types that can be in this union
 	Doc         *Documentation
 	Annotations *FormatAnnotations // Format-specific annotations
 }
@@ -112,17 +112,17 @@ type Service struct {
 
 // Method represents an RPC method
 type Method struct {
-	Name          string
-	InputType     string
-	OutputType    string
-	InputStream   bool     // Client-side streaming
-	OutputStream  bool     // Server-side streaming
-	Doc           *Documentation
-	HTTPMethod    string   // HTTP method for OpenAPI (GET, POST, PUT, DELETE, PATCH)
-	GraphQLType   string   // GraphQL operation type (query, mutation, subscription)
-	PathTemplate  string   // URL path template for OpenAPI (e.g., "/users/{id}")
-	SuccessCodes  []string // Additional success HTTP codes beyond 200 (e.g., "201", "204")
-	ErrorCodes    []string // Expected HTTP error codes (e.g., "400", "404", "500")
+	Name         string
+	InputType    string
+	OutputType   string
+	InputStream  bool // Client-side streaming
+	OutputStream bool // Server-side streaming
+	Doc          *Documentation
+	HTTPMethod   string   // HTTP method for OpenAPI (GET, POST, PUT, DELETE, PATCH)
+	GraphQLType  string   // GraphQL operation type (query, mutation, subscription)
+	PathTemplate string   // URL path template for OpenAPI (e.g., "/users/{id}")
+	SuccessCodes []string // Additional success HTTP codes beyond 200 (e.g., "201", "204")
+	ErrorCodes   []string // Expected HTTP error codes (e.g., "400", "404", "500")
 }
 
 // GetHTTPMethod returns the HTTP method, using heuristics if not explicitly set
@@ -166,7 +166,7 @@ func (d *Documentation) GetDoc(lang string) string {
 	return d.General
 }
 
-// Builtin types
+// BuiltinTypes maps primitive type names to their existence in the type system.
 var BuiltinTypes = map[string]bool{
 	"string":    true,
 	"int32":     true,
@@ -185,12 +185,12 @@ func IsBuiltinType(typeName string) bool {
 
 // FormatAnnotations holds format-specific annotations for types and fields
 type FormatAnnotations struct {
-	Proto      []string // Protobuf options: ["packed = false", "retention = RETENTION_SOURCE"]
-	GraphQL    []string // GraphQL directives: ["@key(fields: \"id\")", "@external"]
-	OpenAPI    []string // OpenAPI extensions: ["x-internal-id: prod", "x-format: currency"]
-	ProtoName  string   // Override name for Protobuf generation (from @proto.name annotation)
-	GraphQLName string  // Override name for GraphQL generation (from @graphql.name annotation)
-	OpenAPIName string  // Override name for OpenAPI generation (from @openapi.name annotation)
+	Proto       []string // Protobuf options: ["packed = false", "retention = RETENTION_SOURCE"]
+	GraphQL     []string // GraphQL directives: ["@key(fields: \"id\")", "@external"]
+	OpenAPI     []string // OpenAPI extensions: ["x-internal-id: prod", "x-format: currency"]
+	ProtoName   string   // Override name for Protobuf generation (from @proto.name annotation)
+	GraphQLName string   // Override name for GraphQL generation (from @graphql.name annotation)
+	OpenAPIName string   // Override name for OpenAPI generation (from @openapi.name annotation)
 }
 
 // NewFormatAnnotations creates a new FormatAnnotations instance
@@ -313,10 +313,10 @@ type DeprecationInfo struct {
 // ValidationRules holds validation constraints for a field
 type ValidationRules struct {
 	// String validation
-	MinLength *int    `json:"minLength,omitempty"`
-	MaxLength *int    `json:"maxLength,omitempty"`
-	Pattern   string  `json:"pattern,omitempty"` // Regex pattern
-	Format    string  `json:"format,omitempty"`  // email, url, uuid, etc.
+	MinLength *int   `json:"minLength,omitempty"`
+	MaxLength *int   `json:"maxLength,omitempty"`
+	Pattern   string `json:"pattern,omitempty"` // Regex pattern
+	Format    string `json:"format,omitempty"`  // email, url, uuid, etc.
 
 	// Numeric validation
 	Min          *float64 `json:"min,omitempty"`          // Minimum value (inclusive)
@@ -326,8 +326,8 @@ type ValidationRules struct {
 	MultipleOf   *float64 `json:"multipleOf,omitempty"`   // Must be multiple of this value
 
 	// Array validation
-	MinItems *int `json:"minItems,omitempty"`
-	MaxItems *int `json:"maxItems,omitempty"`
+	MinItems    *int `json:"minItems,omitempty"`
+	MaxItems    *int `json:"maxItems,omitempty"`
 	UniqueItems bool `json:"uniqueItems,omitempty"`
 
 	// General

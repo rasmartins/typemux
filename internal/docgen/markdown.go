@@ -7,12 +7,15 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
+// MarkdownGenerator generates Markdown API documentation from TypeMux schemas.
 type MarkdownGenerator struct{}
 
+// NewMarkdownGenerator creates a new Markdown documentation generator.
 func NewMarkdownGenerator() *MarkdownGenerator {
 	return &MarkdownGenerator{}
 }
 
+// Generate creates a Markdown documentation string from the given schema.
 func (g *MarkdownGenerator) Generate(schema *ast.Schema) string {
 	var sb strings.Builder
 
@@ -266,7 +269,7 @@ func (g *MarkdownGenerator) formatFieldType(fieldType *ast.FieldType) string {
 	}
 
 	if fieldType.Optional {
-		typeName = typeName + "?"
+		typeName += "?"
 	}
 
 	return typeName

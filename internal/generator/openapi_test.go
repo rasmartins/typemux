@@ -332,8 +332,8 @@ func TestOpenAPIGenerator_HTTPMethodSelection(t *testing.T) {
 	service := &ast.Service{Name: "TestService"}
 
 	tests := []struct {
-		methodName     string
-		expectedHTTP   string
+		methodName   string
+		expectedHTTP string
 	}{
 		{"GetUser", "get"},
 		{"ListUsers", "get"},

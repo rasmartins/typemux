@@ -72,7 +72,7 @@ func TestValidator_ValidAnnotations(t *testing.T) {
 	annotations := &YAMLAnnotations{
 		Types: map[string]*TypeAnnotations{
 			"User": {
-				Proto: &FormatSpecificAnnotations{Name: "UserV2"},
+				Proto:   &FormatSpecificAnnotations{Name: "UserV2"},
 				GraphQL: &FormatSpecificAnnotations{Name: "UserAccount"},
 				Fields: map[string]*FieldAnnotations{
 					"email": {

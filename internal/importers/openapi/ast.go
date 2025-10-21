@@ -34,17 +34,17 @@ type Server struct {
 
 // PathItem represents operations available on a single path
 type PathItem struct {
-	Ref        string
-	Summary    string
+	Ref         string
+	Summary     string
 	Description string
-	Get        *Operation
-	Post       *Operation
-	Put        *Operation
-	Delete     *Operation
-	Patch      *Operation
-	Options    *Operation
-	Head       *Operation
-	Trace      *Operation
+	Get         *Operation
+	Post        *Operation
+	Put         *Operation
+	Delete      *Operation
+	Patch       *Operation
+	Options     *Operation
+	Head        *Operation
+	Trace       *Operation
 }
 
 // Operation represents a single API operation

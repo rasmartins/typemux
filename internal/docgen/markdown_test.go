@@ -139,10 +139,10 @@ func TestGenerateServiceMarkdown(t *testing.T) {
 				},
 				Methods: []*ast.Method{
 					{
-						Name:       "GetUser",
-						InputType:  "GetUserRequest",
-						OutputType: "User",
-						HTTPMethod: "GET",
+						Name:         "GetUser",
+						InputType:    "GetUserRequest",
+						OutputType:   "User",
+						HTTPMethod:   "GET",
 						PathTemplate: "/users/{id}",
 						Doc: &ast.Documentation{
 							General: "Retrieves a user by ID",

@@ -248,10 +248,10 @@ func TestProtobufGenerator_GenerateMessageField(t *testing.T) {
 	gen := NewProtobufGenerator()
 
 	tests := []struct {
-		name      string
-		field     *ast.Field
-		fieldNum  int
-		expected  string
+		name     string
+		field    *ast.Field
+		fieldNum int
+		expected string
 	}{
 		{
 			name: "simple string field",
@@ -468,8 +468,8 @@ func TestProtobufGenerator_EnumUnspecifiedPrefix(t *testing.T) {
 	gen := NewProtobufGenerator()
 
 	tests := []struct {
-		enumName         string
-		expectedPrefix   string
+		enumName       string
+		expectedPrefix string
 	}{
 		{"UserRole", "USERROLE_UNSPECIFIED"},
 		{"Status", "STATUS_UNSPECIFIED"},
@@ -945,9 +945,9 @@ func TestProtobufGenerator_FieldExclusion(t *testing.T) {
 	gen := NewProtobufGenerator()
 
 	tests := []struct {
-		name         string
-		schema       *ast.Schema
-		shouldContain []string
+		name             string
+		schema           *ast.Schema
+		shouldContain    []string
 		shouldNotContain []string
 	}{
 		{
@@ -958,8 +958,8 @@ func TestProtobufGenerator_FieldExclusion(t *testing.T) {
 						Name: "User",
 						Fields: []*ast.Field{
 							{
-								Name:        "id",
-								Type:        &ast.FieldType{Name: "string", IsBuiltin: true},
+								Name: "id",
+								Type: &ast.FieldType{Name: "string", IsBuiltin: true},
 							},
 							{
 								Name:        "internalField",
@@ -1060,9 +1060,9 @@ func TestProtobufGenerator_FieldExclusion(t *testing.T) {
 
 func TestProtobufGenerator_Namespace(t *testing.T) {
 	tests := []struct {
-		name              string
-		namespace         string
-		expectedInOutput  string
+		name             string
+		namespace        string
+		expectedInOutput string
 	}{
 		{
 			name:             "simple namespace",

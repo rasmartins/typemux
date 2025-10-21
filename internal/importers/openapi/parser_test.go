@@ -471,5 +471,3 @@ func TestParseResponses(t *testing.T) {
 		t.Fatal("expected response content")
 	}
 }
-
-

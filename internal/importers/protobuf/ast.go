@@ -53,11 +53,11 @@ type ProtoService struct {
 
 // ProtoMethod represents a service method
 type ProtoMethod struct {
-	Name          string
-	InputType     string
-	OutputType    string
-	ClientStream  bool
-	ServerStream  bool
+	Name         string
+	InputType    string
+	OutputType   string
+	ClientStream bool
+	ServerStream bool
 }
 
 // ProtoOneOf represents a oneof field

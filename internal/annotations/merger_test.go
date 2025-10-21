@@ -100,11 +100,11 @@ func TestMerger_QualifiedTypeName(t *testing.T) {
 	annotations := &YAMLAnnotations{
 		Types: map[string]*TypeAnnotations{
 			"com.example.api.User": {
-				Proto: &FormatSpecificAnnotations{Name: "ApiUser"},
+				Proto:   &FormatSpecificAnnotations{Name: "ApiUser"},
 				GraphQL: &FormatSpecificAnnotations{Name: "ApiUserAccount"},
 			},
 			"com.example.admin.User": {
-				Proto: &FormatSpecificAnnotations{Name: "AdminUser"},
+				Proto:   &FormatSpecificAnnotations{Name: "AdminUser"},
 				GraphQL: &FormatSpecificAnnotations{Name: "AdminUserAccount"},
 			},
 		},
@@ -247,7 +247,7 @@ func TestMerger_EnumAnnotations(t *testing.T) {
 	annotations := &YAMLAnnotations{
 		Enums: map[string]*EnumAnnotations{
 			"UserStatus": {
-				Proto: &FormatSpecificAnnotations{Name: "UserStatusEnum"},
+				Proto:   &FormatSpecificAnnotations{Name: "UserStatusEnum"},
 				GraphQL: &FormatSpecificAnnotations{Name: "UserStatusType"},
 			},
 		},
@@ -293,7 +293,7 @@ func TestMerger_UnionAnnotations(t *testing.T) {
 	annotations := &YAMLAnnotations{
 		Unions: map[string]*UnionAnnotations{
 			"SearchResult": {
-				Proto: &FormatSpecificAnnotations{Name: "SearchResultUnion"},
+				Proto:   &FormatSpecificAnnotations{Name: "SearchResultUnion"},
 				GraphQL: &FormatSpecificAnnotations{Name: "SearchResultType"},
 			},
 		},
