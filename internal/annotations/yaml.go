@@ -9,10 +9,29 @@ import (
 
 // YAMLAnnotations represents the root structure of a YAML annotations file
 type YAMLAnnotations struct {
-	Types    map[string]*TypeAnnotations    `yaml:"types"`
-	Enums    map[string]*EnumAnnotations    `yaml:"enums"`
-	Unions   map[string]*UnionAnnotations   `yaml:"unions"`
-	Services map[string]*ServiceAnnotations `yaml:"services"`
+	Namespaces map[string]*NamespaceAnnotations `yaml:"namespaces"`
+	Types      map[string]*TypeAnnotations      `yaml:"types"`
+	Enums      map[string]*EnumAnnotations      `yaml:"enums"`
+	Unions     map[string]*UnionAnnotations     `yaml:"unions"`
+	Services   map[string]*ServiceAnnotations   `yaml:"services"`
+}
+
+// NamespaceAnnotations represents annotations for a namespace
+type NamespaceAnnotations struct {
+	Proto   *NamespaceProtoAnnotations   `yaml:"proto"`
+	GraphQL *FormatSpecificAnnotations   `yaml:"graphql"`
+	OpenAPI *NamespaceOpenAPIAnnotations `yaml:"openapi"`
+}
+
+// NamespaceProtoAnnotations represents protobuf-specific namespace annotations
+type NamespaceProtoAnnotations struct {
+	Options map[string]string `yaml:"options"` // e.g., go_package, java_package, etc.
+}
+
+// NamespaceOpenAPIAnnotations represents OpenAPI-specific namespace annotations
+type NamespaceOpenAPIAnnotations struct {
+	Info      map[string]string `yaml:"info"`      // OpenAPI info section
+	Extensions map[string]string `yaml:"extensions"` // OpenAPI extensions (x-*)
 }
 
 // FormatSpecificAnnotations represents annotations for a specific format (proto/graphql/openapi)
@@ -93,16 +112,22 @@ func LoadYAMLAnnotations(filepath string) (*YAMLAnnotations, error) {
 // Later files override earlier ones
 func MergeYAMLAnnotations(files []string) (*YAMLAnnotations, error) {
 	result := &YAMLAnnotations{
-		Types:    make(map[string]*TypeAnnotations),
-		Enums:    make(map[string]*EnumAnnotations),
-		Unions:   make(map[string]*UnionAnnotations),
-		Services: make(map[string]*ServiceAnnotations),
+		Namespaces: make(map[string]*NamespaceAnnotations),
+		Types:      make(map[string]*TypeAnnotations),
+		Enums:      make(map[string]*EnumAnnotations),
+		Unions:     make(map[string]*UnionAnnotations),
+		Services:   make(map[string]*ServiceAnnotations),
 	}
 
 	for _, file := range files {
 		annotations, err := LoadYAMLAnnotations(file)
 		if err != nil {
 			return nil, err
+		}
+
+		// Merge namespaces
+		for namespaceName, namespaceAnnotations := range annotations.Namespaces {
+			result.Namespaces[namespaceName] = namespaceAnnotations
 		}
 
 		// Merge types

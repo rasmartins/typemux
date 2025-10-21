@@ -4,13 +4,14 @@ import "strings"
 
 // Schema represents the entire IDL schema
 type Schema struct {
-	Namespace    string              // Optional namespace (e.g., "com.example.api")
-	Imports      []string            // Imported file paths
-	Enums        []*Enum
-	Types        []*Type
-	Unions       []*Union
-	Services     []*Service
-	TypeRegistry *TypeRegistry       // Registry for resolving qualified type names
+	Namespace           string              // Optional namespace (e.g., "com.example.api")
+	NamespaceAnnotations *FormatAnnotations // Namespace-level annotations
+	Imports             []string            // Imported file paths
+	Enums               []*Enum
+	Types               []*Type
+	Unions              []*Union
+	Services            []*Service
+	TypeRegistry        *TypeRegistry       // Registry for resolving qualified type names
 }
 
 // Enum represents an enumeration type

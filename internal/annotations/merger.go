@@ -21,6 +21,11 @@ func NewMerger(annotations *YAMLAnnotations) *Merger {
 // Merge applies YAML annotations to the schema
 // YAML annotations override inline annotations when there's a conflict
 func (m *Merger) Merge(schema *ast.Schema) {
+	// Merge namespace annotations
+	if namespaceAnnotations, ok := m.annotations.Namespaces[schema.Namespace]; ok {
+		m.mergeNamespaceAnnotations(schema, namespaceAnnotations)
+	}
+
 	// Merge type annotations (support both simple and qualified names)
 	for _, schemaType := range schema.Types {
 		qualifiedName := schemaType.Namespace + "." + schemaType.Name
@@ -249,4 +254,45 @@ func mergeLists(a, b []string) []string {
 	}
 
 	return result
+}
+
+func (m *Merger) mergeNamespaceAnnotations(schema *ast.Schema, annotations *NamespaceAnnotations) {
+	// Initialize if nil
+	if schema.NamespaceAnnotations == nil {
+		schema.NamespaceAnnotations = ast.NewFormatAnnotations()
+	}
+
+	// Merge protobuf options
+	if annotations.Proto != nil && annotations.Proto.Options != nil {
+		for optionName, optionValue := range annotations.Proto.Options {
+			// Format as protobuf option: go_package="value" or java_package="value"
+			optionStr := fmt.Sprintf("%s=\"%s\"", optionName, optionValue)
+			schema.NamespaceAnnotations.Proto = append(schema.NamespaceAnnotations.Proto, optionStr)
+		}
+	}
+
+	// Merge GraphQL directives
+	if annotations.GraphQL != nil {
+		if annotations.GraphQL.Directive != "" {
+			schema.NamespaceAnnotations.GraphQL = append(schema.NamespaceAnnotations.GraphQL, annotations.GraphQL.Directive)
+		}
+	}
+
+	// Merge OpenAPI extensions
+	if annotations.OpenAPI != nil {
+		if annotations.OpenAPI.Info != nil {
+			for key, value := range annotations.OpenAPI.Info {
+				// Store as key:value for OpenAPI info section
+				infoStr := fmt.Sprintf("%s:%s", key, value)
+				schema.NamespaceAnnotations.OpenAPI = append(schema.NamespaceAnnotations.OpenAPI, infoStr)
+			}
+		}
+		if annotations.OpenAPI.Extensions != nil {
+			for key, value := range annotations.OpenAPI.Extensions {
+				// Store as x-key:value for OpenAPI extensions
+				extStr := fmt.Sprintf("%s:%s", key, value)
+				schema.NamespaceAnnotations.OpenAPI = append(schema.NamespaceAnnotations.OpenAPI, extStr)
+			}
+		}
+	}
 }

@@ -67,6 +67,10 @@ func (p *Parser) Parse() *ast.Schema {
 			namespace := p.parseNamespace()
 			if namespace != "" {
 				schema.Namespace = namespace
+				// Apply leading annotations to the namespace
+				if leadingAnnotations != nil && (len(leadingAnnotations.Proto) > 0 || len(leadingAnnotations.GraphQL) > 0 || len(leadingAnnotations.OpenAPI) > 0) {
+					schema.NamespaceAnnotations = leadingAnnotations
+				}
 			}
 		case lexer.TOKEN_IMPORT:
 			importPath := p.parseImport()

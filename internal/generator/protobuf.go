@@ -105,6 +105,15 @@ func (g *ProtobufGenerator) generateForNamespace(nsSchema *ast.Schema, fullSchem
 	sb.WriteString("syntax = \"proto3\";\n\n")
 	sb.WriteString(fmt.Sprintf("package %s;\n\n", nsSchema.Namespace))
 
+	// Add namespace-level protobuf options
+	if nsSchema.NamespaceAnnotations != nil && len(nsSchema.NamespaceAnnotations.Proto) > 0 {
+		for _, option := range nsSchema.NamespaceAnnotations.Proto {
+			// Options should be in format: go_package="value" or option_name="value"
+			sb.WriteString(fmt.Sprintf("option %s;\n", option))
+		}
+		sb.WriteString("\n")
+	}
+
 	// Collect required imports from other namespaces
 	requiredNamespaces := g.findRequiredNamespaces(nsSchema, fullSchema)
 
@@ -205,6 +214,16 @@ func (g *ProtobufGenerator) Generate(schema *ast.Schema) string {
 		namespace = "api"
 	}
 	sb.WriteString(fmt.Sprintf("package %s;\n\n", namespace))
+
+	// Add namespace-level protobuf options
+	if schema.NamespaceAnnotations != nil && len(schema.NamespaceAnnotations.Proto) > 0 {
+		for _, option := range schema.NamespaceAnnotations.Proto {
+			// Options should be in format: go_package="value" or option_name="value"
+			sb.WriteString(fmt.Sprintf("option %s;\n", option))
+		}
+		sb.WriteString("\n")
+	}
+
 	sb.WriteString("import \"google/protobuf/timestamp.proto\";\n\n")
 
 	// Build a map of original type names to their custom Protobuf names
