@@ -6,8 +6,10 @@ import (
 	"unicode"
 )
 
+// TokenType represents the type of a lexical token in the TypeMux language.
 type TokenType int
 
+// Token types for the TypeMux IDL lexer.
 const (
 	TOKEN_EOF TokenType = iota
 	TOKEN_IDENT
@@ -39,6 +41,7 @@ const (
 	TOKEN_QUESTION
 )
 
+// Token represents a single lexical token with its type, value, and location.
 type Token struct {
 	Type    TokenType
 	Literal string
@@ -46,6 +49,7 @@ type Token struct {
 	Column  int
 }
 
+// Lexer tokenizes TypeMux IDL source code into a stream of tokens.
 type Lexer struct {
 	input        string
 	position     int
@@ -55,7 +59,8 @@ type Lexer struct {
 	column       int
 }
 
-func New(input string) *Lexer {
+// New creates a new lexer for the given input string.
+func New(input string) *Lexer{
 	l := &Lexer{input: input, line: 1, column: 0}
 	l.readChar()
 	return l
@@ -165,6 +170,7 @@ func (l *Lexer) readString() string {
 	return str
 }
 
+// NextToken returns the next token from the input stream.
 func (l *Lexer) NextToken() Token {
 	var tok Token
 
@@ -311,8 +317,9 @@ func (t TokenType) String() string {
 	return fmt.Sprintf("UNKNOWN(%d)", t)
 }
 
+// TokensToString converts a slice of tokens into a human-readable string representation.
 func TokensToString(tokens []Token) string {
-	var parts []string
+	parts := make([]string, 0, len(tokens))
 	for _, tok := range tokens {
 		parts = append(parts, fmt.Sprintf("%s(%s)", tok.Type, tok.Literal))
 	}

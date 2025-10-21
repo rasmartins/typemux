@@ -9,6 +9,7 @@ import (
 	"github.com/rasmartins/typemux/internal/lexer"
 )
 
+// Parser transforms a stream of tokens from the lexer into an abstract syntax tree (AST).
 type Parser struct {
 	lexer   *lexer.Lexer
 	curTok  lexer.Token
@@ -16,6 +17,7 @@ type Parser struct {
 	errors  []string
 }
 
+// New creates a new parser for the given lexer.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{lexer: l}
 	p.nextToken()
