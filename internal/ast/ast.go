@@ -104,10 +104,11 @@ type FieldType struct {
 
 // Service represents a service definition
 type Service struct {
-	Name      string
-	Namespace string // Namespace this service belongs to
-	Methods   []*Method
-	Doc       *Documentation
+	Name        string
+	Namespace   string // Namespace this service belongs to
+	Methods     []*Method
+	Doc         *Documentation
+	Annotations *FormatAnnotations // Format-specific annotations
 }
 
 // Method represents an RPC method

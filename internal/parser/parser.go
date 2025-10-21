@@ -163,19 +163,12 @@ func (p *Parser) Parse() *ast.Schema {
 			if service != nil {
 				schema.Services = append(schema.Services, service)
 			}
-		case lexer.TOKEN_EOF:
-			// Exit the loop
-			break
 		default:
 			p.nextToken()
 		}
 	}
 
 	return schema
-}
-
-func (p *Parser) parseEnumWithDoc(doc *ast.Documentation, namespace string) *ast.Enum {
-	return p.parseEnumWithDocAndAnnotations(doc, nil, namespace)
 }
 
 func (p *Parser) parseEnumWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Enum {
@@ -194,6 +187,12 @@ func (p *Parser) parseEnumWithDocAndAnnotations(doc *ast.Documentation, leadingA
 	}
 
 	p.nextToken()
+
+	// Parse trailing enum-level annotations
+	trailingAnnotations := p.parseLeadingAnnotations()
+
+	// Merge leading and trailing annotations
+	enum.Annotations = p.mergeAnnotations(leadingAnnotations, trailingAnnotations)
 
 	if !p.expectToken(lexer.TOKEN_LBRACE) {
 		return nil
@@ -220,9 +219,10 @@ func (p *Parser) parseEnumWithDocAndAnnotations(doc *ast.Documentation, leadingA
 			if p.curTok.Type == lexer.TOKEN_NUMBER {
 				// Parse the number
 				var num int
-				fmt.Sscanf(p.curTok.Literal, "%d", &num)
-				enumValue.Number = num
-				enumValue.HasNumber = true
+				if _, err := fmt.Sscanf(p.curTok.Literal, "%d", &num); err == nil {
+					enumValue.Number = num
+					enumValue.HasNumber = true
+				}
 				p.nextToken()
 			} else {
 				p.addError("expected number after =")
@@ -238,10 +238,6 @@ func (p *Parser) parseEnumWithDocAndAnnotations(doc *ast.Documentation, leadingA
 	}
 
 	return enum
-}
-
-func (p *Parser) parseTypeWithDoc(doc *ast.Documentation, namespace string) *ast.Type {
-	return p.parseTypeWithDocAndAnnotations(doc, nil, namespace)
 }
 
 func (p *Parser) parseTypeWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Type {
@@ -320,10 +316,6 @@ func (p *Parser) parseTypeWithDocAndAnnotations(doc *ast.Documentation, leadingA
 	return typ
 }
 
-func (p *Parser) parseUnionWithDoc(doc *ast.Documentation, namespace string) *ast.Union {
-	return p.parseUnionWithDocAndAnnotations(doc, nil, namespace)
-}
-
 func (p *Parser) parseUnionWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Union {
 	p.nextToken() // consume 'union'
 
@@ -340,6 +332,12 @@ func (p *Parser) parseUnionWithDocAndAnnotations(doc *ast.Documentation, leading
 	}
 
 	p.nextToken()
+
+	// Parse trailing union-level annotations
+	trailingAnnotations := p.parseLeadingAnnotations()
+
+	// Merge leading and trailing annotations
+	union.Annotations = p.mergeAnnotations(leadingAnnotations, trailingAnnotations)
 
 	if !p.expectToken(lexer.TOKEN_LBRACE) {
 		return nil
@@ -361,18 +359,6 @@ func (p *Parser) parseUnionWithDocAndAnnotations(doc *ast.Documentation, leading
 	}
 
 	return union
-}
-
-func (p *Parser) parseField() *ast.Field {
-	// Collect documentation before field name
-	doc := p.parseDocumentation()
-	// Collect leading annotations
-	leadingAnnotations := p.parseLeadingAnnotations()
-	return p.parseFieldWithAnnotations(doc, leadingAnnotations)
-}
-
-func (p *Parser) parseFieldWithAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations) *ast.Field {
-	return p.parseFieldWithLeadingAnnotations(doc, leadingAnnotations, nil)
 }
 
 func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, leadingAttributes map[string]string) *ast.Field {
@@ -414,9 +400,10 @@ func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadin
 		if p.curTok.Type == lexer.TOKEN_NUMBER {
 			// Parse the number
 			var num int
-			fmt.Sscanf(p.curTok.Literal, "%d", &num)
-			field.Number = num
-			field.HasNumber = true
+			if _, err := fmt.Sscanf(p.curTok.Literal, "%d", &num); err == nil {
+				field.Number = num
+				field.HasNumber = true
+			}
 			fieldLine = p.curTok.Line // Update to the line of the number
 			p.nextToken()
 		} else {
@@ -614,26 +601,6 @@ func (p *Parser) parseGeneratorList() []string {
 	return generators
 }
 
-// parseStringList parses a comma-separated list of string values
-func (p *Parser) parseStringList() []string {
-	var result []string
-
-	if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
-		result = append(result, strings.Trim(p.curTok.Literal, "\"'"))
-		p.nextToken()
-	}
-
-	for p.curTok.Type == lexer.TOKEN_COMMA {
-		p.nextToken()
-		if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
-			result = append(result, strings.Trim(p.curTok.Literal, "\"'"))
-			p.nextToken()
-		}
-	}
-
-	return result
-}
-
 func (p *Parser) parseFieldType() *ast.FieldType {
 	fieldType := &ast.FieldType{}
 
@@ -706,10 +673,6 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 	return fieldType
 }
 
-func (p *Parser) parseServiceWithDoc(doc *ast.Documentation, namespace string) *ast.Service {
-	return p.parseServiceWithDocAndAnnotations(doc, nil, namespace)
-}
-
 func (p *Parser) parseServiceWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Service {
 	p.nextToken() // consume 'service'
 
@@ -726,6 +689,12 @@ func (p *Parser) parseServiceWithDocAndAnnotations(doc *ast.Documentation, leadi
 	}
 
 	p.nextToken()
+
+	// Parse trailing service-level annotations
+	trailingAnnotations := p.parseLeadingAnnotations()
+
+	// Merge leading and trailing annotations
+	service.Annotations = p.mergeAnnotations(leadingAnnotations, trailingAnnotations)
 
 	if !p.expectToken(lexer.TOKEN_LBRACE) {
 		return nil
