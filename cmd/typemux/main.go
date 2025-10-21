@@ -9,10 +9,15 @@ import (
 
 	"github.com/rasmartins/typemux/internal/annotations"
 	"github.com/rasmartins/typemux/internal/ast"
+	"github.com/rasmartins/typemux/internal/config"
+	"github.com/rasmartins/typemux/internal/docgen"
 	"github.com/rasmartins/typemux/internal/generator"
 	"github.com/rasmartins/typemux/internal/lexer"
 	"github.com/rasmartins/typemux/internal/parser"
 )
+
+// Current TypeMux IDL version supported by this compiler
+const CurrentTypeMuxVersion = "1.0.0"
 
 // arrayFlags is a custom flag type that accumulates multiple values
 type arrayFlags []string
@@ -53,6 +58,11 @@ func parseSchemaWithImports(filePath string, visited map[string]bool) (*ast.Sche
 
 	if len(p.Errors()) > 0 {
 		return nil, fmt.Errorf("parser errors in %s:\n%s", absPath, p.PrintErrors())
+	}
+
+	// Validate TypeMux version if specified
+	if err := validateTypeMuxVersion(schema.TypeMuxVersion, absPath); err != nil {
+		return nil, err
 	}
 
 	// Initialize type registry if not already present
@@ -105,7 +115,11 @@ func parseSchemaWithImports(filePath string, visited map[string]bool) (*ast.Sche
 }
 
 func main() {
-	inputFile := flag.String("input", "", "Input IDL schema file (required)")
+	// Config file flag
+	configFile := flag.String("config", "", "Configuration file (YAML)")
+
+	// Direct flags (used when no config file is provided)
+	inputFile := flag.String("input", "", "Input IDL schema file")
 	outputFormat := flag.String("format", "all", "Output format: graphql, protobuf, openapi, or all")
 	outputDir := flag.String("output", "./generated", "Output directory for generated files")
 
@@ -114,22 +128,74 @@ func main() {
 
 	flag.Parse()
 
-	if *inputFile == "" {
-		fmt.Println("Error: -input flag is required")
-		flag.Usage()
-		os.Exit(1)
+	var (
+		schemaFile       string
+		formats          []string
+		outputDirectory  string
+		annotationFiles2 []string
+	)
+
+	// Load configuration
+	if *configFile != "" {
+		// Load from config file
+		cfg, err := config.Load(*configFile)
+		if err != nil {
+			fmt.Printf("Error loading config file: %v\n", err)
+			os.Exit(1)
+		}
+
+		schemaFile = cfg.Input.Schema
+		outputDirectory = cfg.Output.Directory
+		annotationFiles2 = cfg.Input.Annotations
+
+		// Convert formats
+		if cfg.ShouldGenerateFormat("all") {
+			formats = []string{"all"}
+		} else {
+			if cfg.ShouldGenerateFormat("graphql") {
+				formats = append(formats, "graphql")
+			}
+			if cfg.ShouldGenerateFormat("protobuf") {
+				formats = append(formats, "protobuf")
+			}
+			if cfg.ShouldGenerateFormat("openapi") {
+				formats = append(formats, "openapi")
+			}
+		}
+
+		// Clean output directory if requested
+		if cfg.Output.Clean {
+			if err := os.RemoveAll(outputDirectory); err != nil {
+				fmt.Printf("Error cleaning output directory: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
+		fmt.Printf("Loaded configuration from: %s\n", *configFile)
+	} else {
+		// Use command-line flags
+		if *inputFile == "" {
+			fmt.Println("Error: -input flag or -config flag is required")
+			flag.Usage()
+			os.Exit(1)
+		}
+
+		schemaFile = *inputFile
+		outputDirectory = *outputDir
+		annotationFiles2 = annotationFiles
+		formats = []string{*outputFormat}
 	}
 
 	// Parse the schema with imports
-	schema, err := parseSchemaWithImports(*inputFile, make(map[string]bool))
+	schema, err := parseSchemaWithImports(schemaFile, make(map[string]bool))
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Load and merge YAML annotations if provided
-	if len(annotationFiles) > 0 {
-		yamlAnnotations, err := annotations.MergeYAMLAnnotations(annotationFiles)
+	if len(annotationFiles2) > 0 {
+		yamlAnnotations, err := annotations.MergeYAMLAnnotations(annotationFiles2)
 		if err != nil {
 			fmt.Printf("Error loading YAML annotations: %v\n", err)
 			os.Exit(1)
@@ -147,30 +213,35 @@ func main() {
 		merger := annotations.NewMerger(yamlAnnotations)
 		merger.Merge(schema)
 
-		fmt.Printf("Loaded annotations from %d file(s)\n", len(annotationFiles))
+		fmt.Printf("Loaded annotations from %d file(s)\n", len(annotationFiles2))
 	}
 
 	// Create output directory
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDirectory, 0755); err != nil {
 		fmt.Printf("Error creating output directory: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Generate output based on format
-	switch *outputFormat {
-	case "graphql":
-		generateGraphQL(schema, *outputDir)
-	case "protobuf", "proto":
-		generateProtobuf(schema, *outputDir)
-	case "openapi":
-		generateOpenAPI(schema, *outputDir)
-	case "all":
-		generateGraphQL(schema, *outputDir)
-		generateProtobuf(schema, *outputDir)
-		generateOpenAPI(schema, *outputDir)
-	default:
-		fmt.Printf("Unknown format: %s\n", *outputFormat)
-		os.Exit(1)
+	// Generate output based on formats
+	for _, format := range formats {
+		switch format {
+		case "graphql":
+			generateGraphQL(schema, outputDirectory)
+		case "protobuf", "proto":
+			generateProtobuf(schema, outputDirectory)
+		case "openapi":
+			generateOpenAPI(schema, outputDirectory)
+		case "docs", "markdown", "md":
+			generateMarkdownDocs(schema, outputDirectory)
+		case "all":
+			generateGraphQL(schema, outputDirectory)
+			generateProtobuf(schema, outputDirectory)
+			generateOpenAPI(schema, outputDirectory)
+			generateMarkdownDocs(schema, outputDirectory)
+		default:
+			fmt.Printf("Unknown format: %s\n", format)
+			os.Exit(1)
+		}
 	}
 
 	fmt.Println("Code generation completed successfully!")
@@ -280,4 +351,35 @@ func generateOpenAPI(schema *ast.Schema, outputDir string) {
 		return
 	}
 	fmt.Printf("Generated OpenAPI schema: %s\n", outputPath)
+}
+
+func generateMarkdownDocs(schema *ast.Schema, outputDir string) {
+	gen := docgen.NewMarkdownGenerator()
+	output := gen.Generate(schema)
+
+	outputPath := filepath.Join(outputDir, "API.md")
+	if err := os.WriteFile(outputPath, []byte(output), 0644); err != nil {
+		fmt.Printf("Error writing Markdown documentation: %v\n", err)
+		return
+	}
+	fmt.Printf("Generated Markdown documentation: %s\n", outputPath)
+}
+
+// validateTypeMuxVersion validates that the schema's TypeMux version is compatible
+func validateTypeMuxVersion(schemaVersion, filePath string) error {
+	// If no version is specified, accept it (backward compatibility)
+	if schemaVersion == "" {
+		fmt.Printf("Warning: No @typemux version specified in %s\n", filePath)
+		return nil
+	}
+
+	// Parse versions (simple major.minor.patch comparison)
+	if schemaVersion != CurrentTypeMuxVersion {
+		// For now, only accept exact version match
+		// In the future, we could implement more sophisticated version compatibility
+		return fmt.Errorf("incompatible TypeMux version in %s: schema requires %s, but compiler supports %s",
+			filePath, schemaVersion, CurrentTypeMuxVersion)
+	}
+
+	return nil
 }

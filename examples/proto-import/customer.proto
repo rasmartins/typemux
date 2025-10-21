@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package customer;
+
+import "common/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/example/customer";
+
+// Customer represents a customer in the system
+message Customer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  common.Status status = 4;
+  common.Address billing_address = 5;
+  common.Address shipping_address = 6;
+  common.Metadata metadata = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CreateCustomerRequest {
+  string name = 1;
+  string email = 2;
+  common.Address billing_address = 3;
+  common.Address shipping_address = 4;
+}
+
+message CreateCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomerRequest {
+  string id = 1;
+}
+
+message GetCustomerResponse {
+  Customer customer = 1;
+}
+
+service CustomerService {
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
+}

@@ -1,4 +1,4 @@
-import "imports/common.typemux"
+@typemux("1.0.0")
 
 enum Status {
 ACTIVE = 1

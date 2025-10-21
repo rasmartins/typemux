@@ -21,6 +21,11 @@ func NewMerger(annotations *YAMLAnnotations) *Merger {
 // Merge applies YAML annotations to the schema
 // YAML annotations override inline annotations when there's a conflict
 func (m *Merger) Merge(schema *ast.Schema) {
+	// Merge version information
+	if m.annotations.Version != "" {
+		schema.Version = m.annotations.Version
+	}
+
 	// Merge namespace annotations
 	if namespaceAnnotations, ok := m.annotations.Namespaces[schema.Namespace]; ok {
 		m.mergeNamespaceAnnotations(schema, namespaceAnnotations)
@@ -124,6 +129,77 @@ func (m *Merger) mergeFieldAnnotations(field *ast.Field, annotations *FieldAnnot
 			field.Attributes = make(map[string]string)
 		}
 		field.Attributes["only"] = ""
+	}
+
+	// Merge deprecation information
+	if annotations.Deprecated != nil {
+		if field.Deprecated == nil {
+			field.Deprecated = &ast.DeprecationInfo{}
+		}
+		if annotations.Deprecated.Reason != "" {
+			field.Deprecated.Reason = annotations.Deprecated.Reason
+		}
+		if annotations.Deprecated.Since != "" {
+			field.Deprecated.Since = annotations.Deprecated.Since
+		}
+		if annotations.Deprecated.Removed != "" {
+			field.Deprecated.Removed = annotations.Deprecated.Removed
+		}
+	}
+
+	// Merge validation rules
+	if annotations.Validation != nil {
+		if field.Validation == nil {
+			field.Validation = &ast.ValidationRules{}
+		}
+		// String validation
+		if annotations.Validation.MinLength != nil {
+			field.Validation.MinLength = annotations.Validation.MinLength
+		}
+		if annotations.Validation.MaxLength != nil {
+			field.Validation.MaxLength = annotations.Validation.MaxLength
+		}
+		if annotations.Validation.Pattern != "" {
+			field.Validation.Pattern = annotations.Validation.Pattern
+		}
+		if annotations.Validation.Format != "" {
+			field.Validation.Format = annotations.Validation.Format
+		}
+		// Numeric validation
+		if annotations.Validation.Min != nil {
+			field.Validation.Min = annotations.Validation.Min
+		}
+		if annotations.Validation.Max != nil {
+			field.Validation.Max = annotations.Validation.Max
+		}
+		if annotations.Validation.ExclusiveMin != nil {
+			field.Validation.ExclusiveMin = annotations.Validation.ExclusiveMin
+		}
+		if annotations.Validation.ExclusiveMax != nil {
+			field.Validation.ExclusiveMax = annotations.Validation.ExclusiveMax
+		}
+		if annotations.Validation.MultipleOf != nil {
+			field.Validation.MultipleOf = annotations.Validation.MultipleOf
+		}
+		// Array validation
+		if annotations.Validation.MinItems != nil {
+			field.Validation.MinItems = annotations.Validation.MinItems
+		}
+		if annotations.Validation.MaxItems != nil {
+			field.Validation.MaxItems = annotations.Validation.MaxItems
+		}
+		if annotations.Validation.UniqueItems {
+			field.Validation.UniqueItems = true
+		}
+		// General
+		if len(annotations.Validation.Enum) > 0 {
+			field.Validation.Enum = annotations.Validation.Enum
+		}
+	}
+
+	// Merge since version
+	if annotations.Since != "" {
+		field.Since = annotations.Since
 	}
 
 	// Initialize field annotations if nil

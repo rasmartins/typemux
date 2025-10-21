@@ -1,0 +1,94 @@
+@typemux("1.0.0")
+namespace PetStoreAPI
+
+// A simple API for managing pets
+
+// Status of the pet in the store
+enum PetStatus {
+  AVAILABLE = 0
+  PENDING = 1
+  SOLD = 2
+}
+
+type Error {
+  // Error code
+  code: string = 1
+  // Human-readable error message
+  message: string = 2
+  // Additional error details
+  details: string = 3
+}
+
+type Pet {
+  // Unique identifier for the pet
+  id: string = 1
+  // Name of the pet
+  name: string = 2
+  // Status of the pet in the store
+  status: string = 3
+  // Species of the pet (e.g., dog, cat, bird)
+  species: string = 4
+  // Breed of the pet
+  breed: string = 5
+  // Age of the pet in years
+  age: int32 = 6
+  // Tags associated with the pet
+  tags: []string = 7
+  // Timestamp when the pet was added to the store
+  createdAt: timestamp = 8
+}
+
+type NewPet {
+  // Name of the pet
+  name: string = 1
+  // Status of the pet in the store
+  status: string = 2
+  // Species of the pet
+  species: string = 3
+  // Breed of the pet
+  breed: string = 4
+  // Age of the pet in years
+  age: int32 = 5
+  // Tags for the pet
+  tags: []string = 6
+}
+
+type UpdatePet {
+  // Age of the pet in years
+  age: int32 = 1
+  // Tags for the pet
+  tags: []string = 2
+  // Name of the pet
+  name: string = 3
+  // Status of the pet in the store
+  status: string = 4
+  // Breed of the pet
+  breed: string = 5
+}
+
+type PetList {
+  // Total number of pets available
+  total: int32 = 1
+  // Offset for the next page of results
+  nextOffset: int32 = 2
+  // List of pets
+  pets: []Pet = 3
+}
+
+service PetStoreAPIService {
+  // Returns a list of all pets in the store
+  // GET /pets
+  rpc ListPets(ListPetsRequest) returns (PetList)
+  // Creates a new pet in the store
+  // POST /pets
+  rpc CreatePet(CreatePetRequest) returns (Pet)
+  // Returns details for a specific pet
+  // GET /pets/{petId}
+  rpc GetPetById(GetPetByIdRequest) returns (Pet)
+  // Updates an existing pet
+  // PUT /pets/{petId}
+  rpc UpdatePet(UpdatePetRequest) returns (Pet)
+  // Deletes a pet from the store
+  // DELETE /pets/{petId}
+  rpc DeletePet(DeletePetRequest) returns (Empty)
+}

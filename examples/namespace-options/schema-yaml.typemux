@@ -1,4 +1,5 @@
 /// Example using YAML annotations for namespace-level configuration
+@typemux("1.0.0")
 namespace com.example.users
 
 type User {

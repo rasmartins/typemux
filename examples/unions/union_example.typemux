@@ -1,3 +1,5 @@
+@typemux("1.0.0")
+
 /// Example demonstrating union/oneOf types
 
 type TextMessage {

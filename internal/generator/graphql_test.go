@@ -759,3 +759,58 @@ func TestGraphQLGenerator_NameAnnotation(t *testing.T) {
 		t.Error("Expected output NOT to contain 'type User {', but it did")
 	}
 }
+
+func TestGenerateOptionalFieldsGraphQL(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name:     "id",
+						Required: true,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: false,
+						},
+					},
+					{
+						Name:     "name",
+						Required: false,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: true,
+						},
+					},
+					{
+						Name:     "email",
+						Required: true,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: true, // Explicitly optional overrides @required
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGraphQLGenerator()
+	output := gen.Generate(schema)
+
+	// Required field without optional should have !
+	if !strings.Contains(output, "id: String!") {
+		t.Error("Expected 'id: String!' for required field")
+	}
+
+	// Optional field should not have !
+	if !strings.Contains(output, "name: String\n") || strings.Contains(output, "name: String!") {
+		t.Error("Expected 'name: String' (without !) for optional field")
+	}
+
+	// Explicitly optional should not have ! even if marked required
+	if strings.Contains(output, "email: String!") {
+		t.Error("Optional marker should override @required annotation")
+	}
+}

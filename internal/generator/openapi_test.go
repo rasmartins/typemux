@@ -1189,3 +1189,61 @@ func TestOpenAPIGenerator_NameAnnotation_References(t *testing.T) {
 		t.Errorf("Expected products items to reference %q, got %q", expectedItemRef, productsField.Items.Ref)
 	}
 }
+
+func TestGenerateOptionalFieldsOpenAPI(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name:     "id",
+						Required: true,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: false,
+						},
+					},
+					{
+						Name:     "name",
+						Required: false,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: true,
+						},
+					},
+					{
+						Name:     "email",
+						Required: true,
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: true, // Explicitly optional overrides @required
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewOpenAPIGenerator()
+	output := gen.Generate(schema)
+
+	// Check that required field is in required array
+	if !strings.Contains(output, "required:") {
+		t.Error("Expected 'required:' section in OpenAPI output")
+	}
+	if !strings.Contains(output, "- id") {
+		t.Error("Expected 'id' to be in required array")
+	}
+
+	// Optional fields should not be in required array
+	if strings.Contains(output, "- name") {
+		t.Error("Optional field 'name' should not be in required array")
+	}
+
+	// Explicitly optional should override @required
+	if strings.Contains(output, "- email") {
+		t.Error("Explicitly optional field 'email' should not be in required array even with @required")
+	}
+}

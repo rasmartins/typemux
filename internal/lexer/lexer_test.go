@@ -655,3 +655,54 @@ func TestNextToken_Namespace(t *testing.T) {
 		})
 	}
 }
+
+func TestTokenizeOptionalSyntax(t *testing.T) {
+	input := `type User {
+		name: string?
+	}`
+
+	l := New(input)
+
+	expectedTokens := []TokenType{
+		TOKEN_TYPE,
+		TOKEN_IDENT,      // User
+		TOKEN_LBRACE,
+		TOKEN_IDENT,      // name
+		TOKEN_COLON,
+		TOKEN_IDENT,      // string
+		TOKEN_QUESTION,   // ?
+		TOKEN_RBRACE,
+	}
+
+	for i, expected := range expectedTokens {
+		tok := l.NextToken()
+		if tok.Type != expected {
+			t.Errorf("Token %d: expected type %s, got %s (literal: %q)",
+				i, expected, tok.Type, tok.Literal)
+		}
+	}
+}
+
+func TestTokenizeQuestionMark(t *testing.T) {
+	input := "string?"
+	l := New(input)
+
+	tok := l.NextToken()
+	if tok.Type != TOKEN_IDENT || tok.Literal != "string" {
+		t.Errorf("Expected IDENT 'string', got %s '%s'", tok.Type, tok.Literal)
+	}
+
+	tok = l.NextToken()
+	if tok.Type != TOKEN_QUESTION {
+		t.Errorf("Expected TOKEN_QUESTION, got %s", tok.Type)
+	}
+	if tok.Literal != "?" {
+		t.Errorf("Expected literal '?', got '%s'", tok.Literal)
+	}
+}
+
+func TestTokenTypeQuestionString(t *testing.T) {
+	if TOKEN_QUESTION.String() != "?" {
+		t.Errorf("Expected TOKEN_QUESTION.String() to be '?', got '%s'", TOKEN_QUESTION.String())
+	}
+}

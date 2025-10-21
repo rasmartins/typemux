@@ -1,3 +1,5 @@
+@typemux("1.0.0")
+
 // Example Schema Definition
 // This IDL supports types, enums, and services
 

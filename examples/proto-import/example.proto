@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package example;
+
+option go_package = "github.com/example/proto/example";
+
+import "google/protobuf/timestamp.proto";
+
+// User status enumeration
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_INACTIVE = 2;
+  USER_STATUS_SUSPENDED = 3;
+}
+
+// User message
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  optional int32 age = 4;
+  UserStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  repeated string tags = 7;
+  map<string, string> metadata = 8;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  optional int32 age = 3;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  optional int32 page_size = 1;
+  optional string page_token = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  string next_page_token = 2;
+}
+
+message StreamUsersRequest {
+  optional string filter = 1;
+}
+
+message StreamUsersResponse {
+  User user = 1;
+}
+
+// User service
+service UserService {
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // List users with pagination
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // Stream users (server-side streaming)
+  rpc StreamUsers(StreamUsersRequest) returns (stream StreamUsersResponse);
+}

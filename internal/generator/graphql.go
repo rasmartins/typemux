@@ -337,9 +337,28 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 		}
 
 		// Build field directives
-		fieldDirectives := ""
+		var fieldDirectiveParts []string
+
+		// Add @deprecated directive if field is deprecated
+		if !isInput && field.Deprecated != nil {
+			var deprecationReason string
+			if field.Deprecated.Reason != "" {
+				// Escape quotes in reason
+				deprecationReason = strings.ReplaceAll(field.Deprecated.Reason, "\"", "\\\"")
+				fieldDirectiveParts = append(fieldDirectiveParts, fmt.Sprintf("@deprecated(reason: \"%s\")", deprecationReason))
+			} else {
+				fieldDirectiveParts = append(fieldDirectiveParts, "@deprecated")
+			}
+		}
+
+		// Add custom GraphQL directives
 		if !isInput && field.Annotations != nil && len(field.Annotations.GraphQL) > 0 {
-			fieldDirectives = " " + strings.Join(field.Annotations.GraphQL, " ")
+			fieldDirectiveParts = append(fieldDirectiveParts, field.Annotations.GraphQL...)
+		}
+
+		fieldDirectives := ""
+		if len(fieldDirectiveParts) > 0 {
+			fieldDirectives = " " + strings.Join(fieldDirectiveParts, " ")
 		}
 
 		// Use UnionInput type for union fields in input types
@@ -385,8 +404,14 @@ func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, type
 		gqlType = fmt.Sprintf("[%s]", gqlType)
 	}
 
-	if field.Required {
+	// In GraphQL, non-null (!) is the default for required fields
+	// If the field is explicitly optional (has ?), don't add !
+	// If the field is required (@required), add !
+	if field.Required && !field.Type.Optional {
 		gqlType = gqlType + "!"
+	} else if !field.Type.Optional && !field.Required {
+		// By default, if not marked as optional and not explicitly required,
+		// GraphQL leaves it nullable (no ! suffix)
 	}
 
 	return gqlType

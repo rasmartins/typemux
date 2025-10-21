@@ -1,0 +1,81 @@
+@typemux("1.0.0")
+namespace com.example.optionals
+
+/// Example demonstrating optional field syntax
+/// Fields marked with ? are explicitly optional
+/// Fields marked with @required are required
+/// Fields without either are treated as optional by default
+
+/// User profile with a mix of required and optional fields
+type UserProfile {
+  /// Unique identifier (always required)
+  id: string = 1 @required
+
+  /// Username (always required)
+  username: string = 2 @required
+
+  /// Email address (explicitly optional)
+  email: string? = 3
+
+  /// Display name (optional, has default behavior)
+  displayName: string = 4
+
+  /// Bio text (explicitly optional)
+  bio: string? = 5
+
+  /// Age in years (explicitly optional)
+  age: int32? = 6
+
+  /// Profile picture URL (optional)
+  avatarUrl: string? = 7
+
+  /// User preferences (optional map)
+  preferences: map<string, string> = 8
+
+  /// List of tags (explicitly optional array)
+  tags: []string? = 9
+
+  /// Created timestamp (required)
+  createdAt: timestamp = 10 @required
+
+  /// Last login (explicitly optional)
+  lastLoginAt: timestamp? = 11
+}
+
+/// Product with pricing information
+type Product {
+  id: string = 1 @required
+  name: string = 2 @required
+
+  /// Optional description
+  description: string? = 3
+
+  /// Price is required
+  price: float64 = 4 @required
+
+  /// Optional discount percentage
+  discountPercent: float32? = 5
+
+  /// Optional stock quantity
+  stockQuantity: int32? = 6
+}
+
+service UserService {
+  /// Get user profile by ID
+  rpc GetProfile(GetProfileRequest) returns (UserProfile)
+
+  /// Update user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UserProfile)
+}
+
+type GetProfileRequest {
+  userId: string = 1 @required
+}
+
+type UpdateProfileRequest {
+  userId: string = 1 @required
+  email: string? = 2
+  displayName: string? = 3
+  bio: string? = 4
+  avatarUrl: string? = 5
+}

@@ -1,0 +1,53 @@
+// Example demonstrating deprecation, validation, and versioning features
+
+@typemux("1.0.0")
+@version("2.1.0")
+namespace com.example.userservice
+
+type User {
+  id: string = 1 @validate(format="uuid")
+  username: string = 2 @validate(minLength=3, maxLength=30) @since("1.0.0")
+  email: string = 3 @validate(format="email", maxLength=255) @since("1.0.0")
+  age: int32 = 4 @validate(min=0, max=150) @since("1.0.0")
+  fullName: string = 5 @validate(minLength=1, maxLength=100) @since("1.5.0")
+  displayName: string = 6 @deprecated("Use fullName instead", since="2.0.0", removed="3.0.0")
+  website: string = 7 @validate(format="url") @since("2.0.0")
+  balance: int64 = 8 @validate(min=0) @since("1.0.0")
+  createdAt: timestamp = 9 @since("1.0.0")
+  lastLogin: timestamp = 10 @since("1.5.0")
+  isActive: bool = 11 @since("1.0.0")
+  tags: []string = 12 @validate(minItems=0, maxItems=10, uniqueItems=true) @since("2.0.0")
+  legacyEmail: string = 13 @deprecated("Use email field instead", since="1.8.0", removed="2.5.0")
+}
+
+type UserPreferences {
+  userId: string = 1 @validate(format="uuid")
+  theme: string = 2
+  language: string = 3 @validate(minLength=2, maxLength=5)
+  notificationsEnabled: bool = 4
+}
+
+service UserService {
+  rpc CreateUser(User) returns (User)
+  rpc GetUser(UserIdRequest) returns (User)
+  rpc UpdateUser(User) returns (User)
+  rpc DeleteUser(UserIdRequest) returns (EmptyResponse)
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse)
+}
+
+type UserIdRequest {
+  id: string = 1 @validate(format="uuid")
+}
+
+type ListUsersRequest {
+  pageSize: int32 = 1 @validate(min=1, max=100)
+  pageToken: string = 2
+}
+
+type ListUsersResponse {
+  users: []User = 1
+  nextPageToken: string = 2
+}
+
+type EmptyResponse {
+}

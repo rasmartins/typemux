@@ -264,7 +264,20 @@ func (g *ProtobufGenerator) generateEnum(enum *ast.Enum) string {
 	}
 
 	sb.WriteString(fmt.Sprintf("enum %s {\n", enum.Name))
-	sb.WriteString(fmt.Sprintf("  %s_UNSPECIFIED = 0;\n", strings.ToUpper(enum.Name)))
+
+	// Check if there's already a value with number 0
+	hasZeroValue := false
+	for _, value := range enum.Values {
+		if value.HasNumber && value.Number == 0 {
+			hasZeroValue = true
+			break
+		}
+	}
+
+	// Only add UNSPECIFIED if there's no value with number 0
+	if !hasZeroValue {
+		sb.WriteString(fmt.Sprintf("  %s_UNSPECIFIED = 0;\n", strings.ToUpper(enum.Name)))
+	}
 
 	nextAutoNumber := 1
 	for _, value := range enum.Values {
@@ -335,6 +348,26 @@ func (g *ProtobufGenerator) generateMessageWithNamespaceAndMap(typ *ast.Type, cu
 			}
 		}
 
+		// Add deprecation warning
+		if field.Deprecated != nil {
+			sb.WriteString("  // DEPRECATED")
+			if field.Deprecated.Since != "" {
+				sb.WriteString(fmt.Sprintf(" (since %s)", field.Deprecated.Since))
+			}
+			if field.Deprecated.Removed != "" {
+				sb.WriteString(fmt.Sprintf(" - will be removed in %s", field.Deprecated.Removed))
+			}
+			sb.WriteString("\n")
+			if field.Deprecated.Reason != "" {
+				sb.WriteString(fmt.Sprintf("  // %s\n", field.Deprecated.Reason))
+			}
+		}
+
+		// Add since version info
+		if field.Since != "" {
+			sb.WriteString(fmt.Sprintf("  // Added in version %s\n", field.Since))
+		}
+
 		// Determine field number (custom or auto)
 		var fieldNum int
 		if field.HasNumber {
@@ -400,9 +433,27 @@ func (g *ProtobufGenerator) generateMessageFieldWithNamespaceAndMap(field *ast.F
 	}
 
 	// Build field options
-	var options string
+	var optionParts []string
+
+	// Add deprecation option if field is deprecated
+	if field.Deprecated != nil {
+		optionParts = append(optionParts, "deprecated = true")
+	}
+
+	// Add validation rules (using buf validate constraints)
+	if field.Validation != nil {
+		validationOpts := g.buildValidationOptions(field)
+		optionParts = append(optionParts, validationOpts...)
+	}
+
+	// Add format-specific annotations
 	if field.Annotations != nil && len(field.Annotations.Proto) > 0 {
-		options = " [" + strings.Join(field.Annotations.Proto, ", ") + "]"
+		optionParts = append(optionParts, field.Annotations.Proto...)
+	}
+
+	var options string
+	if len(optionParts) > 0 {
+		options = " [" + strings.Join(optionParts, ", ") + "]"
 	}
 
 	if field.Type.IsMap {
@@ -424,6 +475,11 @@ func (g *ProtobufGenerator) generateMessageFieldWithNamespaceAndMap(field *ast.F
 
 	if field.Type.IsArray {
 		return fmt.Sprintf("repeated %s %s = %d%s;", protoType, field.Name, fieldNum, options)
+	}
+
+	// Handle optional fields (proto3 optional keyword)
+	if field.Type.Optional {
+		return fmt.Sprintf("optional %s %s = %d%s;", protoType, field.Name, fieldNum, options)
 	}
 
 	// Proto3 doesn't have required keyword, all fields are optional by default
@@ -581,11 +637,110 @@ func (g *ProtobufGenerator) generateService(service *ast.Service) string {
 			}
 		}
 
+		// Build input type with optional stream prefix
+		inputType := method.InputType
+		if method.InputStream {
+			inputType = "stream " + inputType
+		}
+
+		// Build output type with optional stream prefix
+		outputType := method.OutputType
+		if method.OutputStream {
+			outputType = "stream " + outputType
+		}
+
 		sb.WriteString(fmt.Sprintf("  rpc %s(%s) returns (%s);\n",
 			method.Name,
-			method.InputType,
-			method.OutputType))
+			inputType,
+			outputType))
 	}
 	sb.WriteString("}")
 	return sb.String()
+}
+
+// buildValidationOptions builds protobuf validation options from validation rules
+// Uses buf validate constraint syntax
+func (g *ProtobufGenerator) buildValidationOptions(field *ast.Field) []string {
+	var opts []string
+	v := field.Validation
+
+	// String validation
+	if v.MinLength != nil {
+		opts = append(opts, fmt.Sprintf("(buf.validate.field).string.min_len = %d", *v.MinLength))
+	}
+	if v.MaxLength != nil {
+		opts = append(opts, fmt.Sprintf("(buf.validate.field).string.max_len = %d", *v.MaxLength))
+	}
+	if v.Pattern != "" {
+		// Escape quotes in pattern
+		pattern := strings.ReplaceAll(v.Pattern, "\"", "\\\"")
+		opts = append(opts, fmt.Sprintf("(buf.validate.field).string.pattern = \"%s\"", pattern))
+	}
+	if v.Format != "" {
+		switch v.Format {
+		case "email":
+			opts = append(opts, "(buf.validate.field).string.email = true")
+		case "uuid":
+			opts = append(opts, "(buf.validate.field).string.uuid = true")
+		case "uri", "url":
+			opts = append(opts, "(buf.validate.field).string.uri = true")
+		case "hostname":
+			opts = append(opts, "(buf.validate.field).string.hostname = true")
+		case "ipv4":
+			opts = append(opts, "(buf.validate.field).string.ipv4 = true")
+		case "ipv6":
+			opts = append(opts, "(buf.validate.field).string.ipv6 = true")
+		}
+	}
+
+	// Numeric validation (for int/float types)
+	if v.Min != nil {
+		if field.Type.Name == "int32" || field.Type.Name == "int64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).int.gte = %d", int64(*v.Min)))
+		} else if field.Type.Name == "float32" || field.Type.Name == "float64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).float.gte = %f", *v.Min))
+		}
+	}
+	if v.Max != nil {
+		if field.Type.Name == "int32" || field.Type.Name == "int64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).int.lte = %d", int64(*v.Max)))
+		} else if field.Type.Name == "float32" || field.Type.Name == "float64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).float.lte = %f", *v.Max))
+		}
+	}
+	if v.ExclusiveMin != nil {
+		if field.Type.Name == "int32" || field.Type.Name == "int64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).int.gt = %d", int64(*v.ExclusiveMin)))
+		} else if field.Type.Name == "float32" || field.Type.Name == "float64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).float.gt = %f", *v.ExclusiveMin))
+		}
+	}
+	if v.ExclusiveMax != nil {
+		if field.Type.Name == "int32" || field.Type.Name == "int64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).int.lt = %d", int64(*v.ExclusiveMax)))
+		} else if field.Type.Name == "float32" || field.Type.Name == "float64" {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).float.lt = %f", *v.ExclusiveMax))
+		}
+	}
+
+	// Array validation (for repeated fields)
+	if field.Type.IsArray {
+		if v.MinItems != nil {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).repeated.min_items = %d", *v.MinItems))
+		}
+		if v.MaxItems != nil {
+			opts = append(opts, fmt.Sprintf("(buf.validate.field).repeated.max_items = %d", *v.MaxItems))
+		}
+		if v.UniqueItems {
+			opts = append(opts, "(buf.validate.field).repeated.unique = true")
+		}
+	}
+
+	// Enum validation
+	if len(v.Enum) > 0 {
+		// For string enums, use the in constraint
+		opts = append(opts, fmt.Sprintf("(buf.validate.field).string.in = [\"%s\"]", strings.Join(v.Enum, "\", \"")))
+	}
+
+	return opts
 }

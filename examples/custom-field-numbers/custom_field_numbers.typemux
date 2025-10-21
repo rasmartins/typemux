@@ -1,3 +1,5 @@
+@typemux("1.0.0")
+
 /// Example demonstrating custom protobuf field numbers
 
 type User {

@@ -72,25 +72,43 @@ type OpenAPIComponents struct {
 	Schemas map[string]OpenAPISchema `json:"schemas" yaml:"schemas"`
 }
 
+type OpenAPIDiscriminator struct {
+	PropertyName string            `json:"propertyName" yaml:"propertyName"`
+	Mapping      map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+}
+
 type OpenAPISchema struct {
-	Type        string                      `json:"type,omitempty" yaml:"type,omitempty"`
-	Description string                      `json:"description,omitempty" yaml:"description,omitempty"`
-	Properties  map[string]OpenAPIProperty  `json:"properties,omitempty" yaml:"properties,omitempty"`
-	Required    []string                    `json:"required,omitempty" yaml:"required,omitempty"`
-	Enum        []string                    `json:"enum,omitempty" yaml:"enum,omitempty"`
-	OneOf       []OpenAPISchemaRef          `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
-	Extensions  map[string]interface{}      `json:",inline" yaml:",inline"` // x- prefixed extensions
+	Type          string                      `json:"type,omitempty" yaml:"type,omitempty"`
+	Description   string                      `json:"description,omitempty" yaml:"description,omitempty"`
+	Properties    map[string]OpenAPIProperty  `json:"properties,omitempty" yaml:"properties,omitempty"`
+	Required      []string                    `json:"required,omitempty" yaml:"required,omitempty"`
+	Enum          []string                    `json:"enum,omitempty" yaml:"enum,omitempty"`
+	OneOf         []OpenAPISchemaRef          `json:"oneOf,omitempty" yaml:"oneOf,omitempty"`
+	Discriminator *OpenAPIDiscriminator       `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
+	Extensions    map[string]interface{}      `json:",inline" yaml:",inline"` // x- prefixed extensions
 }
 
 type OpenAPIProperty struct {
-	Type        string                `json:"type,omitempty" yaml:"type,omitempty"`
-	Format      string                `json:"format,omitempty" yaml:"format,omitempty"`
-	Description string                `json:"description,omitempty" yaml:"description,omitempty"`
-	Ref         string                `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	Items       *OpenAPIPropertyItems `json:"items,omitempty" yaml:"items,omitempty"`
-	Default     interface{}           `json:"default,omitempty" yaml:"default,omitempty"`
-	Enum        []string              `json:"enum,omitempty" yaml:"enum,omitempty"`
-	Extensions  map[string]interface{} `json:",inline" yaml:",inline"` // x- prefixed extensions
+	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
+	Format           string                 `json:"format,omitempty" yaml:"format,omitempty"`
+	Description      string                 `json:"description,omitempty" yaml:"description,omitempty"`
+	Ref              string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Items            *OpenAPIPropertyItems  `json:"items,omitempty" yaml:"items,omitempty"`
+	Default          interface{}            `json:"default,omitempty" yaml:"default,omitempty"`
+	Enum             []string               `json:"enum,omitempty" yaml:"enum,omitempty"`
+	Deprecated       bool                   `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	MinLength        *int                   `json:"minLength,omitempty" yaml:"minLength,omitempty"`
+	MaxLength        *int                   `json:"maxLength,omitempty" yaml:"maxLength,omitempty"`
+	Pattern          string                 `json:"pattern,omitempty" yaml:"pattern,omitempty"`
+	Minimum          *float64               `json:"minimum,omitempty" yaml:"minimum,omitempty"`
+	Maximum          *float64               `json:"maximum,omitempty" yaml:"maximum,omitempty"`
+	ExclusiveMinimum *float64               `json:"exclusiveMinimum,omitempty" yaml:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum *float64               `json:"exclusiveMaximum,omitempty" yaml:"exclusiveMaximum,omitempty"`
+	MultipleOf       *float64               `json:"multipleOf,omitempty" yaml:"multipleOf,omitempty"`
+	MinItems         *int                   `json:"minItems,omitempty" yaml:"minItems,omitempty"`
+	MaxItems         *int                   `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
+	UniqueItems      bool                   `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
+	Extensions       map[string]interface{} `json:",inline" yaml:",inline"` // x- prefixed extensions
 }
 
 type OpenAPIPropertyItems struct {
@@ -230,7 +248,9 @@ func (g *OpenAPIGenerator) generateSchema(typ *ast.Type, typeNameMap map[string]
 		property := g.convertFieldToProperty(field, typeNameMap)
 		schema.Properties[field.Name] = property
 
-		if field.Required {
+		// Fields are required if explicitly marked with @required annotation
+		// Fields marked with ? are explicitly optional
+		if field.Required && !field.Type.Optional {
 			schema.Required = append(schema.Required, field.Name)
 		}
 	}
@@ -247,12 +267,23 @@ func (g *OpenAPIGenerator) generateUnionSchema(union *ast.Union) OpenAPISchema {
 		schema.Description = doc
 	}
 
+	// Add discriminator for better client generation
+	// Uses "type" as the discriminator property
+	discriminator := &OpenAPIDiscriminator{
+		PropertyName: "type",
+		Mapping:      make(map[string]string),
+	}
+
 	// Add each union option as a oneOf reference
 	for _, option := range union.Options {
 		schema.OneOf = append(schema.OneOf, OpenAPISchemaRef{
 			Ref: fmt.Sprintf("#/components/schemas/%s", option),
 		})
+		// Map the type name to the schema reference
+		discriminator.Mapping[option] = fmt.Sprintf("#/components/schemas/%s", option)
 	}
+
+	schema.Discriminator = discriminator
 
 	return schema
 }
@@ -265,6 +296,68 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 	// Add field documentation
 	if doc := field.Doc.GetDoc("openapi"); doc != "" {
 		property.Description = doc
+	}
+
+	// Add deprecation
+	if field.Deprecated != nil {
+		property.Deprecated = true
+		// Add deprecation info to description
+		if property.Description != "" {
+			property.Description += "\n\n"
+		}
+		property.Description += "**DEPRECATED**"
+		if field.Deprecated.Since != "" {
+			property.Description += fmt.Sprintf(" (since %s)", field.Deprecated.Since)
+		}
+		if field.Deprecated.Removed != "" {
+			property.Description += fmt.Sprintf(" - will be removed in %s", field.Deprecated.Removed)
+		}
+		if field.Deprecated.Reason != "" {
+			property.Description += fmt.Sprintf(": %s", field.Deprecated.Reason)
+		}
+	}
+
+	// Add validation rules
+	if field.Validation != nil {
+		if field.Validation.MinLength != nil {
+			property.MinLength = field.Validation.MinLength
+		}
+		if field.Validation.MaxLength != nil {
+			property.MaxLength = field.Validation.MaxLength
+		}
+		if field.Validation.Pattern != "" {
+			property.Pattern = field.Validation.Pattern
+		}
+		if field.Validation.Format != "" {
+			property.Format = field.Validation.Format
+		}
+		if field.Validation.Min != nil {
+			property.Minimum = field.Validation.Min
+		}
+		if field.Validation.Max != nil {
+			property.Maximum = field.Validation.Max
+		}
+		if field.Validation.ExclusiveMin != nil {
+			property.ExclusiveMinimum = field.Validation.ExclusiveMin
+		}
+		if field.Validation.ExclusiveMax != nil {
+			property.ExclusiveMaximum = field.Validation.ExclusiveMax
+		}
+		if field.Validation.MultipleOf != nil {
+			property.MultipleOf = field.Validation.MultipleOf
+		}
+		if field.Validation.MinItems != nil {
+			property.MinItems = field.Validation.MinItems
+		}
+		if field.Validation.MaxItems != nil {
+			property.MaxItems = field.Validation.MaxItems
+		}
+		if field.Validation.UniqueItems {
+			property.UniqueItems = true
+		}
+		if len(field.Validation.Enum) > 0 {
+			property.Enum = field.Validation.Enum
+		}
 	}
 
 	// Add OpenAPI extensions from field annotations

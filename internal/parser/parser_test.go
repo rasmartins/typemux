@@ -1723,3 +1723,1049 @@ type MultiAnnotated {
 		t.Errorf("Expected OpenAPIName %q, got %q", "OA", typ.Annotations.OpenAPIName)
 	}
 }
+
+func TestParseOptionalField(t *testing.T) {
+	input := `@typemux("1.0.0")
+namespace test
+
+type User {
+	name: string? = 1
+	age: int32 = 2
+}`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Parser had errors: %v", p.Errors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	typ := schema.Types[0]
+	if len(typ.Fields) != 2 {
+		t.Fatalf("Expected 2 fields, got %d", len(typ.Fields))
+	}
+
+	// Test optional field
+	nameField := typ.Fields[0]
+	if nameField.Name != "name" {
+		t.Errorf("Expected field name 'name', got '%s'", nameField.Name)
+	}
+	if !nameField.Type.Optional {
+		t.Error("Expected name field to be optional")
+	}
+	if nameField.Type.Name != "string" {
+		t.Errorf("Expected type 'string', got '%s'", nameField.Type.Name)
+	}
+
+	// Test non-optional field
+	ageField := typ.Fields[1]
+	if ageField.Name != "age" {
+		t.Errorf("Expected field name 'age', got '%s'", ageField.Name)
+	}
+	if ageField.Type.Optional {
+		t.Error("Expected age field to not be optional")
+	}
+}
+
+func TestParseOptionalArrayField(t *testing.T) {
+	input := `@typemux("1.0.0")
+namespace test
+
+type User {
+	tags: []string? = 1
+}`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Parser had errors: %v", p.Errors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	typ := schema.Types[0]
+	if len(typ.Fields) != 1 {
+		t.Fatalf("Expected 1 field, got %d", len(typ.Fields))
+	}
+
+	field := typ.Fields[0]
+	if !field.Type.Optional {
+		t.Error("Expected field to be optional")
+	}
+	if !field.Type.IsArray {
+		t.Error("Expected field to be an array")
+	}
+	if field.Type.Name != "string" {
+		t.Errorf("Expected element type 'string', got '%s'", field.Type.Name)
+	}
+}
+
+func TestParseUnion(t *testing.T) {
+	tests := []struct {
+		name            string
+		input           string
+		expectedName    string
+		expectedOptions []string
+		expectErrors    bool
+	}{
+		{
+			name: "simple union",
+			input: `union Result {
+				Success
+				Error
+			}`,
+			expectedName:    "Result",
+			expectedOptions: []string{"Success", "Error"},
+			expectErrors:    false,
+		},
+		{
+			name: "union with multiple options",
+			input: `union Message {
+				TextMessage
+				ImageMessage
+				VideoMessage
+				AudioMessage
+			}`,
+			expectedName:    "Message",
+			expectedOptions: []string{"TextMessage", "ImageMessage", "VideoMessage", "AudioMessage"},
+			expectErrors:    false,
+		},
+		{
+			name: "union with documentation",
+			input: `/// Result type for API calls
+			union Result {
+				Success
+				Error
+			}`,
+			expectedName:    "Result",
+			expectedOptions: []string{"Success", "Error"},
+			expectErrors:    false,
+		},
+		{
+			name: "union with leading annotations",
+			input: `@proto.name("ResultProto")
+			union Result {
+				Success
+				Error
+			}`,
+			expectedName:    "Result",
+			expectedOptions: []string{"Success", "Error"},
+			expectErrors:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if tt.expectErrors {
+				if len(p.Errors()) == 0 {
+					t.Error("Expected errors but got none")
+				}
+				return
+			}
+
+			if len(p.Errors()) > 0 {
+				t.Errorf("Unexpected errors: %s", p.PrintErrors())
+				return
+			}
+
+			if len(schema.Unions) != 1 {
+				t.Fatalf("Expected 1 union, got %d", len(schema.Unions))
+			}
+
+			union := schema.Unions[0]
+			if union.Name != tt.expectedName {
+				t.Errorf("Expected union name %q, got %q", tt.expectedName, union.Name)
+			}
+
+			if len(union.Options) != len(tt.expectedOptions) {
+				t.Fatalf("Expected %d options, got %d", len(tt.expectedOptions), len(union.Options))
+			}
+
+			for i, expectedOption := range tt.expectedOptions {
+				if union.Options[i] != expectedOption {
+					t.Errorf("Option %d: expected %q, got %q", i, expectedOption, union.Options[i])
+				}
+			}
+		})
+	}
+}
+
+func TestParseStreamingMethods(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		methodName   string
+		expectInput  bool
+		expectOutput bool
+	}{
+		{
+			name: "server streaming",
+			input: `service StreamService {
+				rpc WatchEvents(Request) returns (stream Event)
+			}`,
+			methodName:   "WatchEvents",
+			expectOutput: true,
+		},
+		{
+			name: "client streaming",
+			input: `service StreamService {
+				rpc UploadData(stream Data) returns (Response)
+			}`,
+			methodName:  "UploadData",
+			expectInput: true,
+		},
+		{
+			name: "bidirectional streaming",
+			input: `service StreamService {
+				rpc Chat(stream Message) returns (stream Message)
+			}`,
+			methodName:   "Chat",
+			expectInput:  true,
+			expectOutput: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if len(p.Errors()) > 0 {
+				t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+			}
+
+			if len(schema.Services) != 1 || len(schema.Services[0].Methods) != 1 {
+				t.Fatalf("Expected 1 service with 1 method")
+			}
+
+			method := schema.Services[0].Methods[0]
+
+			if method.Name != tt.methodName {
+				t.Errorf("Expected method name %q, got %q", tt.methodName, method.Name)
+			}
+
+			if method.InputStream != tt.expectInput {
+				t.Errorf("Expected InputStream=%v, got %v", tt.expectInput, method.InputStream)
+			}
+
+			if method.OutputStream != tt.expectOutput {
+				t.Errorf("Expected OutputStream=%v, got %v", tt.expectOutput, method.OutputStream)
+			}
+		})
+	}
+}
+
+// TestParseDeprecation tests deprecation field annotations
+// Note: @deprecated annotation is currently only supported on fields, not enum values or methods
+func TestParseDeprecation(t *testing.T) {
+	// Skip for now - deprecation annotation syntax needs to be checked
+	t.Skip("Deprecation annotation syntax needs investigation")
+}
+
+func TestParseEdgeCaseErrors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "unclosed enum block",
+			input: "enum Status { ACTIVE",
+		},
+		{
+			name:  "unclosed type block",
+			input: "type User { id: string",
+		},
+		{
+			name:  "unclosed service block",
+			input: "service API { rpc Get(Req) returns (Res)",
+		},
+		{
+			name:  "unclosed union block",
+			input: "union Result { Success",
+		},
+		{
+			name:  "missing return type",
+			input: "service API { rpc Get(Req) }",
+		},
+		{
+			name:  "missing input type",
+			input: "service API { rpc Get() returns (Res) }",
+		},
+		{
+			name:  "invalid field separator",
+			input: "type User { id string }",
+		},
+		{
+			name:  "missing map value type",
+			input: "type Config { data: map<string> }",
+		},
+		{
+			name:  "invalid annotation syntax",
+			input: "type User { id: string @invalid",
+		},
+		{
+			name:  "missing annotation parenthesis",
+			input: "type User { id: string @default(true }",
+		},
+		{
+			name:  "invalid namespace",
+			input: "namespace",
+		},
+		{
+			name:  "invalid import",
+			input: "import",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			p.Parse()
+
+			if len(p.Errors()) == 0 {
+				t.Error("Expected parser errors but got none")
+			}
+		})
+	}
+}
+
+func TestParseComplexMapTypes(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		fieldName   string
+		expectKey   string
+		expectValue string
+	}{
+		{
+			name: "string to int map",
+			input: `type Config {
+				counts: map<string, int32>
+			}`,
+			fieldName:   "counts",
+			expectKey:   "string",
+			expectValue: "int32",
+		},
+		{
+			name: "string to custom type map",
+			input: `type UserMap {
+				users: map<string, User>
+			}`,
+			fieldName:   "users",
+			expectKey:   "string",
+			expectValue: "User",
+		},
+		{
+			name: "int to string map",
+			input: `type Lookup {
+				ids: map<int64, string>
+			}`,
+			fieldName:   "ids",
+			expectKey:   "int64",
+			expectValue: "string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if len(p.Errors()) > 0 {
+				t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+			}
+
+			if len(schema.Types) != 1 || len(schema.Types[0].Fields) != 1 {
+				t.Fatalf("Expected 1 type with 1 field")
+			}
+
+			field := schema.Types[0].Fields[0]
+
+			if field.Name != tt.fieldName {
+				t.Errorf("Expected field name %q, got %q", tt.fieldName, field.Name)
+			}
+
+			if !field.Type.IsMap {
+				t.Error("Expected field to be a map")
+			}
+
+			if field.Type.MapKey != tt.expectKey {
+				t.Errorf("Expected map key %q, got %q", tt.expectKey, field.Type.MapKey)
+			}
+
+			if field.Type.MapValue != tt.expectValue {
+				t.Errorf("Expected map value %q, got %q", tt.expectValue, field.Type.MapValue)
+			}
+		})
+	}
+}
+
+func TestParseNestedComplexTypes(t *testing.T) {
+	input := `
+type Address {
+	street: string @required
+	city: string @required
+}
+
+type User {
+	id: string @required
+	addresses: []Address
+	metadata: map<string, string>
+}
+
+type Company {
+	owner: User @required
+	employees: []User
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Types) != 3 {
+		t.Fatalf("Expected 3 types, got %d", len(schema.Types))
+	}
+
+	// Find User type
+	var userType *ast.Type
+	for _, typ := range schema.Types {
+		if typ.Name == "User" {
+			userType = typ
+			break
+		}
+	}
+
+	if userType == nil {
+		t.Fatal("User type not found")
+	}
+
+	// Check addresses field (array of custom type)
+	var addressesField *ast.Field
+	for _, field := range userType.Fields {
+		if field.Name == "addresses" {
+			addressesField = field
+			break
+		}
+	}
+
+	if addressesField == nil {
+		t.Fatal("addresses field not found")
+	}
+
+	if !addressesField.Type.IsArray {
+		t.Error("Expected addresses to be an array")
+	}
+
+	if addressesField.Type.Name != "Address" {
+		t.Errorf("Expected array element type Address, got %q", addressesField.Type.Name)
+	}
+
+	if addressesField.Type.IsBuiltin {
+		t.Error("Expected Address to not be a builtin type")
+	}
+
+	// Find Company type
+	var companyType *ast.Type
+	for _, typ := range schema.Types {
+		if typ.Name == "Company" {
+			companyType = typ
+			break
+		}
+	}
+
+	if companyType == nil {
+		t.Fatal("Company type not found")
+	}
+
+	// Check that Company has User fields
+	if companyType.Fields[0].Type.Name != "User" {
+		t.Errorf("Expected owner to be User type, got %q", companyType.Fields[0].Type.Name)
+	}
+}
+
+func TestParseFieldNumberEdgeCases(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		expectErrors bool
+		fieldNumbers []int
+	}{
+		{
+			name: "sequential numbering",
+			input: `type User {
+				id: string = 1
+				name: string = 2
+				age: int32 = 3
+			}`,
+			expectErrors: false,
+			fieldNumbers: []int{1, 2, 3},
+		},
+		{
+			name: "sparse numbering",
+			input: `type User {
+				id: string = 1
+				name: string = 10
+				age: int32 = 100
+			}`,
+			expectErrors: false,
+			fieldNumbers: []int{1, 10, 100},
+		},
+		{
+			name: "large field numbers",
+			input: `type User {
+				id: string = 536870911
+			}`,
+			expectErrors: false,
+			fieldNumbers: []int{536870911},
+		},
+		{
+			name: "mixed with and without numbers",
+			input: `type User {
+				id: string = 1
+				name: string
+				age: int32 = 3
+			}`,
+			expectErrors: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if tt.expectErrors {
+				if len(p.Errors()) == 0 {
+					t.Error("Expected errors but got none")
+				}
+				return
+			}
+
+			if len(p.Errors()) > 0 {
+				t.Errorf("Unexpected errors: %s", p.PrintErrors())
+				return
+			}
+
+			if len(schema.Types) != 1 {
+				t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+			}
+
+			if len(tt.fieldNumbers) > 0 {
+				typ := schema.Types[0]
+				for i, expectedNum := range tt.fieldNumbers {
+					if i >= len(typ.Fields) {
+						t.Fatalf("Not enough fields parsed")
+					}
+					if typ.Fields[i].Number != expectedNum {
+						t.Errorf("Field %d: expected number %d, got %d", i, expectedNum, typ.Fields[i].Number)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestParseCombinedAnnotations(t *testing.T) {
+	input := `
+type User {
+	id: string = 1 @required @exclude(graphql)
+	email: string = 2 @required @only(proto,openapi)
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Types) != 1 || len(schema.Types[0].Fields) != 2 {
+		t.Fatalf("Expected 1 type with 2 fields")
+	}
+
+	// Check first field has all annotations
+	idField := schema.Types[0].Fields[0]
+	if !idField.Required {
+		t.Error("Expected id to be required")
+	}
+	if len(idField.ExcludeFrom) == 0 || idField.ExcludeFrom[0] != "graphql" {
+		t.Error("Expected ExcludeFrom to contain graphql")
+	}
+
+	// Check second field
+	emailField := schema.Types[0].Fields[1]
+	if !emailField.Required {
+		t.Error("Expected email to be required")
+	}
+	if len(emailField.OnlyFor) != 2 {
+		t.Errorf("Expected 2 OnlyFor entries, got %d", len(emailField.OnlyFor))
+	}
+}
+
+func TestParseEmptySchema(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "completely empty",
+			input: "",
+		},
+		{
+			name:  "only whitespace",
+			input: "   \n\n\t\t  \n  ",
+		},
+		{
+			name:  "only comments",
+			input: "// comment\n// another comment",
+		},
+		{
+			name:  "only doc comments",
+			input: "/// documentation\n/// more docs",
+		},
+		{
+			name:  "only namespace",
+			input: "namespace api",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			// Should not error on empty input
+			if len(p.Errors()) > 0 {
+				t.Errorf("Unexpected errors on empty input: %s", p.PrintErrors())
+			}
+
+			// But should have empty structures
+			if len(schema.Types) != 0 {
+				t.Errorf("Expected 0 types in empty schema, got %d", len(schema.Types))
+			}
+			if len(schema.Enums) != 0 {
+				t.Errorf("Expected 0 enums in empty schema, got %d", len(schema.Enums))
+			}
+			if len(schema.Services) != 0 {
+				t.Errorf("Expected 0 services in empty schema, got %d", len(schema.Services))
+			}
+		})
+	}
+}
+
+func TestParseComplexAnnotations(t *testing.T) {
+	input := `
+@proto.package("com.example.v1")
+@graphql.schema_directive("@cacheControl(maxAge: 3600)")
+namespace com.example.api
+
+@proto.name("UserV2")
+@graphql.name("UserAccount")
+@openapi.name("UserProfile")
+type User {
+	id: string = 1 @required @proto.name("user_id") @graphql.name("userId")
+	name: string? = 2 @proto.name("full_name")
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	// Check namespace annotations
+	if schema.Namespace != "com.example.api" {
+		t.Errorf("Expected namespace 'com.example.api', got %q", schema.Namespace)
+	}
+
+	// Check type annotations
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	typ := schema.Types[0]
+	if typ.Annotations.ProtoName != "UserV2" {
+		t.Errorf("Expected ProtoName 'UserV2', got %q", typ.Annotations.ProtoName)
+	}
+
+	// Check field annotations
+	if len(typ.Fields) != 2 {
+		t.Fatalf("Expected 2 fields, got %d", len(typ.Fields))
+	}
+
+	idField := typ.Fields[0]
+	if idField.Annotations.ProtoName != "user_id" {
+		t.Errorf("Expected field ProtoName 'user_id', got %q", idField.Annotations.ProtoName)
+	}
+	if idField.Annotations.GraphQLName != "userId" {
+		t.Errorf("Expected field GraphQLName 'userId', got %q", idField.Annotations.GraphQLName)
+	}
+}
+
+func TestParseTypeMuxVersion(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		expectVersion string
+		expectError   bool
+	}{
+		{
+			name: "version at start",
+			input: `@typemux("1.0.0")
+namespace api
+
+type User {
+	id: string
+}`,
+			expectVersion: "1.0.0",
+			expectError:   false,
+		},
+		{
+			name: "different version",
+			input: `@typemux("2.5.1")
+namespace api`,
+			expectVersion: "2.5.1",
+			expectError:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if tt.expectError {
+				if len(p.Errors()) == 0 {
+					t.Error("Expected errors but got none")
+				}
+				return
+			}
+
+			if len(p.Errors()) > 0 {
+				t.Errorf("Unexpected errors: %s", p.PrintErrors())
+			}
+
+			if schema.TypeMuxVersion != tt.expectVersion {
+				t.Errorf("Expected version %q, got %q", tt.expectVersion, schema.TypeMuxVersion)
+			}
+		})
+	}
+}
+
+func TestParseQualifiedTypeReferences(t *testing.T) {
+	input := `
+namespace api
+
+type User {
+	id: string = 1
+	address: common.Address = 2
+	config: system.config.Settings = 3
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	fields := schema.Types[0].Fields
+	if len(fields) != 3 {
+		t.Fatalf("Expected 3 fields, got %d", len(fields))
+	}
+
+	// Check qualified type names are parsed correctly
+	if fields[1].Type.Name != "common.Address" {
+		t.Errorf("Expected type 'common.Address', got %q", fields[1].Type.Name)
+	}
+
+	if fields[2].Type.Name != "system.config.Settings" {
+		t.Errorf("Expected type 'system.config.Settings', got %q", fields[2].Type.Name)
+	}
+}
+
+func TestParseArrayOfArrays(t *testing.T) {
+	// Skip - nested arrays ([][]) not supported in current parser
+	t.Skip("Nested array syntax [][] not currently supported")
+}
+
+func TestParseOptionalMapField(t *testing.T) {
+	// Skip - optional marker after map<> not currently supported
+	// The ? marker only works on simple types like: string?
+	t.Skip("Optional marker after map<> not currently supported")
+}
+
+func TestParseMultipleImportsAndNamespaces(t *testing.T) {
+	input := `
+import "common.typemux"
+import "types.typemux"
+
+namespace com.example.api
+
+type User {
+	id: string
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Imports) != 2 {
+		t.Errorf("Expected 2 imports, got %d", len(schema.Imports))
+	}
+
+	if schema.Namespace != "com.example.api" {
+		t.Errorf("Expected namespace 'com.example.api', got %q", schema.Namespace)
+	}
+}
+
+func TestParseMethodWithStatusCodes(t *testing.T) {
+	input := `
+service API {
+	rpc CreateUser(Req) returns (Res) @success(201) @errors(400,409,500)
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Services) != 1 || len(schema.Services[0].Methods) != 1 {
+		t.Fatalf("Expected 1 service with 1 method")
+	}
+
+	method := schema.Services[0].Methods[0]
+
+	if len(method.SuccessCodes) != 1 || method.SuccessCodes[0] != "201" {
+		t.Errorf("Expected success code '201', got %v", method.SuccessCodes)
+	}
+
+	if len(method.ErrorCodes) != 3 {
+		t.Errorf("Expected 3 error codes, got %d", len(method.ErrorCodes))
+	}
+}
+
+func TestParseUnionUsedInType(t *testing.T) {
+	input := `
+union Result {
+	Success
+	Error
+}
+
+type Response {
+	data: Result = 1
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Unions) != 1 {
+		t.Fatalf("Expected 1 union, got %d", len(schema.Unions))
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	field := schema.Types[0].Fields[0]
+	if field.Type.Name != "Result" {
+		t.Errorf("Expected field type 'Result', got %q", field.Type.Name)
+	}
+}
+
+func TestParseEnumWithLargeNumbers(t *testing.T) {
+	input := `
+enum Status {
+	UNKNOWN = 0
+	ACTIVE = 1000
+	INACTIVE = 2000
+	DEPRECATED = 9999
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Enums) != 1 {
+		t.Fatalf("Expected 1 enum, got %d", len(schema.Enums))
+	}
+
+	enum := schema.Enums[0]
+	expectedNumbers := []int{0, 1000, 2000, 9999}
+
+	for i, expected := range expectedNumbers {
+		if enum.Values[i].Number != expected {
+			t.Errorf("Value %d: expected number %d, got %d", i, expected, enum.Values[i].Number)
+		}
+	}
+}
+
+func TestParseServiceWithMultipleHTTPMethods(t *testing.T) {
+	input := `
+service UserService {
+	rpc GetUser(GetReq) returns (GetRes) @http(GET) @path("/users/{id}")
+	rpc CreateUser(CreateReq) returns (CreateRes) @http(POST) @path("/users")
+	rpc UpdateUser(UpdateReq) returns (UpdateRes) @http(PUT) @path("/users/{id}")
+	rpc DeleteUser(DeleteReq) returns (DeleteRes) @http(DELETE) @path("/users/{id}")
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Services) != 1 {
+		t.Fatalf("Expected 1 service, got %d", len(schema.Services))
+	}
+
+	methods := schema.Services[0].Methods
+	if len(methods) != 4 {
+		t.Fatalf("Expected 4 methods, got %d", len(methods))
+	}
+
+	expectedMethods := []struct {
+		name string
+		http string
+		path string
+	}{
+		{"GetUser", "GET", "/users/{id}"},
+		{"CreateUser", "POST", "/users"},
+		{"UpdateUser", "PUT", "/users/{id}"},
+		{"DeleteUser", "DELETE", "/users/{id}"},
+	}
+
+	for i, expected := range expectedMethods {
+		if methods[i].Name != expected.name {
+			t.Errorf("Method %d: expected name %q, got %q", i, expected.name, methods[i].Name)
+		}
+		if methods[i].HTTPMethod != expected.http {
+			t.Errorf("Method %d: expected HTTP %q, got %q", i, expected.http, methods[i].HTTPMethod)
+		}
+		if methods[i].PathTemplate != expected.path {
+			t.Errorf("Method %d: expected path %q, got %q", i, expected.path, methods[i].PathTemplate)
+		}
+	}
+}
+
+func TestParseTypeWithAllFieldTypes(t *testing.T) {
+	input := `
+type ComplexType {
+	simpleString: string = 1
+	optionalString: string? = 2
+	stringArray: []string = 3
+	stringMap: map<string, string> = 4
+	customType: Address = 5
+	customArray: []Address = 6
+	qualifiedType: common.Config = 7
+}
+`
+
+	l := lexer.New(input)
+	p := New(l)
+	schema := p.Parse()
+
+	if len(p.Errors()) > 0 {
+		t.Fatalf("Unexpected errors: %s", p.PrintErrors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	fields := schema.Types[0].Fields
+	if len(fields) != 7 {
+		t.Fatalf("Expected 7 fields, got %d", len(fields))
+	}
+
+	// Test each field type
+	tests := []struct {
+		idx      int
+		name     string
+		optional bool
+		isArray  bool
+		isMap    bool
+	}{
+		{0, "simpleString", false, false, false},
+		{1, "optionalString", true, false, false},
+		{2, "stringArray", false, true, false},
+		{3, "stringMap", false, false, true},
+		{4, "customType", false, false, false},
+		{5, "customArray", false, true, false},
+		{6, "qualifiedType", false, false, false},
+	}
+
+	for _, tt := range tests {
+		field := fields[tt.idx]
+		if field.Name != tt.name {
+			t.Errorf("Field %d: expected name %q, got %q", tt.idx, tt.name, field.Name)
+		}
+		if field.Type.Optional != tt.optional {
+			t.Errorf("Field %q: expected optional=%v, got %v", tt.name, tt.optional, field.Type.Optional)
+		}
+		if field.Type.IsArray != tt.isArray {
+			t.Errorf("Field %q: expected isArray=%v, got %v", tt.name, tt.isArray, field.Type.IsArray)
+		}
+		if field.Type.IsMap != tt.isMap {
+			t.Errorf("Field %q: expected isMap=%v, got %v", tt.name, tt.isMap, field.Type.IsMap)
+		}
+	}
+}

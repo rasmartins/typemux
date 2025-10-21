@@ -1,6 +1,7 @@
+@typemux("1.0.0")
+
 /// Example demonstrating namespace usage
 /// This schema uses a custom namespace for package organization
-
 namespace com.example.userservice
 
 /// User status enumeration

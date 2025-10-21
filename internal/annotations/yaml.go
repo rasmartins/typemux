@@ -9,6 +9,7 @@ import (
 
 // YAMLAnnotations represents the root structure of a YAML annotations file
 type YAMLAnnotations struct {
+	Version    string                           `yaml:"version"`
 	Namespaces map[string]*NamespaceAnnotations `yaml:"namespaces"`
 	Types      map[string]*TypeAnnotations      `yaml:"types"`
 	Enums      map[string]*EnumAnnotations      `yaml:"enums"`
@@ -30,8 +31,39 @@ type NamespaceProtoAnnotations struct {
 
 // NamespaceOpenAPIAnnotations represents OpenAPI-specific namespace annotations
 type NamespaceOpenAPIAnnotations struct {
-	Info      map[string]string `yaml:"info"`      // OpenAPI info section
+	Info       map[string]string `yaml:"info"`       // OpenAPI info section
 	Extensions map[string]string `yaml:"extensions"` // OpenAPI extensions (x-*)
+}
+
+// DeprecationAnnotations represents deprecation information for fields/types
+type DeprecationAnnotations struct {
+	Reason  string `yaml:"reason"`  // Why it's deprecated and what to use instead
+	Since   string `yaml:"since"`   // Version when it was deprecated
+	Removed string `yaml:"removed"` // Version when it will be removed (optional)
+}
+
+// ValidationAnnotations represents validation constraints for fields
+type ValidationAnnotations struct {
+	// String validation
+	MinLength *int   `yaml:"minLength,omitempty"`
+	MaxLength *int   `yaml:"maxLength,omitempty"`
+	Pattern   string `yaml:"pattern,omitempty"` // Regex pattern
+	Format    string `yaml:"format,omitempty"`  // email, url, uuid, etc.
+
+	// Numeric validation
+	Min          *float64 `yaml:"min,omitempty"`          // Minimum value (inclusive)
+	Max          *float64 `yaml:"max,omitempty"`          // Maximum value (inclusive)
+	ExclusiveMin *float64 `yaml:"exclusiveMin,omitempty"` // Minimum value (exclusive)
+	ExclusiveMax *float64 `yaml:"exclusiveMax,omitempty"` // Maximum value (exclusive)
+	MultipleOf   *float64 `yaml:"multipleOf,omitempty"`   // Must be multiple of this value
+
+	// Array validation
+	MinItems    *int `yaml:"minItems,omitempty"`
+	MaxItems    *int `yaml:"maxItems,omitempty"`
+	UniqueItems bool `yaml:"uniqueItems,omitempty"`
+
+	// General
+	Enum []string `yaml:"enum,omitempty"` // Allowed values
 }
 
 // FormatSpecificAnnotations represents annotations for a specific format (proto/graphql/openapi)
@@ -52,13 +84,16 @@ type TypeAnnotations struct {
 
 // FieldAnnotations represents annotations for a field
 type FieldAnnotations struct {
-	Required bool                       `yaml:"required"`
-	Default  string                     `yaml:"default"`
-	Exclude  []string                   `yaml:"exclude"`
-	Only     []string                   `yaml:"only"`
-	Proto    *FormatSpecificAnnotations `yaml:"proto"`
-	GraphQL  *FormatSpecificAnnotations `yaml:"graphql"`
-	OpenAPI  *FormatSpecificAnnotations `yaml:"openapi"`
+	Required   bool                       `yaml:"required"`
+	Default    string                     `yaml:"default"`
+	Exclude    []string                   `yaml:"exclude"`
+	Only       []string                   `yaml:"only"`
+	Proto      *FormatSpecificAnnotations `yaml:"proto"`
+	GraphQL    *FormatSpecificAnnotations `yaml:"graphql"`
+	OpenAPI    *FormatSpecificAnnotations `yaml:"openapi"`
+	Deprecated *DeprecationAnnotations    `yaml:"deprecated"`
+	Validation *ValidationAnnotations     `yaml:"validation"`
+	Since      string                     `yaml:"since"`
 }
 
 // EnumAnnotations represents annotations for an enum

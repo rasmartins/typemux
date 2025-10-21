@@ -19,6 +19,7 @@ const (
 	TOKEN_SERVICE
 	TOKEN_RPC
 	TOKEN_RETURNS
+	TOKEN_STREAM
 	TOKEN_LBRACE
 	TOKEN_RBRACE
 	TOKEN_LPAREN
@@ -35,6 +36,7 @@ const (
 	TOKEN_STRING
 	TOKEN_NUMBER
 	TOKEN_DOC_COMMENT
+	TOKEN_QUESTION
 )
 
 type Token struct {
@@ -218,6 +220,8 @@ func (l *Lexer) NextToken() Token {
 		tok = Token{Type: TOKEN_GT, Literal: string(l.ch), Line: l.line, Column: l.column}
 	case '=':
 		tok = Token{Type: TOKEN_EQUALS, Literal: string(l.ch), Line: l.line, Column: l.column}
+	case '?':
+		tok = Token{Type: TOKEN_QUESTION, Literal: string(l.ch), Line: l.line, Column: l.column}
 	case '"':
 		tok.Type = TOKEN_STRING
 		tok.Literal = l.readString()
@@ -254,6 +258,7 @@ func lookupIdent(ident string) TokenType {
 		"service":   TOKEN_SERVICE,
 		"rpc":       TOKEN_RPC,
 		"returns":   TOKEN_RETURNS,
+		"stream":    TOKEN_STREAM,
 	}
 
 	if tok, ok := keywords[ident]; ok {
@@ -298,6 +303,7 @@ func (t TokenType) String() string {
 		TOKEN_STRING:      "STRING",
 		TOKEN_NUMBER:      "NUMBER",
 		TOKEN_DOC_COMMENT: "DOC_COMMENT",
+		TOKEN_QUESTION:    "?",
 	}
 	if name, ok := names[t]; ok {
 		return name

@@ -4,14 +4,16 @@ import "strings"
 
 // Schema represents the entire IDL schema
 type Schema struct {
-	Namespace           string              // Optional namespace (e.g., "com.example.api")
-	NamespaceAnnotations *FormatAnnotations // Namespace-level annotations
-	Imports             []string            // Imported file paths
-	Enums               []*Enum
-	Types               []*Type
-	Unions              []*Union
-	Services            []*Service
-	TypeRegistry        *TypeRegistry       // Registry for resolving qualified type names
+	Namespace            string              // Optional namespace (e.g., "com.example.api")
+	TypeMuxVersion       string              // TypeMux IDL format version (e.g., "1.0.0")
+	Version              string              // Schema version (e.g., "1.0.0", "2.1.3")
+	NamespaceAnnotations *FormatAnnotations  // Namespace-level annotations
+	Imports              []string            // Imported file paths
+	Enums                []*Enum
+	Types                []*Type
+	Unions               []*Union
+	Services             []*Service
+	TypeRegistry         *TypeRegistry       // Registry for resolving qualified type names
 }
 
 // Enum represents an enumeration type
@@ -57,11 +59,14 @@ type Field struct {
 	Default     string
 	Attributes  map[string]string
 	Doc         *Documentation
-	ExcludeFrom []string // List of generators to exclude this field from
-	OnlyFor     []string // If set, only include in these generators
-	Number      int      // Protobuf field number
-	HasNumber   bool     // Whether a custom number was specified
+	ExcludeFrom []string           // List of generators to exclude this field from
+	OnlyFor     []string           // If set, only include in these generators
+	Number      int                // Protobuf field number
+	HasNumber   bool               // Whether a custom number was specified
 	Annotations *FormatAnnotations // Format-specific annotations
+	Deprecated  *DeprecationInfo   // Deprecation information
+	Validation  *ValidationRules   // Validation rules
+	Since       string             // Version when this field was added (e.g., "2.0.0")
 }
 
 // ShouldIncludeInGenerator checks if a field should be included in a specific generator
@@ -94,6 +99,7 @@ type FieldType struct {
 	MapKey    string // for map types
 	MapValue  string // for map types
 	IsBuiltin bool
+	Optional  bool // true if the type has a ? suffix (e.g., string?)
 }
 
 // Service represents a service definition
@@ -106,15 +112,17 @@ type Service struct {
 
 // Method represents an RPC method
 type Method struct {
-	Name         string
-	InputType    string
-	OutputType   string
-	Doc          *Documentation
-	HTTPMethod   string   // HTTP method for OpenAPI (GET, POST, PUT, DELETE, PATCH)
-	GraphQLType  string   // GraphQL operation type (query, mutation, subscription)
-	PathTemplate string   // URL path template for OpenAPI (e.g., "/users/{id}")
-	SuccessCodes []string // Additional success HTTP codes beyond 200 (e.g., "201", "204")
-	ErrorCodes   []string // Expected HTTP error codes (e.g., "400", "404", "500")
+	Name          string
+	InputType     string
+	OutputType    string
+	InputStream   bool     // Client-side streaming
+	OutputStream  bool     // Server-side streaming
+	Doc           *Documentation
+	HTTPMethod    string   // HTTP method for OpenAPI (GET, POST, PUT, DELETE, PATCH)
+	GraphQLType   string   // GraphQL operation type (query, mutation, subscription)
+	PathTemplate  string   // URL path template for OpenAPI (e.g., "/users/{id}")
+	SuccessCodes  []string // Additional success HTTP codes beyond 200 (e.g., "201", "204")
+	ErrorCodes    []string // Expected HTTP error codes (e.g., "400", "404", "500")
 }
 
 // GetHTTPMethod returns the HTTP method, using heuristics if not explicitly set
@@ -293,4 +301,35 @@ func (tr *TypeRegistry) ResolveType(name string, currentNamespace string) (strin
 func GetUnqualifiedName(qualifiedName string) string {
 	parts := strings.Split(qualifiedName, ".")
 	return parts[len(parts)-1]
+}
+
+// DeprecationInfo holds information about deprecated fields/types
+type DeprecationInfo struct {
+	Reason  string // Why it's deprecated and what to use instead
+	Since   string // Version when it was deprecated (e.g., "2.0.0")
+	Removed string // Version when it will be removed (optional, e.g., "3.0.0")
+}
+
+// ValidationRules holds validation constraints for a field
+type ValidationRules struct {
+	// String validation
+	MinLength *int    `json:"minLength,omitempty"`
+	MaxLength *int    `json:"maxLength,omitempty"`
+	Pattern   string  `json:"pattern,omitempty"` // Regex pattern
+	Format    string  `json:"format,omitempty"`  // email, url, uuid, etc.
+
+	// Numeric validation
+	Min          *float64 `json:"min,omitempty"`          // Minimum value (inclusive)
+	Max          *float64 `json:"max,omitempty"`          // Maximum value (inclusive)
+	ExclusiveMin *float64 `json:"exclusiveMin,omitempty"` // Minimum value (exclusive)
+	ExclusiveMax *float64 `json:"exclusiveMax,omitempty"` // Maximum value (exclusive)
+	MultipleOf   *float64 `json:"multipleOf,omitempty"`   // Must be multiple of this value
+
+	// Array validation
+	MinItems *int `json:"minItems,omitempty"`
+	MaxItems *int `json:"maxItems,omitempty"`
+	UniqueItems bool `json:"uniqueItems,omitempty"`
+
+	// General
+	Enum []string `json:"enum,omitempty"` // Allowed values
 }

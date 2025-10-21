@@ -1355,3 +1355,65 @@ func TestProtobufGenerator_NameAnnotation(t *testing.T) {
 		t.Error("Expected output NOT to contain 'message User {', but it did")
 	}
 }
+
+func TestGenerateOptionalFields(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: false,
+						},
+						Number:    1,
+						HasNumber: true,
+					},
+					{
+						Name: "name",
+						Type: &ast.FieldType{
+							Name:     "string",
+							Optional: true,
+						},
+						Number:    2,
+						HasNumber: true,
+					},
+					{
+						Name: "tags",
+						Type: &ast.FieldType{
+							Name:     "string",
+							IsArray:  true,
+							Optional: true,
+						},
+						Number:    3,
+						HasNumber: true,
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewProtobufGenerator()
+	output := gen.Generate(schema)
+
+	// Check for optional keyword
+	if !strings.Contains(output, "optional string name = 2;") {
+		t.Error("Expected 'optional string name = 2;' in output")
+	}
+
+	// Non-optional field should not have optional keyword
+	if strings.Contains(output, "optional string id") {
+		t.Error("Non-optional field 'id' should not have 'optional' keyword")
+	}
+
+	// Arrays should use repeated, not optional
+	if !strings.Contains(output, "repeated string tags = 3;") {
+		t.Error("Expected 'repeated string tags = 3;' in output")
+	}
+	if strings.Contains(output, "optional repeated") {
+		t.Error("Should not have 'optional repeated' for array fields")
+	}
+}

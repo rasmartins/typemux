@@ -55,6 +55,39 @@ func (p *Parser) Parse() *ast.Schema {
 		Services:  []*ast.Service{},
 	}
 
+	// Parse schema-level annotations at the beginning (@typemux, @version)
+	// These must appear before any other declarations
+	for p.curTok.Type == lexer.TOKEN_AT {
+		// Peek at what comes after @
+		if p.peekTok.Type == lexer.TOKEN_IDENT {
+			attrName := p.peekTok.Literal
+			if attrName == "typemux" || attrName == "version" {
+				// Parse this schema-level annotation
+				p.nextToken() // consume @
+				p.nextToken() // consume identifier
+				if p.curTok.Type == lexer.TOKEN_LPAREN {
+					p.nextToken()
+					if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+						value := strings.Trim(p.curTok.Literal, "\"'")
+						if attrName == "typemux" {
+							schema.TypeMuxVersion = value
+						} else {
+							schema.Version = value
+						}
+						p.nextToken()
+						p.expectToken(lexer.TOKEN_RPAREN)
+					}
+				}
+			} else {
+				// Not a schema-level annotation, stop looking
+				break
+			}
+		} else {
+			// Not an identifier after @, stop looking
+			break
+		}
+	}
+
 	for p.curTok.Type != lexer.TOKEN_EOF {
 		// Collect documentation that might precede the next declaration
 		doc := p.parseDocumentation()
@@ -67,9 +100,40 @@ func (p *Parser) Parse() *ast.Schema {
 			namespace := p.parseNamespace()
 			if namespace != "" {
 				schema.Namespace = namespace
-				// Apply leading annotations to the namespace
+
+				// Only store leading annotations if they exist (these would be annotations before the namespace keyword)
 				if leadingAnnotations != nil && (len(leadingAnnotations.Proto) > 0 || len(leadingAnnotations.GraphQL) > 0 || len(leadingAnnotations.OpenAPI) > 0) {
 					schema.NamespaceAnnotations = leadingAnnotations
+				}
+				// Note: We do NOT parse trailing annotations here because annotations that appear
+				// after the namespace declaration should be treated as leading annotations for
+				// the next declaration (type, enum, etc.), not as namespace annotations.
+			}
+		case lexer.TOKEN_AT:
+			// Handle special schema-level annotations before anything else
+			p.nextToken()
+			if p.curTok.Type == lexer.TOKEN_IDENT {
+				attrName := p.curTok.Literal
+				p.nextToken()
+
+				if attrName == "typemux" {
+					if p.curTok.Type == lexer.TOKEN_LPAREN {
+						p.nextToken()
+						if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+							schema.TypeMuxVersion = strings.Trim(p.curTok.Literal, "\"'")
+							p.nextToken()
+							p.expectToken(lexer.TOKEN_RPAREN)
+						}
+					}
+				} else if attrName == "version" {
+					if p.curTok.Type == lexer.TOKEN_LPAREN {
+						p.nextToken()
+						if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+							schema.Version = strings.Trim(p.curTok.Literal, "\"'")
+							p.nextToken()
+							p.expectToken(lexer.TOKEN_RPAREN)
+						}
+					}
 				}
 			}
 		case lexer.TOKEN_IMPORT:
@@ -231,6 +295,10 @@ func (p *Parser) parseTypeWithDocAndAnnotations(doc *ast.Documentation, leadingA
 				// Back up and let parseSingleAnnotation handle it
 				p.curTok = lexer.Token{Type: lexer.TOKEN_AT, Literal: "@"}
 				p.parseSingleAnnotation(fieldLeadingAnnotations)
+			} else if p.curTok.Type == lexer.TOKEN_LPAREN {
+				// This is an attribute with parameters - store it for later parsing
+				// Mark that it has parameters by storing a special value
+				leadingAttributes[attrName] = "NEEDS_PARSING"
 			} else {
 				// This is a simple attribute like @required
 				leadingAttributes[attrName] = ""
@@ -399,6 +467,36 @@ func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadin
 				p.expectToken(lexer.TOKEN_RPAREN)
 			}
 			field.Attributes[attrName] = ""
+		} else if attrName == "deprecated" {
+			// Parse @deprecated("reason", since="2.0.0", removed="3.0.0")
+			if field.Deprecated == nil {
+				field.Deprecated = &ast.DeprecationInfo{}
+			}
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				p.parseDeprecationInfo(field.Deprecated)
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
+		} else if attrName == "since" {
+			// Parse @since("2.0.0")
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+					field.Since = strings.Trim(p.curTok.Literal, "\"'")
+					p.nextToken()
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			}
+		} else if attrName == "validate" {
+			// Parse @validate(format="email", min=0, max=100, etc.)
+			if field.Validation == nil {
+				field.Validation = &ast.ValidationRules{}
+			}
+			if p.curTok.Type == lexer.TOKEN_LPAREN {
+				p.nextToken()
+				p.parseValidationRules(field.Validation)
+				p.expectToken(lexer.TOKEN_RPAREN)
+			}
 		} else if attrName == "proto" || attrName == "graphql" || attrName == "openapi" {
 			// Parse format-specific annotations like @proto.option([packed = false]) or @proto.name("TypeName")
 			// Expect a dot
@@ -514,6 +612,26 @@ func (p *Parser) parseGeneratorList() []string {
 	return generators
 }
 
+// parseStringList parses a comma-separated list of string values
+func (p *Parser) parseStringList() []string {
+	var result []string
+
+	if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+		result = append(result, strings.Trim(p.curTok.Literal, "\"'"))
+		p.nextToken()
+	}
+
+	for p.curTok.Type == lexer.TOKEN_COMMA {
+		p.nextToken()
+		if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
+			result = append(result, strings.Trim(p.curTok.Literal, "\"'"))
+			p.nextToken()
+		}
+	}
+
+	return result
+}
+
 func (p *Parser) parseFieldType() *ast.FieldType {
 	fieldType := &ast.FieldType{}
 
@@ -576,6 +694,12 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 
 	fieldType.Name = strings.Join(nameParts, ".")
 	fieldType.IsBuiltin = ast.IsBuiltinType(fieldType.Name)
+
+	// Check for optional marker (?)
+	if p.curTok.Type == lexer.TOKEN_QUESTION {
+		fieldType.Optional = true
+		p.nextToken()
+	}
 
 	return fieldType
 }
@@ -641,6 +765,12 @@ func (p *Parser) parseMethod() *ast.Method {
 		return nil
 	}
 
+	// Check for stream keyword before input type
+	if p.curTok.Type == lexer.TOKEN_STREAM {
+		method.InputStream = true
+		p.nextToken()
+	}
+
 	if p.curTok.Type != lexer.TOKEN_IDENT {
 		p.addError("expected input type")
 		return nil
@@ -659,6 +789,12 @@ func (p *Parser) parseMethod() *ast.Method {
 
 	if !p.expectToken(lexer.TOKEN_LPAREN) {
 		return nil
+	}
+
+	// Check for stream keyword before output type
+	if p.curTok.Type == lexer.TOKEN_STREAM {
+		method.OutputStream = true
+		p.nextToken()
 	}
 
 	if p.curTok.Type != lexer.TOKEN_IDENT {
@@ -968,4 +1104,162 @@ func (p *Parser) mergeAnnotations(leading, trailing *ast.FormatAnnotations) *ast
 	}
 
 	return merged
+}
+
+// parseDeprecationInfo parses deprecation annotation parameters
+// Format: @deprecated("reason", since="version", removed="version")
+func (p *Parser) parseDeprecationInfo(info *ast.DeprecationInfo) {
+	// First parameter can be a reason string (optional)
+	if p.curTok.Type == lexer.TOKEN_STRING {
+		info.Reason = strings.Trim(p.curTok.Literal, "\"'")
+		p.nextToken()
+
+		// If there's a comma, parse named parameters
+		if p.curTok.Type == lexer.TOKEN_COMMA {
+			p.nextToken()
+		}
+	}
+
+	// Parse named parameters: since="version", removed="version"
+	for p.curTok.Type != lexer.TOKEN_RPAREN && p.curTok.Type != lexer.TOKEN_EOF {
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			break
+		}
+
+		paramName := p.curTok.Literal
+		p.nextToken()
+
+		if p.curTok.Type != lexer.TOKEN_EQUALS {
+			p.addError("expected = after parameter name in @deprecated")
+			return
+		}
+		p.nextToken()
+
+		if p.curTok.Type != lexer.TOKEN_STRING && p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected string value after = in @deprecated")
+			return
+		}
+
+		value := strings.Trim(p.curTok.Literal, "\"'")
+
+		switch paramName {
+		case "since":
+			info.Since = value
+		case "removed":
+			info.Removed = value
+		}
+
+		p.nextToken()
+
+		// Skip comma if present
+		if p.curTok.Type == lexer.TOKEN_COMMA {
+			p.nextToken()
+		}
+	}
+}
+
+// parseValidationRules parses validation parameters from @validate(...)
+// Format: format="email", min=0, max=100, pattern="regex", etc.
+func (p *Parser) parseValidationRules(rules *ast.ValidationRules) {
+	for p.curTok.Type != lexer.TOKEN_RPAREN && p.curTok.Type != lexer.TOKEN_EOF {
+		// Get the parameter name
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected validation parameter name")
+			return
+		}
+
+		paramName := p.curTok.Literal
+		p.nextToken()
+
+		// Expect =
+		if p.curTok.Type != lexer.TOKEN_EQUALS {
+			p.addError("expected = after validation parameter")
+			return
+		}
+		p.nextToken()
+
+		// Get the value
+		paramValue := ""
+		if p.curTok.Type == lexer.TOKEN_STRING {
+			paramValue = strings.Trim(p.curTok.Literal, "\"'")
+		} else if p.curTok.Type == lexer.TOKEN_NUMBER {
+			paramValue = p.curTok.Literal
+		} else if p.curTok.Type == lexer.TOKEN_IDENT {
+			paramValue = p.curTok.Literal
+		} else {
+			p.addError("expected value after =")
+			return
+		}
+		p.nextToken()
+
+		// Apply the parameter
+		p.applyValidationParameter(rules, paramName, paramValue)
+
+		// Skip comma if present
+		if p.curTok.Type == lexer.TOKEN_COMMA {
+			p.nextToken()
+		}
+	}
+}
+
+// applyValidationParameter sets the validation rule parameter
+func (p *Parser) applyValidationParameter(rules *ast.ValidationRules, name, value string) {
+	switch name {
+	case "format":
+		rules.Format = value
+	case "pattern":
+		rules.Pattern = value
+	case "minLength":
+		if val, err := parseInt(value); err == nil {
+			rules.MinLength = &val
+		}
+	case "maxLength":
+		if val, err := parseInt(value); err == nil {
+			rules.MaxLength = &val
+		}
+	case "min":
+		if val, err := parseFloat(value); err == nil {
+			rules.Min = &val
+		}
+	case "max":
+		if val, err := parseFloat(value); err == nil {
+			rules.Max = &val
+		}
+	case "exclusiveMin":
+		if val, err := parseFloat(value); err == nil {
+			rules.ExclusiveMin = &val
+		}
+	case "exclusiveMax":
+		if val, err := parseFloat(value); err == nil {
+			rules.ExclusiveMax = &val
+		}
+	case "multipleOf":
+		if val, err := parseFloat(value); err == nil {
+			rules.MultipleOf = &val
+		}
+	case "minItems":
+		if val, err := parseInt(value); err == nil {
+			rules.MinItems = &val
+		}
+	case "maxItems":
+		if val, err := parseInt(value); err == nil {
+			rules.MaxItems = &val
+		}
+	case "uniqueItems":
+		rules.UniqueItems = (value == "true")
+	}
+}
+
+// parseInt helper
+func parseInt(s string) (int, error) {
+	var val int
+	_, err := fmt.Sscanf(s, "%d", &val)
+	return val, err
+}
+
+// parseFloat helper
+func parseFloat(s string) (float64, error) {
+	var val float64
+	_, err := fmt.Sscanf(s, "%f", &val)
+	return val, err
 }

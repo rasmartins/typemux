@@ -1,5 +1,6 @@
 /// Example demonstrating inline GraphQL namespace directives
 @graphql.directive("@link(url: \"https://specs.apollo.dev/federation/v2.0\", import: [\"@key\", \"@shareable\"])")
+@typemux("1.0.0")
 namespace com.example.products
 
 type Product {

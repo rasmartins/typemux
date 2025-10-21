@@ -1,0 +1,60 @@
+@typemux("1.0.0")
+namespace customer @proto.option(go_package = "github.com/example/customer")
+
+import "common/types.typemux"
+
+enum Status {
+  STATUS_UNSPECIFIED = 0
+  STATUS_ACTIVE = 1
+  STATUS_INACTIVE = 2
+}
+
+type Customer {
+  id: string = 1
+  name: string = 2
+  email: string = 3
+  status: Status = 4
+  billing_address: Address = 5
+  shipping_address: Address = 6
+  metadata: Metadata = 7
+  created_at: timestamp = 8
+  updated_at: timestamp = 9
+}
+
+type CreateCustomerRequest {
+  name: string = 1
+  email: string = 2
+  billing_address: Address = 3
+  shipping_address: Address = 4
+}
+
+type CreateCustomerResponse {
+  customer: Customer = 1
+}
+
+type GetCustomerRequest {
+  id: string = 1
+}
+
+type GetCustomerResponse {
+  customer: Customer = 1
+}
+
+type Address {
+  street: string = 1
+  city: string = 2
+  state: string = 3
+  zip_code: string = 4
+  country: string = 5
+}
+
+type Metadata {
+  labels: map<string, string> = 1
+  tags: []string = 2
+}
+
+service CustomerService {
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse)
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse)
+}
+

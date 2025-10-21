@@ -1,3 +1,5 @@
+@typemux("1.0.0")
+
 /// Example demonstrating namespace-level annotations
 /// Both inline and YAML-based approaches
 

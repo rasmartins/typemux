@@ -1,0 +1,85 @@
+"""
+Custom scalar for timestamps
+"""
+scalar Time
+
+"""
+User status enumeration
+"""
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+"""
+User type
+"""
+type User {
+  id: ID!
+  name: String!
+  status: UserStatus!
+}
+
+"""
+User update event
+"""
+type UserUpdate {
+  """
+  The user that was updated
+  """
+  user: User!
+  """
+  The type of update that occurred
+  """
+  updateType: String!
+  """
+  Timestamp of the update
+  """
+  timestamp: Time!
+}
+
+"""
+Message in a chat
+"""
+type ChatMessage {
+  id: ID!
+  userId: String!
+  text: String!
+  timestamp: Time!
+}
+
+extend type Query {
+  """
+  Get a user by ID
+  """
+  getUser(id: ID!): User
+}
+
+extend type Subscription {
+  """
+  Subscribe to user updates
+  Real-time notifications when a user is created, updated, or deleted
+  """
+  userUpdates(
+    """
+    Filter by user status
+    """
+    status: UserStatus
+  ): UserUpdate!
+
+  """
+  Subscribe to new chat messages
+  """
+  newMessages(
+    """
+    Room ID to subscribe to
+    """
+    roomId: String!
+  ): ChatMessage!
+
+  """
+  Subscribe to user status changes
+  """
+  userStatusChanged: User!
+}

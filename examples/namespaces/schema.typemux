@@ -1,6 +1,7 @@
 // Test schema with multiple namespaces
 // This demonstrates that YAML annotations can use qualified names to disambiguate
 
+@typemux("1.0.0")
 namespace com.example.users
 
 type User {
@@ -15,6 +16,7 @@ enum UserStatus {
     SUSPENDED
 }
 
+@typemux("1.0.0")
 namespace com.example.products
 
 type User {

@@ -1,5 +1,9 @@
 # Binaries
+bin/
 typemux
+proto2typemux
+graphql2typemux
+openapi2typemux
 idl-codegen
 *.exe
 *.dll
@@ -8,6 +12,12 @@ idl-codegen
 
 # Generated files
 generated/
+examples/output/
+examples/proto-import-output/
+
+# Test directories
+test-import/
+test-*/
 
 # Go files
 *.test
