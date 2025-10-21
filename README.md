@@ -3,336 +3,246 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rasmartins/typemux)](https://goreportcard.com/report/github.com/rasmartins/typemux)
 
-A powerful Interface Definition Language (IDL) that can generate GraphQL schemas, Protobuf definitions, and OpenAPI specifications from a single schema definition.
+**One Schema, Three Protocols**
 
-## Features
+TypeMux is an Interface Definition Language (IDL) and code generator that converts a single schema definition into multiple output formats: GraphQL schemas, Protocol Buffers (proto3), and OpenAPI 3.0 specifications.
 
-- **Single Source of Truth**: Define your API schema once in a simple, intuitive syntax
-- **Multiple Output Formats**:
-  - GraphQL schemas
-  - Protocol Buffers (proto3)
-  - OpenAPI 3.0 specifications
-- **Type Safe**: Strongly typed with support for primitives, enums, arrays, maps, and unions
-- **Service Definitions**: Define RPC-style service methods with REST and GraphQL annotations
-- **Modular Design**:
-  - Import/include support with circular dependency detection
-  - Namespace support for organizing types across packages
-  - Cross-namespace type references
-- **Flexible Annotations**:
-  - Inline annotations in schema files
-  - External YAML annotation files
-  - Leading or trailing annotation syntax
-  - Format-specific name overrides (`@proto.name`, `@graphql.name`, `@openapi.name`)
-- **Field Attributes**: Add metadata like `@required`, `@default`, `@exclude`, `@only`
-- **Documentation Comments**: Triple-slash comments (`///`) for documenting types, fields, and methods
-- **REST Annotations**: `@http`, `@path`, `@success`, `@errors` for OpenAPI generation
-- **Custom Field Numbers**: Specify protobuf field numbers explicitly
+## Why TypeMux?
 
-## IDL Syntax
+Stop maintaining separate schema definitions. Write your API schema once in TypeMux and generate GraphQL, Protobuf, and OpenAPI automatically.
 
-### Basic Types
-
-Supported primitive types:
-- `string` - String values
-- `int32` - 32-bit integers
-- `int64` - 64-bit integers
-- `float32` - 32-bit floating point
-- `float64` - 64-bit floating point
-- `bool` - Boolean values
-- `timestamp` - Timestamp/datetime values
-- `bytes` - Binary data
-
-### Complex Types
-
-- **Arrays**: `[]typeName` - e.g., `[]string`, `[]User`
-- **Maps**: `map<keyType, valueType>` - e.g., `map<string, string>`
-- **Unions**: `union Name { Type1 Type2 Type3 }` - oneOf/sum types
-
-### Imports and Namespaces
-
-```
-// Import other schema files
-import "common.typemux"
-
-// Define a namespace for this schema
-namespace com.example.userservice
-```
-
-### Enums
-
-```
-enum UserRole {
-  ADMIN = 1
-  USER = 2
-  GUEST = 3
-}
-```
-
-Custom enum values are optional. If not specified, they will be auto-numbered starting from 1.
-
-### Types
-
-```
-/// User entity with profile information
+```typescript
 type User {
-  id: string = 1 @required
-  name: string = 2 @required
-  email: string = 3 @required
-  age: int32 = 4
-  role: UserRole = 5 @required
-  isActive: bool = 6 @default(true)
-  tags: []string = 7
-  metadata: map<string, string> = 8
-  internalField: string = 9 @exclude(graphql)
+  id: string @required
+  email: string @required
+  role: UserRole @default("USER")
 }
-```
 
-Field numbers (e.g., `= 1`) are optional but recommended for Protobuf compatibility. Documentation comments use `///`.
-
-### Unions
-
-```
-/// A payment method can be one of several types
-union PaymentMethod {
-  CreditCard
-  BankTransfer
-  PayPal
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
 }
-```
 
-### Services
-
-```
 service UserService {
-  /// Create a new user
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
-    @http(POST)
-    @path("/api/v1/users")
-    @graphql(mutation)
-    @success(201)
-    @errors(400,409,500)
-
-  /// Get a user by ID
-  rpc GetUser(GetUserRequest) returns (GetUserResponse)
+  rpc GetUser(GetUserRequest) returns (User)
     @http(GET)
     @path("/api/v1/users/{id}")
     @graphql(query)
-    @errors(404,500)
 }
 ```
 
-### Attributes
+**Generates:**
+- ✅ GraphQL schema with queries and mutations
+- ✅ Protocol Buffers (proto3) with services
+- ✅ OpenAPI 3.0 specification with paths
 
-**Field Attributes:**
-- `@required` - Mark field as required (non-nullable)
-- `@default(value)` - Set default value for field
-- `@exclude(format)` - Exclude field from specific format (e.g., `@exclude(graphql)`)
-- `@only(format)` - Only include field in specific format (e.g., `@only(proto)`)
-
-**Method Annotations:**
-- `@http(METHOD)` - HTTP method for REST endpoints (GET, POST, PUT, DELETE, PATCH)
-- `@path(template)` - URL path template (e.g., `/api/v1/users/{id}`)
-- `@graphql(type)` - GraphQL operation type (query, mutation, subscription)
-- `@success(code)` - Additional success HTTP status codes (e.g., `@success(201)`)
-- `@errors(codes)` - Expected error HTTP status codes (e.g., `@errors(400,404,500)`)
-
-**Format-Specific Name Overrides:**
-- `@proto.name(name)` - Override type/field name in Protobuf output
-- `@graphql.name(name)` - Override type/field name in GraphQL output
-- `@openapi.name(name)` - Override type/field name in OpenAPI output
-
-## Installation
+## Quick Start
 
 ```bash
-# Clone the repository
+# Install
+go install github.com/rasmartins/typemux@latest
+
+# Generate all formats
+typemux -input schema.typemux -output ./generated
+```
+
+## Documentation
+
+📚 **[Full Documentation](https://rasmartins.github.io/typemux)**
+
+- [Quick Start Guide](https://rasmartins.github.io/typemux/quickstart) - Get started in 5 minutes
+- [Tutorial](https://rasmartins.github.io/typemux/tutorial) - Learn TypeMux step by step
+- [Language Reference](https://rasmartins.github.io/typemux/reference) - Complete syntax specification
+- [Examples](https://rasmartins.github.io/typemux/examples) - Real-world use cases
+- [Configuration](https://rasmartins.github.io/typemux/configuration) - CLI and annotations guide
+
+## Features
+
+- **Single Source of Truth** - Write once, generate multiple formats
+- **Type Safety** - Strongly typed with primitives, enums, arrays, maps, and unions
+- **Namespace Support** - Organize types across multiple namespaces
+- **Union Types** - OneOf/sum types for polymorphic data
+- **Flexible Annotations** - Inline or external YAML annotations
+- **Service Definitions** - RPC-style methods with HTTP and GraphQL mappings
+- **Multi-File Support** - Import and modular schemas
+- **Custom Field Numbers** - Protobuf field numbering control
+- **Documentation Comments** - Auto-generated API documentation
+
+## Type System
+
+### Primitive Types
+`string` · `int32` · `int64` · `float32` · `float64` · `bool` · `timestamp` · `bytes`
+
+### Complex Types
+- Arrays: `[]TypeName`
+- Maps: `map<KeyType, ValueType>`
+- Enums: Named constants
+- Unions: OneOf/tagged unions
+- User-defined types
+
+### Annotations
+- Field: `@required` · `@default("value")` · `@exclude(format)` · `@only(format)`
+- Method: `@http(METHOD)` · `@path("/api/path")` · `@graphql(type)` · `@success(code)` · `@errors(code)`
+
+## Example Output
+
+From a single TypeMux schema, generate:
+
+**GraphQL**
+```graphql
+type User {
+  id: String!
+  email: String!
+  role: UserRole!
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+```
+
+**Protocol Buffers**
+```protobuf
+message User {
+  string id = 1;
+  string email = 2;
+  UserRole role = 3;
+}
+
+enum UserRole {
+  ADMIN = 0;
+  USER = 1;
+  GUEST = 2;
+}
+```
+
+**OpenAPI**
+```yaml
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email, role]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+```
+
+## CLI Usage
+
+```bash
+# Generate all formats
+typemux -input schema.typemux -output ./generated
+
+# Generate specific format
+typemux -input schema.typemux -format graphql -output ./gen
+typemux -input schema.typemux -format protobuf -output ./gen
+typemux -input schema.typemux -format openapi -output ./gen
+
+# With external annotations
+typemux -input schema.typemux -annotations annotations.yaml -output ./gen
+```
+
+## Building from Source
+
+```bash
 git clone https://github.com/rasmartins/typemux.git
 cd typemux
-
-# Build the CLI tool
 go build -o typemux ./cmd/typemux
-
-# Or run directly
-go run ./cmd/typemux/main.go
 ```
 
-## Usage
-
-### Generate all formats
+## Testing
 
 ```bash
-./typemux -input example.typemux -output ./generated
+# Run all tests
+go test ./...
+
+# With coverage
+go test ./... -cover
+
+# Generate coverage report
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
 ```
 
-### Generate specific format
+Project maintains 90%+ test coverage.
 
-```bash
-# GraphQL only
-./typemux -input example.typemux -format graphql -output ./generated
+## Contributing
 
-# Protobuf only
-./typemux -input example.typemux -format protobuf -output ./generated
+Contributions are welcome! Please see our [Contributing Guide](https://rasmartins.github.io/typemux/CONTRIBUTING) for details.
 
-# OpenAPI only
-./typemux -input example.typemux -format openapi -output ./generated
-```
-
-### CLI Options
-
-- `-input` (required): Path to the input IDL schema file
-- `-format`: Output format - `graphql`, `protobuf`, `openapi`, or `all` (default: `all`)
-- `-output`: Output directory for generated files (default: `./generated`)
-- `-annotations`: YAML annotations file (can be specified multiple times)
-
-### YAML Annotations
-
-TypeMux supports defining annotations in external YAML files instead of inline in `.typemux` files. This provides better separation of concerns and easier annotation management.
-
-**Usage:**
-```bash
-# Single annotations file
-./typemux -input schema.typemux -annotations annotations.yaml
-
-# Multiple files (merged in order, later files override)
-./typemux -input schema.typemux \
-          -annotations base.yaml \
-          -annotations overrides.yaml
-```
-
-**Example annotations.yaml:**
-```yaml
-types:
-  User:
-    proto:
-      name: "UserV2"
-    graphql:
-      name: "UserAccount"
-    openapi:
-      name: "UserProfile"
-    fields:
-      email:
-        required: true
-        openapi:
-          extension: '{"x-format": "email"}'
-
-services:
-  UserService:
-    methods:
-      GetUser:
-        http: "GET"
-        path: "/api/v1/users/{userId}"
-        graphql: "query"
-        errors: [404, 500]
-```
-
-**Features:**
-- YAML annotations override inline annotations
-- Full validation with helpful error messages
-- Support for all annotation types (type names, field attributes, method configs)
-- See `examples/yaml-annotations/` for a complete example
-- Full documentation: `docs/YAML_ANNOTATIONS.md`
-
-## Examples
-
-The `examples/` directory contains comprehensive examples demonstrating all features:
-
-- `examples/basic/` - Simple types, enums, and services
-- `examples/unions/` - Union/oneOf types for polymorphism
-- `examples/namespaces/` - Namespace organization
-- `examples/imports/` - Multi-file schemas with imports
-- `examples/yaml-annotations/` - External YAML annotations
-- `examples/annotations/` - Inline format-specific annotations
-- `examples/custom-field-numbers/` - Explicit protobuf field numbering
-- `examples/status-codes/` - HTTP status code annotations
-
-Run any example:
-
-```bash
-go run ./cmd/typemux/main.go -input examples/basic/basic.typemux -output examples/basic/generated
-```
-
-This will generate:
-- `schema.graphql` - GraphQL schema
-- `schema.proto` - Protocol Buffers definition
-- `openapi.yaml` - OpenAPI specification
-
-## Generated Output
-
-### GraphQL Schema
-
-The generator creates a complete GraphQL schema with:
-- Type definitions with proper nullable/non-nullable fields
-- Enum types
-- Query and Mutation types based on service methods
-
-### Protobuf Schema
-
-The generator creates a proto3 schema with:
-- Message types with proper field numbering
-- Enum definitions with required UNSPECIFIED value
-- Service definitions with RPC methods
-- Proper type mappings including timestamp support
-
-### OpenAPI Specification
-
-The generator creates an OpenAPI 3.0 specification with:
-- Schema definitions for all types
-- Path operations based on service methods
-- Request/response schemas
-- Proper type and format specifications
+Quick steps:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes with tests (maintain 90%+ coverage)
+4. Commit (`git commit -m 'Add amazing feature'`)
+5. Push (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ## Project Structure
 
 ```
-.
-├── cmd/
-│   └── typemux/
-│       └── main.go         # CLI entry point
+typemux/
+├── cmd/typemux/          # CLI entry point
 ├── internal/
-│   ├── ast/                # Abstract Syntax Tree definitions
-│   │   ├── ast.go
-│   │   └── ast_test.go
-│   ├── lexer/              # Lexical analyzer
-│   │   ├── lexer.go
-│   │   └── lexer_test.go
-│   ├── parser/             # Parser implementation
-│   │   ├── parser.go
-│   │   └── parser_test.go
-│   ├── generator/          # Code generators
-│   │   ├── graphql.go
-│   │   ├── protobuf.go
-│   │   ├── openapi.go
-│   │   └── *_test.go
-│   └── annotations/        # YAML annotations support
-│       ├── yaml.go
-│       ├── validator.go
-│       └── merger.go
-├── examples/               # Example schemas
-├── docs/                   # Documentation
-└── README.md
+│   ├── ast/              # Abstract syntax tree
+│   ├── lexer/            # Tokenization
+│   ├── parser/           # Parsing
+│   ├── generator/        # Code generators (GraphQL, Protobuf, OpenAPI)
+│   └── annotations/      # YAML annotation handling
+├── examples/             # Usage examples
+├── docs/                 # Documentation (GitHub Pages)
+└── vscode-extension/     # VS Code language support
 ```
 
-## Architecture
+## VS Code Extension
 
-1. **Lexer**: Tokenizes the input schema file
-2. **Parser**: Builds an Abstract Syntax Tree (AST) from tokens with support for:
-   - Imports and namespace resolution
-   - Type registry for cross-file references
-   - Circular dependency detection
-3. **Annotations**: YAML annotation loader, validator, and merger
-4. **Generators**: Transform the AST into target formats (GraphQL, Protobuf, OpenAPI)
-   - Format-specific type mapping
-   - Documentation generation
-   - Multi-file output for namespaces
+Syntax highlighting and snippets for `.typemux` files are available in the `vscode-extension/` directory. See [installation guide](vscode-extension/INSTALL.md).
 
-## Future Enhancements
+## Use Cases
 
+- **API-First Development** - Design APIs before implementation
+- **Multi-Protocol Support** - Support REST, GraphQL, and gRPC from one definition
+- **Microservices** - Share consistent type definitions across services
+- **Contract Testing** - Ensure API contracts are consistent
+- **Documentation** - Auto-generate up-to-date API docs
+
+## Roadmap
+
+### Current
+- [x] Type system (primitives, enums, types, unions)
+- [x] Service definitions with RPC methods
+- [x] GraphQL, Protobuf, and OpenAPI generation
+- [x] Namespace support
+- [x] YAML annotations
+- [x] Multi-file imports
+- [x] Documentation comments
+
+### Planned
 - [ ] Custom scalar types
-- [ ] Advanced field validation annotations (min, max, pattern, etc.)
-- [ ] Code generation for client/server stubs
-- [ ] JSON Schema output format
+- [ ] Field validation annotations
+- [ ] Client/server code generation
+- [ ] JSON Schema output
 - [ ] TypeScript type definitions
-- [ ] gRPC gateway annotations
+- [ ] Language Server Protocol (LSP)
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Links
+
+- 📖 [Documentation](https://rasmartins.github.io/typemux)
+- 🐛 [Issues](https://github.com/rasmartins/typemux/issues)
+- 💬 [Discussions](https://github.com/rasmartins/typemux/discussions)
+
+---
+
+**TypeMux** - Write once, generate everywhere.
