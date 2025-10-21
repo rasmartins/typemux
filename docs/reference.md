@@ -81,7 +81,7 @@ type User {
 ### Field Types
 
 Fields can be:
-- **Primitive types**: **string**, **int32**, **int64**, **float32**, **float64**, **bool**, **timestamp**, **bytes**
+- **Primitive types**: `string`, `int32`, etc.
 - **User-defined types**: Other type or enum names
 - **Arrays**: `[]TypeName`
 - **Maps**: `map<KeyType, ValueType>`
@@ -109,7 +109,7 @@ type Configuration {
 ```
 
 **Map constraints:**
-- Key type must be **string** or an integer type (**int32** or **int64**)
+- Key type must be `string` or an integer type
 - Value type can be any type (primitive, user-defined, or array)
 - Maps cannot be nested (no `map<string, map<string, string>>`)
 
