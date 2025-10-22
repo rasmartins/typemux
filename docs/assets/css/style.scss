@@ -3,6 +3,11 @@
 
 @import "{{ site.theme }}";
 
+/* Override theme CSS variables for better code readability */
+:root {
+  --primary-dark: #ffd580 !important; /* Light yellow/orange instead of dark blue */
+}
+
 /* Fix inline code readability - improve contrast for better accessibility */
 code,
 .highlighter-rouge,
