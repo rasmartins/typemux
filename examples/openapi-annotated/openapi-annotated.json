@@ -1,0 +1,307 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "user API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/users": {
+      "get": {
+        "summary": "ListUsers operation",
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "CreateUser operation",
+        "operationId": "CreateUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{id}": {
+      "delete": {
+        "summary": "DeleteUser operation",
+        "operationId": "DeleteUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "GetUser operation",
+        "operationId": "GetUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "UpdateUser operation",
+        "operationId": "UpdateUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "Extensions": null
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "Extensions": null
+          },
+          "username": {
+            "type": "string",
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.CreateUserRequest",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "Empty": {
+        "type": "object",
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.Empty",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "GetUserRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.GetUserRequest",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "ListUsersRequest": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "format": "int32",
+            "Extensions": null
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int32",
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.ListUsersRequest",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "Extensions": null
+          },
+          "id": {
+            "type": "string",
+            "Extensions": null
+          },
+          "username": {
+            "type": "string",
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.UpdateUserRequest",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "Extensions": null
+          },
+          "email": {
+            "type": "string",
+            "Extensions": null
+          },
+          "id": {
+            "type": "string",
+            "Extensions": null
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole",
+            "Extensions": null
+          },
+          "username": {
+            "type": "string",
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.User",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "UserListResponse": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int32",
+            "Extensions": null
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            },
+            "Extensions": null
+          }
+        },
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.UserListResponse",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "ADMIN",
+          "USER",
+          "GUEST"
+        ],
+        "Extensions": {
+          "x-go-type": "github.com/example/userservice/models.UserRole",
+          "x-go-type-import": {
+            "path": "github.com/example/userservice/models"
+          }
+        }
+      }
+    }
+  }
+}
