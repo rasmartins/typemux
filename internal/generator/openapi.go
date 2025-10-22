@@ -129,10 +129,10 @@ type OpenAPIProperty struct {
 
 // OpenAPIPropertyItems describes the items of an array-type property or additionalProperties for maps.
 type OpenAPIPropertyItems struct {
-	Type                 string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Format               string                 `json:"format,omitempty" yaml:"format,omitempty"`
-	Ref                  string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	AdditionalProperties *OpenAPIPropertyItems  `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
+	Type                 string                `json:"type,omitempty" yaml:"type,omitempty"`
+	Format               string                `json:"format,omitempty" yaml:"format,omitempty"`
+	Ref                  string                `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	AdditionalProperties *OpenAPIPropertyItems `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 }
 
 // Generate creates an OpenAPI 3.0 YAML specification from the given schema.

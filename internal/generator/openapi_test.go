@@ -1252,13 +1252,13 @@ func TestOpenAPIGenerator_MapTypes(t *testing.T) {
 	gen := NewOpenAPIGenerator()
 
 	tests := []struct {
-		name         string
-		field        *ast.Field
-		expectedType string
-		checkAdditionalProps bool
-		expectedAdditionalPropsType string
+		name                          string
+		field                         *ast.Field
+		expectedType                  string
+		checkAdditionalProps          bool
+		expectedAdditionalPropsType   string
 		expectedAdditionalPropsFormat string
-		expectedAdditionalPropsRef string
+		expectedAdditionalPropsRef    string
 	}{
 		{
 			name: "map with string values",
@@ -1270,8 +1270,8 @@ func TestOpenAPIGenerator_MapTypes(t *testing.T) {
 					MapValue: "string",
 				},
 			},
-			expectedType: "object",
-			checkAdditionalProps: true,
+			expectedType:                "object",
+			checkAdditionalProps:        true,
 			expectedAdditionalPropsType: "string",
 		},
 		{
@@ -1284,9 +1284,9 @@ func TestOpenAPIGenerator_MapTypes(t *testing.T) {
 					MapValue: "int32",
 				},
 			},
-			expectedType: "object",
-			checkAdditionalProps: true,
-			expectedAdditionalPropsType: "integer",
+			expectedType:                  "object",
+			checkAdditionalProps:          true,
+			expectedAdditionalPropsType:   "integer",
 			expectedAdditionalPropsFormat: "int32",
 		},
 		{
@@ -1299,9 +1299,9 @@ func TestOpenAPIGenerator_MapTypes(t *testing.T) {
 					MapValue: "int64",
 				},
 			},
-			expectedType: "object",
-			checkAdditionalProps: true,
-			expectedAdditionalPropsType: "integer",
+			expectedType:                  "object",
+			checkAdditionalProps:          true,
+			expectedAdditionalPropsType:   "integer",
 			expectedAdditionalPropsFormat: "int64",
 		},
 		{
@@ -1314,8 +1314,8 @@ func TestOpenAPIGenerator_MapTypes(t *testing.T) {
 					MapValue: "User",
 				},
 			},
-			expectedType: "object",
-			checkAdditionalProps: true,
+			expectedType:               "object",
+			checkAdditionalProps:       true,
 			expectedAdditionalPropsRef: "#/components/schemas/User",
 		},
 	}

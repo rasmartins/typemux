@@ -93,7 +93,7 @@ func (f *Field) ShouldIncludeInGenerator(generator string) bool {
 
 // FieldType represents the type of a field
 type FieldType struct {
-	Name         string     // base type name (set to "map" for map types)
+	Name         string // base type name (set to "map" for map types)
 	IsArray      bool
 	IsMap        bool
 	MapKey       string     // for map types - the key type (must be string or int)

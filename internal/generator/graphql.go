@@ -17,9 +17,9 @@ func NewGraphQLGenerator() *GraphQLGenerator {
 
 // MapTypeKey represents a unique map type by its key and value types
 type MapTypeKey struct {
-	KeyType      string
-	ValueType    string      // Simple value type name (for non-nested maps)
-	ValueIsMap   bool        // True if the value is itself a map
+	KeyType        string
+	ValueType      string         // Simple value type name (for non-nested maps)
+	ValueIsMap     bool           // True if the value is itself a map
 	ValueFieldType *ast.FieldType // The full value type (for nested maps, arrays, etc.)
 }
 

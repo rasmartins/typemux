@@ -986,10 +986,10 @@ func TestGraphQLGenerator_NestedMaps(t *testing.T) {
 
 func TestGraphQLGenerator_GetMapValueType(t *testing.T) {
 	tests := []struct {
-		name        string
-		field       *ast.FieldType
-		expectNil   bool
-		expectName  string
+		name       string
+		field      *ast.FieldType
+		expectNil  bool
+		expectName string
 	}{
 		{
 			name: "simple map with MapValueType",
@@ -1023,9 +1023,9 @@ func TestGraphQLGenerator_GetMapValueType(t *testing.T) {
 		{
 			name: "backward compatibility with MapValue string",
 			field: &ast.FieldType{
-				IsMap:     true,
-				MapKey:    "string",
-				MapValue:  "string",
+				IsMap:    true,
+				MapKey:   "string",
+				MapValue: "string",
 			},
 			expectNil:  false,
 			expectName: "string",
