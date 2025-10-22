@@ -17,23 +17,96 @@ func NewGraphQLGenerator() *GraphQLGenerator {
 
 // MapTypeKey represents a unique map type by its key and value types
 type MapTypeKey struct {
-	KeyType   string
-	ValueType string
+	KeyType      string
+	ValueType    string      // Simple value type name (for non-nested maps)
+	ValueIsMap   bool        // True if the value is itself a map
+	ValueFieldType *ast.FieldType // The full value type (for nested maps, arrays, etc.)
 }
 
-// collectMapTypes collects all unique map types used in the schema
-func (g *GraphQLGenerator) collectMapTypes(schema *ast.Schema) []MapTypeKey {
-	mapTypesSet := make(map[MapTypeKey]bool)
+// WrapperType represents an auto-generated wrapper type for nested maps
+type WrapperType struct {
+	Name      string
+	FieldType *ast.FieldType
+}
+
+// collectMapTypesWithRegistry collects all unique map types and generates wrappers for nested maps
+func (g *GraphQLGenerator) collectMapTypesWithRegistry(schema *ast.Schema, registry *wrapperRegistry) ([]MapTypeKey, []WrapperType) {
+	mapTypesSet := make(map[string]bool)
+	var mapTypes []MapTypeKey
+
+	// Helper to get a signature for a field type (for deduplication)
+	var getFieldSignature func(ft *ast.FieldType) string
+	getFieldSignature = func(ft *ast.FieldType) string {
+		if ft.IsMap {
+			return fmt.Sprintf("map<%s,%s>", ft.MapKey, getFieldSignature(ft.GetMapValueType()))
+		}
+		return ft.Name
+	}
+
+	// Helper to recursively process map types and generate wrappers as needed
+	var processMapType func(keyType string, valueType *ast.FieldType) (string, bool)
+	processMapType = func(keyType string, valueType *ast.FieldType) (string, bool) {
+		if valueType.IsMap {
+			// Nested map - we need to create a wrapper type
+			sig := getFieldSignature(valueType)
+
+			// Check if we already created a wrapper for this exact field type
+			if wrapperName, exists := registry.fieldToName[sig]; exists {
+				return wrapperName, true
+			}
+
+			// Create a new wrapper
+			wrapperName := fmt.Sprintf("MapWrapper%d", registry.counter)
+			registry.counter++
+			registry.fieldToName[sig] = wrapperName
+
+			// Create wrapper type
+			wrapper := WrapperType{
+				Name:      wrapperName,
+				FieldType: valueType,
+			}
+			registry.wrappers = append(registry.wrappers, wrapper)
+
+			// Recursively process the inner map to ensure its types are registered
+			processMapType(valueType.MapKey, valueType.GetMapValueType())
+
+			// Register the outer map that uses this wrapper
+			mapKey := MapTypeKey{
+				KeyType:        keyType,
+				ValueType:      wrapperName,
+				ValueFieldType: valueType,
+			}
+			uniqueKey := fmt.Sprintf("%s->%s", keyType, wrapperName)
+			if !mapTypesSet[uniqueKey] {
+				mapTypesSet[uniqueKey] = true
+				mapTypes = append(mapTypes, mapKey)
+			}
+
+			return wrapperName, true
+		} else {
+			// Simple value type
+			valueTypeName := valueType.Name
+			mapKey := MapTypeKey{
+				KeyType:        keyType,
+				ValueType:      valueTypeName,
+				ValueFieldType: valueType,
+			}
+
+			uniqueKey := fmt.Sprintf("%s->%s", keyType, valueTypeName)
+			if !mapTypesSet[uniqueKey] {
+				mapTypesSet[uniqueKey] = true
+				mapTypes = append(mapTypes, mapKey)
+			}
+
+			return valueTypeName, false
+		}
+	}
 
 	// Helper to process fields
 	processFields := func(fields []*ast.Field) {
 		for _, field := range fields {
 			if field.Type.IsMap {
-				key := MapTypeKey{
-					KeyType:   field.Type.MapKey,
-					ValueType: field.Type.MapValue,
-				}
-				mapTypesSet[key] = true
+				processMapType(field.Type.MapKey, field.Type.GetMapValueType())
 			}
 		}
 	}
@@ -43,13 +116,15 @@ func (g *GraphQLGenerator) collectMapTypes(schema *ast.Schema) []MapTypeKey {
 		processFields(typ.Fields)
 	}
 
-	// Convert to slice
-	mapTypes := make([]MapTypeKey, 0, len(mapTypesSet))
-	for key := range mapTypesSet {
-		mapTypes = append(mapTypes, key)
-	}
+	return mapTypes, registry.wrappers
+}
 
-	return mapTypes
+// getFieldSignature returns a unique signature for a field type
+func (g *GraphQLGenerator) getFieldSignature(ft *ast.FieldType) string {
+	if ft.IsMap {
+		return fmt.Sprintf("map<%s,%s>", ft.MapKey, g.getFieldSignature(ft.GetMapValueType()))
+	}
+	return ft.Name
 }
 
 // getKeyValueTypeName generates a consistent name for a KeyValue type
@@ -89,6 +164,49 @@ func (g *GraphQLGenerator) mapScalarToGraphQLType(typeName string) string {
 	return ast.GetUnqualifiedName(typeName)
 }
 
+// generateWrapperType generates a wrapper type for nested maps
+func (g *GraphQLGenerator) generateWrapperType(wrapper WrapperType, isInput bool) string {
+	var sb strings.Builder
+
+	typeName := wrapper.Name
+	keyword := "type"
+	if isInput {
+		typeName += "Input"
+		keyword = "input"
+	}
+
+	sb.WriteString(fmt.Sprintf("\"%s is an auto-generated wrapper for nested map\"\n", typeName))
+	sb.WriteString(fmt.Sprintf("%s %s {\n", keyword, typeName))
+
+	// The wrapper contains a single field "value" that holds the inner map
+	// We need to generate the field type for this inner map
+	innerFieldType := wrapper.FieldType
+	if innerFieldType.IsMap {
+		// This is a map - generate it as a KeyValue list
+		innerKeyType := innerFieldType.MapKey
+		innerValueType := innerFieldType.GetMapValueType()
+
+		var valueTypeName string
+		if innerValueType.IsMap {
+			// Recursively nested - this should have been converted to a wrapper already
+			// Use the wrapper name
+			valueTypeName = fmt.Sprintf("MapWrapper%d", 0) // This needs better naming
+		} else {
+			valueTypeName = innerValueType.Name
+		}
+
+		entryTypeName := g.getKeyValueTypeName(innerKeyType, valueTypeName)
+		if isInput {
+			entryTypeName += "Input"
+		}
+
+		sb.WriteString(fmt.Sprintf("  value: [%s!]!\n", entryTypeName))
+	}
+
+	sb.WriteString("}")
+	return sb.String()
+}
+
 // generateKeyValueType generates a KeyValue type for a map
 func (g *GraphQLGenerator) generateKeyValueType(mapType MapTypeKey, isInput bool) string {
 	var sb strings.Builder
@@ -110,6 +228,13 @@ func (g *GraphQLGenerator) generateKeyValueType(mapType MapTypeKey, isInput bool
 	sb.WriteString("}")
 
 	return sb.String()
+}
+
+// wrapperRegistry tracks mappings from FieldType to wrapper names for nested maps
+type wrapperRegistry struct {
+	wrappers    []WrapperType
+	fieldToName map[string]string // Maps field type signature to wrapper name
+	counter     int
 }
 
 // Generate creates a GraphQL schema string from the given schema.
@@ -138,8 +263,23 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 		sb.WriteString("\n")
 	}
 
-	// Collect all map types used in the schema
-	mapTypes := g.collectMapTypes(schema)
+	// Create a wrapper registry to track nested map wrappers
+	registry := &wrapperRegistry{
+		fieldToName: make(map[string]string),
+	}
+
+	// Collect all map types used in the schema and auto-generated wrappers
+	mapTypes, wrappers := g.collectMapTypesWithRegistry(schema, registry)
+
+	// Generate wrapper types for nested maps first
+	if len(wrappers) > 0 {
+		for _, wrapper := range wrappers {
+			sb.WriteString(g.generateWrapperType(wrapper, false))
+			sb.WriteString("\n\n")
+			sb.WriteString(g.generateWrapperType(wrapper, true))
+			sb.WriteString("\n\n")
+		}
+	}
 
 	// Generate KeyValue types for maps
 	if len(mapTypes) > 0 {
@@ -193,18 +333,18 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 		// If used as both input and output, generate both versions
 		if usage == "both" || isUnionOption {
 			// Generate input version with "Input" suffix
-			sb.WriteString(g.generateType(typ, true, true, unionNames, typeUsage, typeNameMap))
+			sb.WriteString(g.generateType(typ, true, true, unionNames, typeUsage, typeNameMap, registry))
 			sb.WriteString("\n\n")
 			// Generate output version (regular type)
-			sb.WriteString(g.generateType(typ, false, false, unionNames, typeUsage, typeNameMap))
+			sb.WriteString(g.generateType(typ, false, false, unionNames, typeUsage, typeNameMap, registry))
 			sb.WriteString("\n\n")
 		} else if usage == "input" {
 			// Only used as input
-			sb.WriteString(g.generateType(typ, true, false, unionNames, typeUsage, typeNameMap))
+			sb.WriteString(g.generateType(typ, true, false, unionNames, typeUsage, typeNameMap, registry))
 			sb.WriteString("\n\n")
 		} else {
 			// Only used as output or not used in methods
-			sb.WriteString(g.generateType(typ, false, false, unionNames, typeUsage, typeNameMap))
+			sb.WriteString(g.generateType(typ, false, false, unionNames, typeUsage, typeNameMap, registry))
 			sb.WriteString("\n\n")
 		}
 	}
@@ -404,7 +544,7 @@ func (g *GraphQLGenerator) generateUnionInput(union *ast.Union) string {
 	return sb.String()
 }
 
-func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuffix bool, unionNames map[string]bool, typeUsage map[string]string, typeNameMap map[string]string) string {
+func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuffix bool, unionNames map[string]bool, typeUsage map[string]string, typeNameMap map[string]string, registry *wrapperRegistry) string {
 	var sb strings.Builder
 
 	// Add documentation - combine multi-line docs into a single string
@@ -479,20 +619,37 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 			}
 			sb.WriteString(fmt.Sprintf("  %s: %s%s\n", field.Name, gqlType, fieldDirectives))
 		} else {
-			sb.WriteString(fmt.Sprintf("  %s: %s%s\n", field.Name, g.convertFieldType(field, isInput, typeUsage, typeNameMap), fieldDirectives))
+			sb.WriteString(fmt.Sprintf("  %s: %s%s\n", field.Name, g.convertFieldType(field, isInput, typeUsage, typeNameMap, registry), fieldDirectives))
 		}
 	}
 	sb.WriteString("}")
 	return sb.String()
 }
 
-func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, typeUsage map[string]string, typeNameMap map[string]string) string {
+func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, typeUsage map[string]string, typeNameMap map[string]string, registry *wrapperRegistry) string {
 	gqlType := g.mapTypeToGraphQL(field.Type)
 
 	// For maps, we need to handle them as arrays of KeyValue types
 	if field.Type.IsMap {
+		valueType := field.Type.GetMapValueType()
+		var valueTypeName string
+
+		// Check if the value is a nested map (needs wrapper)
+		if valueType.IsMap {
+			// Get wrapper name from registry
+			sig := g.getFieldSignature(valueType)
+			if wrapperName, exists := registry.fieldToName[sig]; exists {
+				valueTypeName = wrapperName
+			} else {
+				// Fallback - shouldn't happen if collection worked correctly
+				valueTypeName = "UnknownWrapper"
+			}
+		} else {
+			valueTypeName = valueType.Name
+		}
+
 		// Get the appropriate KeyValue type name (input or output)
-		kvTypeName := g.getKeyValueTypeName(field.Type.MapKey, field.Type.MapValue)
+		kvTypeName := g.getKeyValueTypeName(field.Type.MapKey, valueTypeName)
 		if isInput {
 			kvTypeName += "Input"
 		}

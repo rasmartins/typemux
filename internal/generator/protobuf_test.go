@@ -1416,3 +1416,83 @@ func TestGenerateOptionalFields(t *testing.T) {
 		t.Error("Should not have 'optional repeated' for array fields")
 	}
 }
+
+func TestProtobufGenerator_NestedMaps(t *testing.T) {
+	gen := NewProtobufGenerator()
+
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "NestedMapTest",
+				Fields: []*ast.Field{
+					{
+						Name: "simple_map",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								Name:      "string",
+								IsBuiltin: true,
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "nested_map",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "triple_nested_map",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									IsMap:  true,
+									MapKey: "string",
+									MapValueType: &ast.FieldType{
+										Name:      "bool",
+										IsBuiltin: true,
+									},
+								},
+							},
+						},
+						Required: false,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Check simple map
+	if !strings.Contains(output, "map<string, string> simple_map = 1;") {
+		t.Error("Expected 'map<string, string> simple_map = 1;' in output")
+	}
+
+	// Check nested map - should have map<string, map<string, int32>>
+	if !strings.Contains(output, "map<string, map<string, int32>> nested_map = 2;") {
+		t.Error("Expected 'map<string, map<string, int32>> nested_map = 2;' in output")
+	}
+
+	// Check triple nested map
+	if !strings.Contains(output, "map<string, map<string, map<string, bool>>> triple_nested_map = 3;") {
+		t.Error("Expected 'map<string, map<string, map<string, bool>>> triple_nested_map = 3;' in output")
+	}
+}

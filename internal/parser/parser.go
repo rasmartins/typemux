@@ -625,16 +625,30 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 				p.nextToken()
 				if p.curTok.Type == lexer.TOKEN_COMMA {
 					p.nextToken()
-					if p.curTok.Type == lexer.TOKEN_IDENT {
-						fieldType.MapValue = p.curTok.Literal
+					// Recursively parse the value type (supports nested maps, arrays, etc.)
+					valueType := p.parseFieldType()
+					if valueType == nil {
+						p.addError("expected value type in map")
+						return nil
+					}
+
+					// Store both old format (MapValue string) for backward compatibility
+					// and new format (MapValueType) for complex types
+					fieldType.MapValueType = valueType
+					if !valueType.IsMap && !valueType.IsArray {
+						// Simple type - also store in MapValue for backward compatibility
+						fieldType.MapValue = valueType.Name
+					}
+
+					if p.curTok.Type == lexer.TOKEN_GT {
 						p.nextToken()
-						if p.curTok.Type == lexer.TOKEN_GT {
-							p.nextToken()
-							fieldType.IsMap = true
-							fieldType.Name = "map"
-							fieldType.IsBuiltin = false
-							return fieldType
-						}
+						fieldType.IsMap = true
+						fieldType.Name = "map"
+						fieldType.IsBuiltin = false
+						return fieldType
+					} else {
+						p.addError("expected '>' to close map type")
+						return nil
 					}
 				}
 			}

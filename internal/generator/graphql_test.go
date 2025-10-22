@@ -7,6 +7,13 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
+// Helper function to create a wrapper registry for testing
+func newWrapperRegistry() *wrapperRegistry {
+	return &wrapperRegistry{
+		fieldToName: make(map[string]string),
+	}
+}
+
 func TestGraphQLGenerator_Generate(t *testing.T) {
 	schema := &ast.Schema{
 		Enums: []*ast.Enum{
@@ -143,7 +150,8 @@ func TestGraphQLGenerator_GenerateType(t *testing.T) {
 		},
 	}
 
-	output := gen.generateType(typ, false, false, make(map[string]bool), make(map[string]string), make(map[string]string))
+	registry := newWrapperRegistry()
+	output := gen.generateType(typ, false, false, make(map[string]bool), make(map[string]string), make(map[string]string), registry)
 
 	if !strings.Contains(output, "type Post") {
 		t.Error("Expected type Post in output")
@@ -255,7 +263,8 @@ func TestGraphQLGenerator_ConvertFieldType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := gen.convertFieldType(tt.field, false, make(map[string]string), make(map[string]string))
+			registry := newWrapperRegistry()
+			result := gen.convertFieldType(tt.field, false, make(map[string]string), make(map[string]string), registry)
 			if result != tt.expected {
 				t.Errorf("Expected %q, got %q", tt.expected, result)
 			}
@@ -400,20 +409,22 @@ func TestGraphQLGenerator_GenerateType_InputSuffix(t *testing.T) {
 		},
 	}
 
+	registry := newWrapperRegistry()
+
 	// Test generating as input with suffix
-	inputOutput := gen.generateType(typ, true, true, make(map[string]bool), make(map[string]string), make(map[string]string))
+	inputOutput := gen.generateType(typ, true, true, make(map[string]bool), make(map[string]string), make(map[string]string), registry)
 	if !strings.Contains(inputOutput, "input PostInput") {
 		t.Error("Expected 'input PostInput' when isInput=true and addInputSuffix=true")
 	}
 
 	// Test generating as input without suffix
-	inputNoSuffix := gen.generateType(typ, true, false, make(map[string]bool), make(map[string]string), make(map[string]string))
+	inputNoSuffix := gen.generateType(typ, true, false, make(map[string]bool), make(map[string]string), make(map[string]string), registry)
 	if !strings.Contains(inputNoSuffix, "input Post {") {
 		t.Error("Expected 'input Post' when isInput=true and addInputSuffix=false")
 	}
 
 	// Test generating as output type
-	outputType := gen.generateType(typ, false, false, make(map[string]bool), make(map[string]string), make(map[string]string))
+	outputType := gen.generateType(typ, false, false, make(map[string]bool), make(map[string]string), make(map[string]string), registry)
 	if !strings.Contains(outputType, "type Post") {
 		t.Error("Expected 'type Post' when isInput=false")
 	}
@@ -556,7 +567,8 @@ func TestGraphQLGenerator_ArrayOfCustomTypes(t *testing.T) {
 		Required: true,
 	}
 
-	result := gen.convertFieldType(field, false, make(map[string]string), make(map[string]string))
+	registry := newWrapperRegistry()
+	result := gen.convertFieldType(field, false, make(map[string]string), make(map[string]string), registry)
 	expected := "[User]!"
 
 	if result != expected {
@@ -574,7 +586,8 @@ func TestGraphQLGenerator_TimestampType(t *testing.T) {
 		Required: true,
 	}
 
-	result := gen.convertFieldType(field, false, make(map[string]string), make(map[string]string))
+	registry := newWrapperRegistry()
+	result := gen.convertFieldType(field, false, make(map[string]string), make(map[string]string), registry)
 	expected := "String!"
 
 	if result != expected {
@@ -858,7 +871,8 @@ func TestGraphQLGenerator_CollectMapTypes(t *testing.T) {
 		},
 	}
 
-	mapTypes := gen.collectMapTypes(schema)
+	registry := newWrapperRegistry()
+	mapTypes, _ := gen.collectMapTypesWithRegistry(schema, registry)
 
 	// Should collect unique map types
 	if len(mapTypes) != 2 {
@@ -882,6 +896,157 @@ func TestGraphQLGenerator_CollectMapTypes(t *testing.T) {
 	}
 	if !foundStringInt {
 		t.Error("Expected to find map<string, int32> type")
+	}
+}
+
+func TestGraphQLGenerator_NestedMaps(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "NestedMapTest",
+				Fields: []*ast.Field{
+					{
+						Name: "simpleMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								Name:      "string",
+								IsBuiltin: true,
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "nestedMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "tripleNestedMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									IsMap:  true,
+									MapKey: "string",
+									MapValueType: &ast.FieldType{
+										Name:      "bool",
+										IsBuiltin: true,
+									},
+								},
+							},
+						},
+						Required: false,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Check that wrapper types are generated
+	if !strings.Contains(output, "type MapWrapper") {
+		t.Error("Expected MapWrapper types to be generated for nested maps")
+	}
+
+	// Check that the main type uses the wrapper types
+	if !strings.Contains(output, "type NestedMapTest") {
+		t.Error("Expected NestedMapTest type in output")
+	}
+
+	// Check simple map uses KeyValue entry
+	if !strings.Contains(output, "StringStringEntry") {
+		t.Error("Expected StringStringEntry for simple map")
+	}
+
+	// Check nested map uses wrapper entry
+	if !strings.Contains(output, "MapWrapper") {
+		t.Error("Expected MapWrapper for nested maps")
+	}
+}
+
+func TestGraphQLGenerator_GetMapValueType(t *testing.T) {
+	tests := []struct {
+		name        string
+		field       *ast.FieldType
+		expectNil   bool
+		expectName  string
+	}{
+		{
+			name: "simple map with MapValueType",
+			field: &ast.FieldType{
+				IsMap:  true,
+				MapKey: "string",
+				MapValueType: &ast.FieldType{
+					Name:      "int32",
+					IsBuiltin: true,
+				},
+			},
+			expectNil:  false,
+			expectName: "int32",
+		},
+		{
+			name: "nested map",
+			field: &ast.FieldType{
+				IsMap:  true,
+				MapKey: "string",
+				MapValueType: &ast.FieldType{
+					IsMap:  true,
+					MapKey: "string",
+					MapValueType: &ast.FieldType{
+						Name:      "string",
+						IsBuiltin: true,
+					},
+				},
+			},
+			expectNil: false,
+		},
+		{
+			name: "backward compatibility with MapValue string",
+			field: &ast.FieldType{
+				IsMap:     true,
+				MapKey:    "string",
+				MapValue:  "string",
+			},
+			expectNil:  false,
+			expectName: "string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			valueType := tt.field.GetMapValueType()
+			if tt.expectNil {
+				if valueType != nil {
+					t.Error("Expected GetMapValueType to return nil")
+				}
+			} else {
+				if valueType == nil {
+					t.Error("Expected GetMapValueType to return non-nil")
+				} else if tt.expectName != "" && valueType.Name != tt.expectName {
+					t.Errorf("Expected name %q, got %q", tt.expectName, valueType.Name)
+				}
+			}
+		})
 	}
 }
 

@@ -129,9 +129,10 @@ type OpenAPIProperty struct {
 
 // OpenAPIPropertyItems describes the items of an array-type property or additionalProperties for maps.
 type OpenAPIPropertyItems struct {
-	Type   string `json:"type,omitempty" yaml:"type,omitempty"`
-	Format string `json:"format,omitempty" yaml:"format,omitempty"`
-	Ref    string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Type                 string                 `json:"type,omitempty" yaml:"type,omitempty"`
+	Format               string                 `json:"format,omitempty" yaml:"format,omitempty"`
+	Ref                  string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	AdditionalProperties *OpenAPIPropertyItems  `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 }
 
 // Generate creates an OpenAPI 3.0 YAML specification from the given schema.
@@ -307,6 +308,75 @@ func (g *OpenAPIGenerator) generateUnionSchema(union *ast.Union) OpenAPISchema {
 	return schema
 }
 
+// generateMapDescription creates a human-readable description for map types
+func (g *OpenAPIGenerator) generateMapDescription(fieldType *ast.FieldType) string {
+	if !fieldType.IsMap {
+		return ""
+	}
+
+	valueFieldType := fieldType.GetMapValueType()
+	if valueFieldType == nil {
+		return fmt.Sprintf("Map of %s to unknown", fieldType.MapKey)
+	}
+
+	var valueDesc string
+	if valueFieldType.IsMap {
+		// Recursively describe nested maps
+		valueDesc = g.generateMapDescription(valueFieldType)
+	} else {
+		valueDesc = valueFieldType.Name
+	}
+
+	return fmt.Sprintf("Map of %s to %s", fieldType.MapKey, valueDesc)
+}
+
+// generateAdditionalProperties recursively generates OpenAPI additionalProperties for map value types
+func (g *OpenAPIGenerator) generateAdditionalProperties(valueFieldType *ast.FieldType, typeNameMap map[string]string) *OpenAPIPropertyItems {
+	if valueFieldType.IsMap {
+		// Nested map case: recursively generate additionalProperties structure
+		// Example: map<string, map<string, int32>> becomes:
+		// additionalProperties:
+		//   type: object
+		//   additionalProperties:
+		//     type: integer
+		//     format: int32
+		nestedValueType := valueFieldType.GetMapValueType()
+		if nestedValueType != nil {
+			return &OpenAPIPropertyItems{
+				Type:                 "object",
+				AdditionalProperties: g.generateAdditionalProperties(nestedValueType, typeNameMap),
+			}
+		}
+		// Fallback if nested value type is unknown
+		return &OpenAPIPropertyItems{
+			Type: "object",
+		}
+	}
+
+	// Non-map case: simple type or reference
+	valueType := g.mapTypeToOpenAPI(valueFieldType.Name)
+	valueFormat := g.getFormatForType(valueFieldType.Name)
+
+	additionalProps := &OpenAPIPropertyItems{
+		Type:   valueType,
+		Format: valueFormat,
+	}
+
+	// If the value is a custom type, use a reference
+	if !ast.IsBuiltinType(valueFieldType.Name) {
+		unqualifiedName := ast.GetUnqualifiedName(valueFieldType.Name)
+		schemaName := unqualifiedName
+		if customName, ok := typeNameMap[unqualifiedName]; ok {
+			schemaName = customName
+		}
+		additionalProps.Ref = fmt.Sprintf("#/components/schemas/%s", schemaName)
+		additionalProps.Type = ""   // Clear type when using ref
+		additionalProps.Format = "" // Clear format when using ref
+	}
+
+	return additionalProps
+}
+
 func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap map[string]string) OpenAPIProperty {
 	property := OpenAPIProperty{
 		Extensions: make(map[string]interface{}),
@@ -391,29 +461,18 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 
 	if field.Type.IsMap {
 		property.Type = "object"
-		property.Description = fmt.Sprintf("Map of %s to %s", field.Type.MapKey, field.Type.MapValue)
+
+		// Get the map value type using the new API
+		valueFieldType := field.Type.GetMapValueType()
+		if valueFieldType == nil {
+			property.Description = fmt.Sprintf("Map of %s to unknown", field.Type.MapKey)
+			return property
+		}
+
+		property.Description = g.generateMapDescription(field.Type)
 
 		// Use additionalProperties to specify the value type
-		valueType := g.mapTypeToOpenAPI(field.Type.MapValue)
-		valueFormat := g.getFormatForType(field.Type.MapValue)
-
-		additionalProps := &OpenAPIPropertyItems{
-			Type:   valueType,
-			Format: valueFormat,
-		}
-
-		// If the value is a custom type, use a reference
-		if !ast.IsBuiltinType(field.Type.MapValue) {
-			unqualifiedName := ast.GetUnqualifiedName(field.Type.MapValue)
-			schemaName := unqualifiedName
-			if customName, ok := typeNameMap[unqualifiedName]; ok {
-				schemaName = customName
-			}
-			additionalProps.Ref = fmt.Sprintf("#/components/schemas/%s", schemaName)
-			additionalProps.Type = ""   // Clear type when using ref
-			additionalProps.Format = "" // Clear format when using ref
-		}
-
+		additionalProps := g.generateAdditionalProperties(valueFieldType, typeNameMap)
 		property.AdditionalProperties = additionalProps
 		return property
 	}

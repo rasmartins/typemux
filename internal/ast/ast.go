@@ -93,13 +93,37 @@ func (f *Field) ShouldIncludeInGenerator(generator string) bool {
 
 // FieldType represents the type of a field
 type FieldType struct {
-	Name      string // base type name
-	IsArray   bool
-	IsMap     bool
-	MapKey    string // for map types
-	MapValue  string // for map types
-	IsBuiltin bool
-	Optional  bool // true if the type has a ? suffix (e.g., string?)
+	Name         string     // base type name (set to "map" for map types)
+	IsArray      bool
+	IsMap        bool
+	MapKey       string     // for map types - the key type (must be string or int)
+	MapValue     string     // for simple map value types (deprecated - use MapValueType for new code)
+	MapValueType *FieldType // for complex map value types (supports nested maps, arrays, etc.)
+	IsBuiltin    bool
+	Optional     bool // true if the type has a ? suffix (e.g., string?)
+}
+
+// GetMapValueType returns the map value type, supporting both simple string values and complex FieldType values
+func (ft *FieldType) GetMapValueType() *FieldType {
+	if ft.MapValueType != nil {
+		return ft.MapValueType
+	}
+	// Fallback to simple string-based MapValue for backward compatibility
+	if ft.MapValue != "" {
+		return &FieldType{
+			Name:      ft.MapValue,
+			IsBuiltin: IsBuiltinType(ft.MapValue),
+		}
+	}
+	return nil
+}
+
+// GetMapValueTypeName returns the type name for simple cases (backward compatibility)
+func (ft *FieldType) GetMapValueTypeName() string {
+	if ft.MapValueType != nil {
+		return ft.MapValueType.Name
+	}
+	return ft.MapValue
 }
 
 // Service represents a service definition

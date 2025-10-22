@@ -484,13 +484,19 @@ func (g *ProtobufGenerator) generateMessageFieldWithNamespaceAndMap(field *ast.F
 
 	if field.Type.IsMap {
 		var keyType, valueType string
-		if currentNamespace != "" {
-			keyType = g.mapScalarTypeWithPackageAndMap(field.Type.MapKey, currentNamespace, typeNameMap)
-			valueType = g.mapScalarTypeWithPackageAndMap(field.Type.MapValue, currentNamespace, typeNameMap)
+		keyType = g.mapScalarTypeWithPackageAndMap(field.Type.MapKey, currentNamespace, typeNameMap)
+
+		// Handle the value type - it can be a nested map or simple type
+		valueFieldType := field.Type.GetMapValueType()
+		if valueFieldType.IsMap {
+			// Recursively handle nested map
+			valueType = g.generateMapTypeString(valueFieldType, currentNamespace, typeNameMap)
+		} else if currentNamespace != "" {
+			valueType = g.mapScalarTypeWithPackageAndMap(valueFieldType.Name, currentNamespace, typeNameMap)
 		} else {
-			keyType = g.mapScalarTypeWithMap(field.Type.MapKey, typeNameMap)
-			valueType = g.mapScalarTypeWithMap(field.Type.MapValue, typeNameMap)
+			valueType = g.mapScalarTypeWithMap(valueFieldType.Name, typeNameMap)
 		}
+
 		return fmt.Sprintf("map<%s, %s> %s = %d%s;",
 			keyType,
 			valueType,
@@ -510,6 +516,33 @@ func (g *ProtobufGenerator) generateMessageFieldWithNamespaceAndMap(field *ast.F
 
 	// Proto3 doesn't have required keyword, all fields are optional by default
 	return fmt.Sprintf("%s %s = %d%s;", protoType, field.Name, fieldNum, options)
+}
+
+// generateMapTypeString recursively generates the protobuf type string for a map (including nested maps)
+func (g *ProtobufGenerator) generateMapTypeString(fieldType *ast.FieldType, currentNamespace string, typeNameMap map[string]string) string {
+	if !fieldType.IsMap {
+		// Base case: not a map, just return the type name
+		if currentNamespace != "" {
+			return g.mapScalarTypeWithPackageAndMap(fieldType.Name, currentNamespace, typeNameMap)
+		}
+		return g.mapScalarTypeWithMap(fieldType.Name, typeNameMap)
+	}
+
+	// Recursive case: this is a map
+	keyType := g.mapScalarTypeWithPackageAndMap(fieldType.MapKey, currentNamespace, typeNameMap)
+
+	valueFieldType := fieldType.GetMapValueType()
+	var valueType string
+	if valueFieldType.IsMap {
+		// Recursively handle nested map
+		valueType = g.generateMapTypeString(valueFieldType, currentNamespace, typeNameMap)
+	} else if currentNamespace != "" {
+		valueType = g.mapScalarTypeWithPackageAndMap(valueFieldType.Name, currentNamespace, typeNameMap)
+	} else {
+		valueType = g.mapScalarTypeWithMap(valueFieldType.Name, typeNameMap)
+	}
+
+	return fmt.Sprintf("map<%s, %s>", keyType, valueType)
 }
 
 func (g *ProtobufGenerator) mapScalarType(typeName string) string {

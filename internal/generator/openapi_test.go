@@ -1477,3 +1477,147 @@ func TestOpenAPIGenerator_MapTypes_Integration(t *testing.T) {
 		t.Errorf("Expected users additionalProperties ref to be '#/components/schemas/User', got %q", users.AdditionalProperties.Ref)
 	}
 }
+
+func TestOpenAPIGenerator_NestedMaps(t *testing.T) {
+	gen := NewOpenAPIGenerator()
+
+	schema := &ast.Schema{
+		Namespace: "test",
+		Types: []*ast.Type{
+			{
+				Name: "NestedMapTest",
+				Fields: []*ast.Field{
+					{
+						Name: "simpleMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								Name:      "string",
+								IsBuiltin: true,
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "nestedMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+							},
+						},
+						Required: false,
+					},
+					{
+						Name: "tripleNestedMap",
+						Type: &ast.FieldType{
+							IsMap:  true,
+							MapKey: "string",
+							MapValueType: &ast.FieldType{
+								IsMap:  true,
+								MapKey: "string",
+								MapValueType: &ast.FieldType{
+									IsMap:  true,
+									MapKey: "string",
+									MapValueType: &ast.FieldType{
+										Name:      "bool",
+										IsBuiltin: true,
+									},
+								},
+							},
+						},
+						Required: false,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Parse the YAML output
+	var spec OpenAPISpec
+	err := yaml.Unmarshal([]byte(output), &spec)
+	if err != nil {
+		t.Fatalf("Failed to parse OpenAPI YAML: %v", err)
+	}
+
+	// Check NestedMapTest schema exists
+	nestedMapTest, exists := spec.Components.Schemas["NestedMapTest"]
+	if !exists {
+		t.Fatal("Expected NestedMapTest schema to exist")
+	}
+
+	// Check simpleMap field - should have additionalProperties with type: string
+	simpleMap := nestedMapTest.Properties["simpleMap"]
+	if simpleMap.Type != "object" {
+		t.Errorf("Expected simpleMap type to be 'object', got %q", simpleMap.Type)
+	}
+	if simpleMap.AdditionalProperties == nil {
+		t.Fatal("Expected simpleMap to have additionalProperties")
+	}
+	if simpleMap.AdditionalProperties.Type != "string" {
+		t.Errorf("Expected simpleMap additionalProperties type to be 'string', got %q", simpleMap.AdditionalProperties.Type)
+	}
+
+	// Check nestedMap field - should have nested additionalProperties
+	nestedMap := nestedMapTest.Properties["nestedMap"]
+	if nestedMap.Type != "object" {
+		t.Errorf("Expected nestedMap type to be 'object', got %q", nestedMap.Type)
+	}
+	if nestedMap.AdditionalProperties == nil {
+		t.Fatal("Expected nestedMap to have additionalProperties")
+	}
+	if nestedMap.AdditionalProperties.Type != "object" {
+		t.Errorf("Expected nestedMap additionalProperties type to be 'object', got %q", nestedMap.AdditionalProperties.Type)
+	}
+	// Check inner additionalProperties
+	if nestedMap.AdditionalProperties.AdditionalProperties == nil {
+		t.Fatal("Expected nestedMap to have nested additionalProperties")
+	}
+	if nestedMap.AdditionalProperties.AdditionalProperties.Type != "integer" {
+		t.Errorf("Expected nested additionalProperties type to be 'integer', got %q", nestedMap.AdditionalProperties.AdditionalProperties.Type)
+	}
+	if nestedMap.AdditionalProperties.AdditionalProperties.Format != "int32" {
+		t.Errorf("Expected nested additionalProperties format to be 'int32', got %q", nestedMap.AdditionalProperties.AdditionalProperties.Format)
+	}
+
+	// Check tripleNestedMap field - should have three levels of nested additionalProperties
+	tripleNestedMap := nestedMapTest.Properties["tripleNestedMap"]
+	if tripleNestedMap.Type != "object" {
+		t.Errorf("Expected tripleNestedMap type to be 'object', got %q", tripleNestedMap.Type)
+	}
+	if tripleNestedMap.AdditionalProperties == nil {
+		t.Fatal("Expected tripleNestedMap to have additionalProperties")
+	}
+	// Level 1
+	if tripleNestedMap.AdditionalProperties.Type != "object" {
+		t.Errorf("Expected level 1 additionalProperties type to be 'object', got %q", tripleNestedMap.AdditionalProperties.Type)
+	}
+	if tripleNestedMap.AdditionalProperties.AdditionalProperties == nil {
+		t.Fatal("Expected level 2 additionalProperties")
+	}
+	// Level 2
+	if tripleNestedMap.AdditionalProperties.AdditionalProperties.Type != "object" {
+		t.Errorf("Expected level 2 additionalProperties type to be 'object', got %q", tripleNestedMap.AdditionalProperties.AdditionalProperties.Type)
+	}
+	if tripleNestedMap.AdditionalProperties.AdditionalProperties.AdditionalProperties == nil {
+		t.Fatal("Expected level 3 additionalProperties")
+	}
+	// Level 3
+	if tripleNestedMap.AdditionalProperties.AdditionalProperties.AdditionalProperties.Type != "boolean" {
+		t.Errorf("Expected level 3 additionalProperties type to be 'boolean', got %q", tripleNestedMap.AdditionalProperties.AdditionalProperties.AdditionalProperties.Type)
+	}
+
+	// Check descriptions
+	if !strings.Contains(nestedMap.Description, "Map of string to") {
+		t.Errorf("Expected nestedMap description to contain 'Map of string to', got: %s", nestedMap.Description)
+	}
+}
