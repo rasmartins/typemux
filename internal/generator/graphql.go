@@ -359,20 +359,23 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 		sb.WriteString("\n\n")
 	}
 
-	// Generate Query and Mutation types from services
+	// Generate Query, Mutation, and Subscription types from services
 	queryMethods := []string{}
 	mutationMethods := []string{}
+	subscriptionMethods := []string{}
 
 	for _, service := range schema.Services {
 		for _, method := range service.Methods {
 			methodStr := g.generateServiceMethod(method, typeUsage)
 			// Use GetGraphQLType which checks annotation or uses heuristics
-			if method.GetGraphQLType() == "query" {
+			graphqlType := method.GetGraphQLType()
+			if graphqlType == "query" {
 				queryMethods = append(queryMethods, methodStr)
-			} else if method.GetGraphQLType() == "mutation" {
+			} else if graphqlType == "mutation" {
 				mutationMethods = append(mutationMethods, methodStr)
+			} else if graphqlType == "subscription" {
+				subscriptionMethods = append(subscriptionMethods, methodStr)
 			}
-			// Note: subscriptions would go here in the future
 		}
 	}
 
@@ -387,6 +390,14 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 	if len(mutationMethods) > 0 {
 		sb.WriteString("type Mutation {\n")
 		for _, method := range mutationMethods {
+			sb.WriteString("  " + method + "\n")
+		}
+		sb.WriteString("}\n\n")
+	}
+
+	if len(subscriptionMethods) > 0 {
+		sb.WriteString("type Subscription {\n")
+		for _, method := range subscriptionMethods {
 			sb.WriteString("  " + method + "\n")
 		}
 		sb.WriteString("}\n")

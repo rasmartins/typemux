@@ -1236,3 +1236,124 @@ func TestGraphQLGenerator_MapTypes(t *testing.T) {
 		t.Error("Expected documentation mentioning the original map type")
 	}
 }
+
+func TestGraphQLGenerator_Subscriptions(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "Message",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+					{
+						Name: "content",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+				},
+			},
+			{
+				Name: "Empty",
+				Fields: []*ast.Field{},
+			},
+		},
+		Services: []*ast.Service{
+			{
+				Name: "ChatService",
+				Methods: []*ast.Method{
+					{
+						Name:         "GetMessage",
+						InputType:    "Empty",
+						OutputType:   "Message",
+						InputStream:  false,
+						OutputStream: false,
+					},
+					{
+						Name:         "SendMessage",
+						InputType:    "Message",
+						OutputType:   "Empty",
+						InputStream:  false,
+						OutputStream: false,
+					},
+					{
+						Name:         "WatchMessages",
+						InputType:    "Empty",
+						OutputType:   "Message",
+						InputStream:  false,
+						OutputStream: true, // Stream indicates subscription
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGraphQLGenerator()
+	output := gen.Generate(schema)
+
+	// Check that Query type contains GetMessage
+	if !strings.Contains(output, "type Query {") {
+		t.Error("Expected Query type to be generated")
+	}
+	if !strings.Contains(output, "getMessage") {
+		t.Error("Expected getMessage in Query type")
+	}
+
+	// Check that Mutation type contains SendMessage
+	if !strings.Contains(output, "type Mutation {") {
+		t.Error("Expected Mutation type to be generated")
+	}
+	if !strings.Contains(output, "sendMessage") {
+		t.Error("Expected sendMessage in Mutation type")
+	}
+
+	// Check that Subscription type contains WatchMessages
+	if !strings.Contains(output, "type Subscription {") {
+		t.Error("Expected Subscription type to be generated")
+	}
+	if !strings.Contains(output, "watchMessages") {
+		t.Error("Expected watchMessages in Subscription type")
+	}
+
+	// Verify watchMessages is not in Query or Mutation
+	lines := strings.Split(output, "\n")
+	inQuery := false
+	inMutation := false
+	inSubscription := false
+
+	for _, line := range lines {
+		if strings.Contains(line, "type Query {") {
+			inQuery = true
+			inMutation = false
+			inSubscription = false
+		} else if strings.Contains(line, "type Mutation {") {
+			inQuery = false
+			inMutation = true
+			inSubscription = false
+		} else if strings.Contains(line, "type Subscription {") {
+			inQuery = false
+			inMutation = false
+			inSubscription = true
+		} else if strings.Contains(line, "}") {
+			inQuery = false
+			inMutation = false
+			inSubscription = false
+		}
+
+		if (inQuery || inMutation) && strings.Contains(line, "watchMessages") {
+			t.Error("watchMessages should only be in Subscription type, not Query or Mutation")
+		}
+
+		if inSubscription && (strings.Contains(line, "getMessage") || strings.Contains(line, "sendMessage")) {
+			t.Error("Non-streaming methods should not be in Subscription type")
+		}
+	}
+}

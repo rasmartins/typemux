@@ -501,6 +501,14 @@ func TestMethod_GetGraphQLType(t *testing.T) {
 			expected: "mutation",
 		},
 		{
+			name: "explicit subscription",
+			method: &Method{
+				Name:        "CreateUser",
+				GraphQLType: "subscription",
+			},
+			expected: "subscription",
+		},
+		{
 			name: "heuristic Get prefix",
 			method: &Method{
 				Name: "GetUser",
@@ -525,6 +533,30 @@ func TestMethod_GetGraphQLType(t *testing.T) {
 			name: "heuristic default to mutation for Update",
 			method: &Method{
 				Name: "UpdateUser",
+			},
+			expected: "mutation",
+		},
+		{
+			name: "heuristic stream output is subscription",
+			method: &Method{
+				Name:         "WatchMessages",
+				OutputStream: true,
+			},
+			expected: "subscription",
+		},
+		{
+			name: "heuristic stream output overrides Get prefix",
+			method: &Method{
+				Name:         "GetUpdates",
+				OutputStream: true,
+			},
+			expected: "subscription",
+		},
+		{
+			name: "heuristic stream input does not affect type",
+			method: &Method{
+				Name:        "UploadData",
+				InputStream: true,
 			},
 			expected: "mutation",
 		},

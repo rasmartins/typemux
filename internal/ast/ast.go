@@ -167,6 +167,10 @@ func (m *Method) GetGraphQLType() string {
 	if m.GraphQLType != "" {
 		return m.GraphQLType
 	}
+	// Heuristic: methods with OutputStream (stream returns) are subscriptions
+	if m.OutputStream {
+		return "subscription"
+	}
 	// Default heuristic: Get/List are queries, everything else is mutations
 	if strings.HasPrefix(m.Name, "Get") || strings.HasPrefix(m.Name, "List") {
 		return "query"
