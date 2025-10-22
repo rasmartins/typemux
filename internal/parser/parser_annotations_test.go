@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/rasmartins/typemux/internal/ast"
 	"github.com/rasmartins/typemux/internal/lexer"
 )
 
@@ -343,4 +344,304 @@ type User @proto.name("UserV2") @graphql.name("UserAccount") @openapi.name("User
 	if typ.Annotations.OpenAPIName != "UserProfile" {
 		t.Errorf("Expected OpenAPIName to be 'UserProfile', got '%s'", typ.Annotations.OpenAPIName)
 	}
+}
+// TestParser_MergeAnnotations tests the mergeAnnotations function
+func TestParser_MergeAnnotations(t *testing.T) {
+	p := &Parser{}
+
+	t.Run("both nil", func(t *testing.T) {
+		result := p.mergeAnnotations(nil, nil)
+		if result != nil {
+			t.Error("Expected nil when both annotations are nil")
+		}
+	})
+
+	t.Run("leading nil", func(t *testing.T) {
+		trailing := ast.NewFormatAnnotations()
+		trailing.Proto = []string{"option1"}
+		result := p.mergeAnnotations(nil, trailing)
+		if result != trailing {
+			t.Error("Expected trailing when leading is nil")
+		}
+	})
+
+	t.Run("trailing nil", func(t *testing.T) {
+		leading := ast.NewFormatAnnotations()
+		leading.Proto = []string{"option1"}
+		result := p.mergeAnnotations(leading, nil)
+		if result != leading {
+			t.Error("Expected leading when trailing is nil")
+		}
+	})
+
+	t.Run("merge proto annotations", func(t *testing.T) {
+		leading := ast.NewFormatAnnotations()
+		leading.Proto = []string{"option1", "option2"}
+
+		trailing := ast.NewFormatAnnotations()
+		trailing.Proto = []string{"option3"}
+
+		result := p.mergeAnnotations(leading, trailing)
+		if len(result.Proto) != 3 {
+			t.Errorf("Expected 3 proto annotations, got %d", len(result.Proto))
+		}
+		if result.Proto[0] != "option1" || result.Proto[1] != "option2" || result.Proto[2] != "option3" {
+			t.Errorf("Proto annotations not merged correctly: %v", result.Proto)
+		}
+	})
+
+	t.Run("name override - proto", func(t *testing.T) {
+		leading := ast.NewFormatAnnotations()
+		leading.ProtoName = "LeadingName"
+
+		trailing := ast.NewFormatAnnotations()
+		trailing.ProtoName = "TrailingName"
+
+		result := p.mergeAnnotations(leading, trailing)
+		if result.ProtoName != "TrailingName" {
+			t.Errorf("Expected trailing proto name to override, got %q", result.ProtoName)
+		}
+	})
+
+	t.Run("name override - graphql empty trailing", func(t *testing.T) {
+		leading := ast.NewFormatAnnotations()
+		leading.GraphQLName = "LeadingName"
+
+		trailing := ast.NewFormatAnnotations()
+		trailing.GraphQLName = ""
+
+		result := p.mergeAnnotations(leading, trailing)
+		if result.GraphQLName != "LeadingName" {
+			t.Errorf("Expected leading name when trailing is empty, got %q", result.GraphQLName)
+		}
+	})
+
+	t.Run("complex merge - all annotations", func(t *testing.T) {
+		leading := ast.NewFormatAnnotations()
+		leading.Proto = []string{"proto1"}
+		leading.GraphQL = []string{"graphql1"}
+		leading.OpenAPI = []string{"openapi1"}
+		leading.Go = []string{"go1"}
+		leading.ProtoName = "ProtoName1"
+		leading.GraphQLName = "GraphQLName1"
+
+		trailing := ast.NewFormatAnnotations()
+		trailing.Proto = []string{"proto2"}
+		trailing.GraphQL = []string{"graphql2"}
+		trailing.OpenAPI = []string{"openapi2"}
+		trailing.Go = []string{"go2"}
+		trailing.GraphQLName = "GraphQLName2"
+		trailing.OpenAPIName = "OpenAPIName2"
+
+		result := p.mergeAnnotations(leading, trailing)
+
+		// Check all arrays are merged
+		if len(result.Proto) != 2 {
+			t.Errorf("Expected 2 proto annotations, got %d", len(result.Proto))
+		}
+		if len(result.GraphQL) != 2 {
+			t.Errorf("Expected 2 graphql annotations, got %d", len(result.GraphQL))
+		}
+		if len(result.OpenAPI) != 2 {
+			t.Errorf("Expected 2 openapi annotations, got %d", len(result.OpenAPI))
+		}
+		if len(result.Go) != 2 {
+			t.Errorf("Expected 2 go annotations, got %d", len(result.Go))
+		}
+
+		// Check name precedence
+		if result.ProtoName != "ProtoName1" {
+			t.Errorf("Expected proto name from leading (trailing empty), got %q", result.ProtoName)
+		}
+		if result.GraphQLName != "GraphQLName2" {
+			t.Errorf("Expected graphql name from trailing, got %q", result.GraphQLName)
+		}
+		if result.OpenAPIName != "OpenAPIName2" {
+			t.Errorf("Expected openapi name from trailing, got %q", result.OpenAPIName)
+		}
+	})
+}
+
+// TestParser_ParseValidationRules_Comprehensive tests comprehensive validation rule parsing
+func TestParser_ParseValidationRules_Comprehensive(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		check    func(*testing.T, *ast.ValidationRules)
+		hasError bool
+	}{
+		{
+			name: "format validation",
+			input: `
+namespace test
+type User {
+  email: string @validate(format="email")
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.Format != "email" {
+					t.Errorf("Expected format 'email', got %q", rules.Format)
+				}
+			},
+		},
+		{
+			name: "pattern validation",
+			input: `
+namespace test
+type User {
+  username: string @validate(pattern="^[a-z0-9_]+$")
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.Pattern != "^[a-z0-9_]+$" {
+					t.Errorf("Expected pattern '^[a-z0-9_]+$', got %q", rules.Pattern)
+				}
+			},
+		},
+		{
+			name: "string length validation",
+			input: `
+namespace test
+type User {
+  name: string @validate(minLength=3, maxLength=50)
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.MinLength == nil || *rules.MinLength != 3 {
+					t.Errorf("Expected minLength 3, got %v", ptrIntValue(rules.MinLength))
+				}
+				if rules.MaxLength == nil || *rules.MaxLength != 50 {
+					t.Errorf("Expected maxLength 50, got %v", ptrIntValue(rules.MaxLength))
+				}
+			},
+		},
+		{
+			name: "numeric range validation",
+			input: `
+namespace test
+type Product {
+  price: float64 @validate(min=0, max=1000000)
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.Min == nil || *rules.Min != 0 {
+					t.Errorf("Expected min 0.0, got %v", ptrFloatValue(rules.Min))
+				}
+				if rules.Max == nil || *rules.Max != 1000000 {
+					t.Errorf("Expected max 1000000.0, got %v", ptrFloatValue(rules.Max))
+				}
+			},
+		},
+		{
+			name: "exclusive range validation",
+			input: `
+namespace test
+type Percentage {
+  value: float32 @validate(exclusiveMin=0, exclusiveMax=100)
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.ExclusiveMin == nil || *rules.ExclusiveMin != 0 {
+					t.Errorf("Expected exclusiveMin 0, got %v", ptrFloatValue(rules.ExclusiveMin))
+				}
+				if rules.ExclusiveMax == nil || *rules.ExclusiveMax != 100 {
+					t.Errorf("Expected exclusiveMax 100, got %v", ptrFloatValue(rules.ExclusiveMax))
+				}
+			},
+		},
+		{
+			name: "multipleOf validation",
+			input: `
+namespace test
+type Config {
+  port: int32 @validate(multipleOf=10)
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.MultipleOf == nil || *rules.MultipleOf != 10 {
+					t.Errorf("Expected multipleOf 10, got %v", ptrFloatValue(rules.MultipleOf))
+				}
+			},
+		},
+		{
+			name: "array validation",
+			input: `
+namespace test
+type Config {
+  tags: []string @validate(minItems=1, maxItems=10, uniqueItems=true)
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.MinItems == nil || *rules.MinItems != 1 {
+					t.Errorf("Expected minItems 1, got %v", ptrIntValue(rules.MinItems))
+				}
+				if rules.MaxItems == nil || *rules.MaxItems != 10 {
+					t.Errorf("Expected maxItems 10, got %v", ptrIntValue(rules.MaxItems))
+				}
+				if !rules.UniqueItems {
+					t.Error("Expected uniqueItems to be true")
+				}
+			},
+		},
+		{
+			name: "complex validation - multiple rules",
+			input: `
+namespace test
+type User {
+  email: string @validate(format="email", minLength=5, maxLength=100, pattern=".*@.*")
+}`,
+			check: func(t *testing.T, rules *ast.ValidationRules) {
+				if rules.Format != "email" {
+					t.Errorf("Expected format 'email', got %q", rules.Format)
+				}
+				if rules.Pattern != ".*@.*" {
+					t.Errorf("Expected pattern '.*@.*', got %q", rules.Pattern)
+				}
+				if rules.MinLength == nil || *rules.MinLength != 5 {
+					t.Errorf("Expected minLength 5, got %v", ptrIntValue(rules.MinLength))
+				}
+				if rules.MaxLength == nil || *rules.MaxLength != 100 {
+					t.Errorf("Expected maxLength 100, got %v", ptrIntValue(rules.MaxLength))
+				}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			schema := p.Parse()
+
+			if tt.hasError {
+				if len(p.Errors()) == 0 {
+					t.Error("Expected parser errors but got none")
+				}
+				return
+			}
+
+			if len(p.Errors()) > 0 {
+				t.Fatalf("Unexpected parser errors: %v", p.Errors())
+			}
+
+			if len(schema.Types) == 0 || len(schema.Types[0].Fields) == 0 {
+				t.Fatal("No types or fields parsed")
+			}
+
+			field := schema.Types[0].Fields[0]
+			if field.Validation == nil {
+				t.Fatal("Expected field to have validation rules")
+			}
+
+			tt.check(t, field.Validation)
+		})
+	}
+}
+
+// Helper functions
+func ptrIntValue(ptr *int) interface{} {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
+}
+
+func ptrFloatValue(ptr *float64) interface{} {
+	if ptr == nil {
+		return nil
+	}
+	return *ptr
 }
