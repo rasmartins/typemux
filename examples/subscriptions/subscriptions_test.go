@@ -12,9 +12,9 @@ import (
 
 func TestSubscriptionsExample(t *testing.T) {
 	// Read the TypeMux schema
-	content, err := os.ReadFile("chat.tm")
+	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
-		t.Fatalf("Failed to read chat.tm: %v", err)
+		t.Fatalf("Failed to read chat.typemux: %v", err)
 	}
 
 	// Parse the schema
@@ -24,7 +24,7 @@ func TestSubscriptionsExample(t *testing.T) {
 
 	// Check for parser errors
 	if len(p.Errors()) > 0 {
-		t.Fatalf("Failed to parse chat.tm: %v", p.Errors())
+		t.Fatalf("Failed to parse chat.typemux: %v", p.Errors())
 	}
 
 	// Generate GraphQL schema
@@ -123,9 +123,9 @@ func TestSubscriptionsExample(t *testing.T) {
 
 func TestProtobufGeneration(t *testing.T) {
 	// Read the TypeMux schema
-	content, err := os.ReadFile("chat.tm")
+	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
-		t.Fatalf("Failed to read chat.tm: %v", err)
+		t.Fatalf("Failed to read chat.typemux: %v", err)
 	}
 
 	// Parse the schema
@@ -135,7 +135,7 @@ func TestProtobufGeneration(t *testing.T) {
 
 	// Check for parser errors
 	if len(p.Errors()) > 0 {
-		t.Fatalf("Failed to parse chat.tm: %v", p.Errors())
+		t.Fatalf("Failed to parse chat.typemux: %v", p.Errors())
 	}
 
 	// Generate Protobuf schema
@@ -169,9 +169,9 @@ func TestProtobufGeneration(t *testing.T) {
 
 func TestOpenAPIGeneration(t *testing.T) {
 	// Read the TypeMux schema
-	content, err := os.ReadFile("chat.tm")
+	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
-		t.Fatalf("Failed to read chat.tm: %v", err)
+		t.Fatalf("Failed to read chat.typemux: %v", err)
 	}
 
 	// Parse the schema
@@ -181,7 +181,7 @@ func TestOpenAPIGeneration(t *testing.T) {
 
 	// Check for parser errors
 	if len(p.Errors()) > 0 {
-		t.Fatalf("Failed to parse chat.tm: %v", p.Errors())
+		t.Fatalf("Failed to parse chat.typemux: %v", p.Errors())
 	}
 
 	// Generate OpenAPI schema
