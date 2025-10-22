@@ -1972,8 +1972,66 @@ func TestParseStreamingMethods(t *testing.T) {
 // TestParseDeprecation tests deprecation field annotations
 // Note: @deprecated annotation is currently only supported on fields, not enum values or methods
 func TestParseDeprecation(t *testing.T) {
-	// Skip for now - deprecation annotation syntax needs to be checked
-	t.Skip("Deprecation annotation syntax needs investigation")
+	input := `
+namespace test
+
+type Product {
+  id: string @required
+  oldField: string @deprecated("Use newField instead", since="2.0.0", removed="3.0.0")
+  newField: string
+  legacyFlag: bool @deprecated
+}
+`
+	l := lexer.New(input)
+	parser := New(l)
+	schema := parser.Parse()
+
+	if len(parser.Errors()) > 0 {
+		t.Fatalf("Parser errors: %v", parser.Errors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	product := schema.Types[0]
+	if len(product.Fields) != 4 {
+		t.Fatalf("Expected 4 fields, got %d", len(product.Fields))
+	}
+
+	// Check id field is not deprecated
+	if product.Fields[0].Deprecated != nil {
+		t.Error("Expected id field to not be deprecated")
+	}
+
+	// Check oldField has full deprecation info
+	oldField := product.Fields[1]
+	if oldField.Deprecated == nil {
+		t.Fatal("Expected oldField to be deprecated")
+	}
+	if oldField.Deprecated.Reason != "Use newField instead" {
+		t.Errorf("Expected reason 'Use newField instead', got %q", oldField.Deprecated.Reason)
+	}
+	if oldField.Deprecated.Since != "2.0.0" {
+		t.Errorf("Expected since '2.0.0', got %q", oldField.Deprecated.Since)
+	}
+	if oldField.Deprecated.Removed != "3.0.0" {
+		t.Errorf("Expected removed '3.0.0', got %q", oldField.Deprecated.Removed)
+	}
+
+	// Check newField is not deprecated
+	if product.Fields[2].Deprecated != nil {
+		t.Error("Expected newField to not be deprecated")
+	}
+
+	// Check legacyFlag has deprecation marker without details
+	legacyFlag := product.Fields[3]
+	if legacyFlag.Deprecated == nil {
+		t.Fatal("Expected legacyFlag to be deprecated")
+	}
+	if legacyFlag.Deprecated.Reason != "" {
+		t.Errorf("Expected empty reason, got %q", legacyFlag.Deprecated.Reason)
+	}
 }
 
 func TestParseEdgeCaseErrors(t *testing.T) {
@@ -2520,14 +2578,122 @@ type User {
 }
 
 func TestParseArrayOfArrays(t *testing.T) {
-	// Skip - nested arrays ([][]) not supported in current parser
-	t.Skip("Nested array syntax [][] not currently supported")
+	input := `
+namespace test
+
+type Matrix {
+  simple_array: []string
+  nested_array: [][]int32
+  triple_nested: [][][]bool
+  optional_nested: [][]string?
+}
+`
+	l := lexer.New(input)
+	parser := New(l)
+	schema := parser.Parse()
+
+	if len(parser.Errors()) > 0 {
+		t.Fatalf("Parser errors: %v", parser.Errors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	matrix := schema.Types[0]
+	if len(matrix.Fields) != 4 {
+		t.Fatalf("Expected 4 fields, got %d", len(matrix.Fields))
+	}
+
+	// Check simple_array
+	if !matrix.Fields[0].Type.IsArray {
+		t.Error("Expected simple_array to be an array")
+	}
+	if matrix.Fields[0].Type.Name != "string" {
+		t.Errorf("Expected simple_array element type 'string', got %q", matrix.Fields[0].Type.Name)
+	}
+
+	// Check nested_array ([][]int32)
+	if !matrix.Fields[1].Type.IsArray {
+		t.Error("Expected nested_array to be an array")
+	}
+	if matrix.Fields[1].Type.Name != "[]int32" {
+		t.Errorf("Expected nested_array Name '[]int32', got %q", matrix.Fields[1].Type.Name)
+	}
+
+	// Check triple_nested ([][][]bool)
+	if !matrix.Fields[2].Type.IsArray {
+		t.Error("Expected triple_nested to be an array")
+	}
+	if matrix.Fields[2].Type.Name != "[][]bool" {
+		t.Errorf("Expected triple_nested Name '[][]bool', got %q", matrix.Fields[2].Type.Name)
+	}
+
+	// Check optional_nested is optional
+	if !matrix.Fields[3].Type.Optional {
+		t.Error("Expected optional_nested to be optional")
+	}
+	if !matrix.Fields[3].Type.IsArray {
+		t.Error("Expected optional_nested to be an array")
+	}
 }
 
 func TestParseOptionalMapField(t *testing.T) {
-	// Skip - optional marker after map<> not currently supported
-	// The ? marker only works on simple types like: string?
-	t.Skip("Optional marker after map<> not currently supported")
+	input := `
+namespace test
+
+type Config {
+  required_map: map<string, string>
+  optional_map: map<string, int32>?
+  optional_string: string?
+  optional_array: []string?
+}
+`
+	l := lexer.New(input)
+	parser := New(l)
+	schema := parser.Parse()
+
+	if len(parser.Errors()) > 0 {
+		t.Fatalf("Parser errors: %v", parser.Errors())
+	}
+
+	if len(schema.Types) != 1 {
+		t.Fatalf("Expected 1 type, got %d", len(schema.Types))
+	}
+
+	config := schema.Types[0]
+	if len(config.Fields) != 4 {
+		t.Fatalf("Expected 4 fields, got %d", len(config.Fields))
+	}
+
+	// Check required_map is not optional
+	if config.Fields[0].Type.Optional {
+		t.Error("Expected required_map to not be optional")
+	}
+	if !config.Fields[0].Type.IsMap {
+		t.Error("Expected required_map to be a map")
+	}
+
+	// Check optional_map is optional
+	if !config.Fields[1].Type.Optional {
+		t.Error("Expected optional_map to be optional")
+	}
+	if !config.Fields[1].Type.IsMap {
+		t.Error("Expected optional_map to be a map")
+	}
+
+	// Check optional_string is optional
+	if !config.Fields[2].Type.Optional {
+		t.Error("Expected optional_string to be optional")
+	}
+
+	// Check optional_array is optional
+	if !config.Fields[3].Type.Optional {
+		t.Error("Expected optional_array to be optional")
+	}
+	if !config.Fields[3].Type.IsArray {
+		t.Error("Expected optional_array to be an array")
+	}
 }
 
 func TestParseMultipleImportsAndNamespaces(t *testing.T) {

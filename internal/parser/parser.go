@@ -604,6 +604,10 @@ func (p *Parser) parseGeneratorList() []string {
 }
 
 func (p *Parser) parseFieldType() *ast.FieldType {
+	return p.parseFieldTypeInternal(true) // Allow optional marker at top level
+}
+
+func (p *Parser) parseFieldTypeInternal(allowOptional bool) *ast.FieldType {
 	fieldType := &ast.FieldType{}
 
 	// Check for array type []
@@ -611,7 +615,38 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 		p.nextToken()
 		if p.curTok.Type == lexer.TOKEN_RBRACKET {
 			p.nextToken()
+			// Recursively parse the element type (supports nested arrays like [][])
+			// Do not allow ? on element types - it should only appear at the end
+			elementType := p.parseFieldTypeInternal(false)
+			if elementType == nil {
+				p.addError("expected element type after []")
+				return nil
+			}
+			// For arrays, store the element type in Name and set IsArray
 			fieldType.IsArray = true
+			fieldType.Name = elementType.Name
+			fieldType.IsBuiltin = elementType.IsBuiltin
+
+			// If the element is also an array or map, we need to preserve that structure
+			// For now, nested arrays will have the inner array type in the Name
+			// Example: [][]string becomes Name="[]string", IsArray=true
+			if elementType.IsArray {
+				fieldType.Name = "[]" + elementType.Name
+			} else if elementType.IsMap {
+				// For arrays of maps, we need special handling
+				fieldType.Name = "map"
+				fieldType.MapKey = elementType.MapKey
+				fieldType.MapValueType = elementType.MapValueType
+				fieldType.MapValue = elementType.MapValue
+			}
+
+			// Check for optional marker (?) only if allowed
+			if allowOptional && p.curTok.Type == lexer.TOKEN_QUESTION {
+				fieldType.Optional = true
+				p.nextToken()
+			}
+
+			return fieldType
 		}
 	}
 
@@ -645,6 +680,13 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 						fieldType.IsMap = true
 						fieldType.Name = "map"
 						fieldType.IsBuiltin = false
+
+						// Check for optional marker (?) after map type only if allowed
+						if allowOptional && p.curTok.Type == lexer.TOKEN_QUESTION {
+							fieldType.Optional = true
+							p.nextToken()
+						}
+
 						return fieldType
 					} else {
 						p.addError("expected '>' to close map type")
@@ -680,8 +722,8 @@ func (p *Parser) parseFieldType() *ast.FieldType {
 	fieldType.Name = strings.Join(nameParts, ".")
 	fieldType.IsBuiltin = ast.IsBuiltinType(fieldType.Name)
 
-	// Check for optional marker (?)
-	if p.curTok.Type == lexer.TOKEN_QUESTION {
+	// Check for optional marker (?) only if allowed at this level
+	if allowOptional && p.curTok.Type == lexer.TOKEN_QUESTION {
 		fieldType.Optional = true
 		p.nextToken()
 	}
