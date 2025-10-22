@@ -201,7 +201,7 @@ func TestOpenAPIGenerator_ConvertFieldToProperty(t *testing.T) {
 			expectedRef: "#/components/schemas/User",
 		},
 		{
-			name: "map field",
+			name: "map field with string values",
 			field: &ast.Field{
 				Type: &ast.FieldType{
 					IsMap:    true,
@@ -1245,5 +1245,235 @@ func TestGenerateOptionalFieldsOpenAPI(t *testing.T) {
 	// Explicitly optional should override @required
 	if strings.Contains(output, "- email") {
 		t.Error("Explicitly optional field 'email' should not be in required array even with @required")
+	}
+}
+
+func TestOpenAPIGenerator_MapTypes(t *testing.T) {
+	gen := NewOpenAPIGenerator()
+
+	tests := []struct {
+		name         string
+		field        *ast.Field
+		expectedType string
+		checkAdditionalProps bool
+		expectedAdditionalPropsType string
+		expectedAdditionalPropsFormat string
+		expectedAdditionalPropsRef string
+	}{
+		{
+			name: "map with string values",
+			field: &ast.Field{
+				Name: "metadata",
+				Type: &ast.FieldType{
+					IsMap:    true,
+					MapKey:   "string",
+					MapValue: "string",
+				},
+			},
+			expectedType: "object",
+			checkAdditionalProps: true,
+			expectedAdditionalPropsType: "string",
+		},
+		{
+			name: "map with int32 values",
+			field: &ast.Field{
+				Name: "scores",
+				Type: &ast.FieldType{
+					IsMap:    true,
+					MapKey:   "string",
+					MapValue: "int32",
+				},
+			},
+			expectedType: "object",
+			checkAdditionalProps: true,
+			expectedAdditionalPropsType: "integer",
+			expectedAdditionalPropsFormat: "int32",
+		},
+		{
+			name: "map with int64 values",
+			field: &ast.Field{
+				Name: "counters",
+				Type: &ast.FieldType{
+					IsMap:    true,
+					MapKey:   "string",
+					MapValue: "int64",
+				},
+			},
+			expectedType: "object",
+			checkAdditionalProps: true,
+			expectedAdditionalPropsType: "integer",
+			expectedAdditionalPropsFormat: "int64",
+		},
+		{
+			name: "map with custom type values",
+			field: &ast.Field{
+				Name: "users",
+				Type: &ast.FieldType{
+					IsMap:    true,
+					MapKey:   "string",
+					MapValue: "User",
+				},
+			},
+			expectedType: "object",
+			checkAdditionalProps: true,
+			expectedAdditionalPropsRef: "#/components/schemas/User",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := gen.convertFieldToProperty(tt.field, make(map[string]string))
+
+			if result.Type != tt.expectedType {
+				t.Errorf("Expected type %q, got %q", tt.expectedType, result.Type)
+			}
+
+			if !strings.Contains(result.Description, "Map of") {
+				t.Errorf("Expected description to mention 'Map of', got %q", result.Description)
+			}
+
+			if tt.checkAdditionalProps {
+				if result.AdditionalProperties == nil {
+					t.Fatal("Expected additionalProperties to be set")
+				}
+
+				if tt.expectedAdditionalPropsType != "" && result.AdditionalProperties.Type != tt.expectedAdditionalPropsType {
+					t.Errorf("Expected additionalProperties type %q, got %q", tt.expectedAdditionalPropsType, result.AdditionalProperties.Type)
+				}
+
+				if tt.expectedAdditionalPropsFormat != "" && result.AdditionalProperties.Format != tt.expectedAdditionalPropsFormat {
+					t.Errorf("Expected additionalProperties format %q, got %q", tt.expectedAdditionalPropsFormat, result.AdditionalProperties.Format)
+				}
+
+				if tt.expectedAdditionalPropsRef != "" && result.AdditionalProperties.Ref != tt.expectedAdditionalPropsRef {
+					t.Errorf("Expected additionalProperties ref %q, got %q", tt.expectedAdditionalPropsRef, result.AdditionalProperties.Ref)
+				}
+
+				// When using ref, type and format should be empty
+				if tt.expectedAdditionalPropsRef != "" {
+					if result.AdditionalProperties.Type != "" {
+						t.Error("Expected type to be empty when using ref")
+					}
+					if result.AdditionalProperties.Format != "" {
+						t.Error("Expected format to be empty when using ref")
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestOpenAPIGenerator_MapTypes_Integration(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "name",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+					},
+				},
+			},
+			{
+				Name: "Department",
+				Fields: []*ast.Field{
+					{
+						Name: "metadata",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "string",
+						},
+					},
+					{
+						Name: "scores",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "int64",
+						},
+					},
+					{
+						Name: "users",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "User",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewOpenAPIGenerator()
+	output := gen.Generate(schema)
+
+	// Check for proper map descriptions
+	if !strings.Contains(output, "Map of string to string") {
+		t.Error("Expected 'Map of string to string' in output")
+	}
+
+	if !strings.Contains(output, "Map of string to int64") {
+		t.Error("Expected 'Map of string to int64' in output")
+	}
+
+	if !strings.Contains(output, "Map of string to User") {
+		t.Error("Expected 'Map of string to User' in output")
+	}
+
+	// Check for additionalProperties with correct types
+	if !strings.Contains(output, "additionalProperties:") {
+		t.Error("Expected additionalProperties in output")
+	}
+
+	// Verify the YAML structure can be parsed
+	var spec OpenAPISpec
+	err := yaml.Unmarshal([]byte(output), &spec)
+	if err != nil {
+		t.Fatalf("Failed to parse generated YAML: %v", err)
+	}
+
+	// Check Department schema
+	dept, ok := spec.Components.Schemas["Department"]
+	if !ok {
+		t.Fatal("Expected Department schema to be present")
+	}
+
+	// Check metadata field
+	metadata := dept.Properties["metadata"]
+	if metadata.Type != "object" {
+		t.Errorf("Expected metadata type to be 'object', got %q", metadata.Type)
+	}
+	if metadata.AdditionalProperties == nil {
+		t.Fatal("Expected metadata to have additionalProperties")
+	}
+	if metadata.AdditionalProperties.Type != "string" {
+		t.Errorf("Expected metadata additionalProperties type to be 'string', got %q", metadata.AdditionalProperties.Type)
+	}
+
+	// Check scores field
+	scores := dept.Properties["scores"]
+	if scores.AdditionalProperties == nil {
+		t.Fatal("Expected scores to have additionalProperties")
+	}
+	if scores.AdditionalProperties.Type != "integer" {
+		t.Errorf("Expected scores additionalProperties type to be 'integer', got %q", scores.AdditionalProperties.Type)
+	}
+	if scores.AdditionalProperties.Format != "int64" {
+		t.Errorf("Expected scores additionalProperties format to be 'int64', got %q", scores.AdditionalProperties.Format)
+	}
+
+	// Check users field
+	users := dept.Properties["users"]
+	if users.AdditionalProperties == nil {
+		t.Fatal("Expected users to have additionalProperties")
+	}
+	if users.AdditionalProperties.Ref != "#/components/schemas/User" {
+		t.Errorf("Expected users additionalProperties ref to be '#/components/schemas/User', got %q", users.AdditionalProperties.Ref)
 	}
 }

@@ -124,6 +124,24 @@ type Product {
 }
 ```
 
+Maps are converted differently by each output format:
+
+- **GraphQL:** Creates strongly-typed KeyValue entry types (e.g., `[StringStringEntry!]`)
+- **Protobuf:** Uses native map syntax (e.g., `map<string, string>`)
+- **OpenAPI:** Uses `additionalProperties` with proper typing
+
+For nested map structures, use explicit wrapper types:
+
+```typemux
+type MetadataWrapper {
+  data: map<string, string>
+}
+
+type Product {
+  nested_metadata: map<string, MetadataWrapper>
+}
+```
+
 ## Services and Methods
 
 Services define RPC-style API methods. Each method takes an input type and returns an output type.

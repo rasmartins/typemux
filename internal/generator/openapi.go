@@ -104,32 +104,34 @@ type OpenAPISchema struct {
 
 // OpenAPIProperty describes a property within a schema including validation constraints.
 type OpenAPIProperty struct {
-	Type             string                 `json:"type,omitempty" yaml:"type,omitempty"`
-	Format           string                 `json:"format,omitempty" yaml:"format,omitempty"`
-	Description      string                 `json:"description,omitempty" yaml:"description,omitempty"`
-	Ref              string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	Items            *OpenAPIPropertyItems  `json:"items,omitempty" yaml:"items,omitempty"`
-	Default          interface{}            `json:"default,omitempty" yaml:"default,omitempty"`
-	Enum             []string               `json:"enum,omitempty" yaml:"enum,omitempty"`
-	Deprecated       bool                   `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
-	MinLength        *int                   `json:"minLength,omitempty" yaml:"minLength,omitempty"`
-	MaxLength        *int                   `json:"maxLength,omitempty" yaml:"maxLength,omitempty"`
-	Pattern          string                 `json:"pattern,omitempty" yaml:"pattern,omitempty"`
-	Minimum          *float64               `json:"minimum,omitempty" yaml:"minimum,omitempty"`
-	Maximum          *float64               `json:"maximum,omitempty" yaml:"maximum,omitempty"`
-	ExclusiveMinimum *float64               `json:"exclusiveMinimum,omitempty" yaml:"exclusiveMinimum,omitempty"`
-	ExclusiveMaximum *float64               `json:"exclusiveMaximum,omitempty" yaml:"exclusiveMaximum,omitempty"`
-	MultipleOf       *float64               `json:"multipleOf,omitempty" yaml:"multipleOf,omitempty"`
-	MinItems         *int                   `json:"minItems,omitempty" yaml:"minItems,omitempty"`
-	MaxItems         *int                   `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
-	UniqueItems      bool                   `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
-	Extensions       map[string]interface{} `json:",inline" yaml:",inline"` // x- prefixed extensions
+	Type                 string                 `json:"type,omitempty" yaml:"type,omitempty"`
+	Format               string                 `json:"format,omitempty" yaml:"format,omitempty"`
+	Description          string                 `json:"description,omitempty" yaml:"description,omitempty"`
+	Ref                  string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Items                *OpenAPIPropertyItems  `json:"items,omitempty" yaml:"items,omitempty"`
+	AdditionalProperties *OpenAPIPropertyItems  `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
+	Default              interface{}            `json:"default,omitempty" yaml:"default,omitempty"`
+	Enum                 []string               `json:"enum,omitempty" yaml:"enum,omitempty"`
+	Deprecated           bool                   `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	MinLength            *int                   `json:"minLength,omitempty" yaml:"minLength,omitempty"`
+	MaxLength            *int                   `json:"maxLength,omitempty" yaml:"maxLength,omitempty"`
+	Pattern              string                 `json:"pattern,omitempty" yaml:"pattern,omitempty"`
+	Minimum              *float64               `json:"minimum,omitempty" yaml:"minimum,omitempty"`
+	Maximum              *float64               `json:"maximum,omitempty" yaml:"maximum,omitempty"`
+	ExclusiveMinimum     *float64               `json:"exclusiveMinimum,omitempty" yaml:"exclusiveMinimum,omitempty"`
+	ExclusiveMaximum     *float64               `json:"exclusiveMaximum,omitempty" yaml:"exclusiveMaximum,omitempty"`
+	MultipleOf           *float64               `json:"multipleOf,omitempty" yaml:"multipleOf,omitempty"`
+	MinItems             *int                   `json:"minItems,omitempty" yaml:"minItems,omitempty"`
+	MaxItems             *int                   `json:"maxItems,omitempty" yaml:"maxItems,omitempty"`
+	UniqueItems          bool                   `json:"uniqueItems,omitempty" yaml:"uniqueItems,omitempty"`
+	Extensions           map[string]interface{} `json:",inline" yaml:",inline"` // x- prefixed extensions
 }
 
-// OpenAPIPropertyItems describes the items of an array-type property.
+// OpenAPIPropertyItems describes the items of an array-type property or additionalProperties for maps.
 type OpenAPIPropertyItems struct {
-	Type string `json:"type,omitempty" yaml:"type,omitempty"`
-	Ref  string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Type   string `json:"type,omitempty" yaml:"type,omitempty"`
+	Format string `json:"format,omitempty" yaml:"format,omitempty"`
+	Ref    string `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 }
 
 // Generate creates an OpenAPI 3.0 YAML specification from the given schema.
@@ -389,6 +391,30 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 
 	if field.Type.IsMap {
 		property.Type = "object"
+		property.Description = fmt.Sprintf("Map of %s to %s", field.Type.MapKey, field.Type.MapValue)
+
+		// Use additionalProperties to specify the value type
+		valueType := g.mapTypeToOpenAPI(field.Type.MapValue)
+		valueFormat := g.getFormatForType(field.Type.MapValue)
+
+		additionalProps := &OpenAPIPropertyItems{
+			Type:   valueType,
+			Format: valueFormat,
+		}
+
+		// If the value is a custom type, use a reference
+		if !ast.IsBuiltinType(field.Type.MapValue) {
+			unqualifiedName := ast.GetUnqualifiedName(field.Type.MapValue)
+			schemaName := unqualifiedName
+			if customName, ok := typeNameMap[unqualifiedName]; ok {
+				schemaName = customName
+			}
+			additionalProps.Ref = fmt.Sprintf("#/components/schemas/%s", schemaName)
+			additionalProps.Type = ""   // Clear type when using ref
+			additionalProps.Format = "" // Clear format when using ref
+		}
+
+		property.AdditionalProperties = additionalProps
 		return property
 	}
 

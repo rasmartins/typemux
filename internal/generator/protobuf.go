@@ -15,6 +15,29 @@ func NewProtobufGenerator() *ProtobufGenerator {
 	return &ProtobufGenerator{}
 }
 
+// Note on nested maps:
+// Protobuf supports maps natively using the map<K,V> syntax.
+// For nested maps (e.g., map<string, map<string, string>>), users should
+// create explicit wrapper message types. For example:
+//
+//   type StringMapValue {
+//     data: map<string, string>
+//   }
+//
+//   type MyType {
+//     nested_data: map<string, StringMapValue>
+//   }
+//
+// This will generate valid Protobuf with proper message types:
+//
+//   message StringMapValue {
+//     map<string, string> data = 1;
+//   }
+//
+//   message MyType {
+//     map<string, StringMapValue> nested_data = 1;
+//   }
+
 // GenerateByNamespace generates separate Protobuf files per namespace
 // Returns a map of namespace -> proto file content
 func (g *ProtobufGenerator) GenerateByNamespace(schema *ast.Schema) map[string]string {

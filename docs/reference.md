@@ -111,7 +111,21 @@ type Configuration {
 **Map constraints:**
 - Key type must be `string` or an integer type
 - Value type can be any type (primitive, user-defined, or array)
-- Maps cannot be nested (no `map<string, map<string, string>>`)
+- The syntax `map<string, map<string, string>>` is not supported by the parser
+
+**Nested map functionality:** While the parser doesn't support `map<string, map<string, string>>` syntax directly, you can achieve the same result using wrapper types:
+
+```typemux
+type StringMapWrapper {
+  data: map<string, string>
+}
+
+type NestedConfig {
+  nested_data: map<string, StringMapWrapper>
+}
+```
+
+This pattern works correctly across all output formats (GraphQL, Protobuf, and OpenAPI)
 
 ### Nested Types
 
@@ -902,7 +916,7 @@ How TypeMux types map to output formats.
 | `timestamp` | `String` | `google.protobuf.Timestamp` | `type: string, format: date-time` |
 | `bytes` | `String` | `bytes` | `type: string, format: byte` |
 | `[]T` | `[T]` | `repeated T` | `type: array, items: {T}` |
-| `map<K,V>` | `JSON` | `map<K, V>` | `type: object` |
+| `map<K,V>` | `[KeyValueEntry!]` (typed) | `map<K, V>` | `type: object, additionalProperties: {V}` |
 
 ### Nullability
 
@@ -982,34 +996,89 @@ Post:
 ```typemux
 type Config {
   settings: map<string, string>
+  scores: map<string, int64>
 }
 ```
 
 **GraphQL:**
+Maps are converted to strongly-typed KeyValue entry lists:
 ```graphql
-scalar JSON
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+"StringIntEntry represents a key-value pair for map<string, int64>"
+type StringIntEntry {
+  key: String!
+  value: Int!
+}
+
+"StringIntEntryInput represents a key-value pair for map<string, int64>"
+input StringIntEntryInput {
+  key: String!
+  value: Int!
+}
 
 type Config {
-  settings: JSON
+  settings: [StringStringEntry!]
+  scores: [StringIntEntry!]
 }
 ```
 
 **Protobuf:**
+Uses native map syntax:
 ```protobuf
 message Config {
   map<string, string> settings = 1;
+  map<string, int64> scores = 2;
 }
 ```
 
 **OpenAPI:**
+Uses `additionalProperties` to specify value types:
 ```yaml
 Config:
+  type: object
   properties:
     settings:
       type: object
+      description: Map of string to string
       additionalProperties:
         type: string
+    scores:
+      type: object
+      description: Map of string to int64
+      additionalProperties:
+        type: integer
+        format: int64
 ```
+
+**Maps with custom types:**
+
+When using custom types as map values, all formats properly reference the type:
+
+```typemux
+type User {
+  name: string
+  age: int32
+}
+
+type Department {
+  users: map<string, User>
+}
+```
+
+- **GraphQL:** Generates `StringUserEntry` type with `value: User!`
+- **Protobuf:** `map<string, User> users = 1;`
+- **OpenAPI:** `additionalProperties: { $ref: '#/components/schemas/User' }`
 
 ## Lexical Elements
 

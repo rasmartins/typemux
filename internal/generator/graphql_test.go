@@ -249,7 +249,7 @@ func TestGraphQLGenerator_ConvertFieldType(t *testing.T) {
 				},
 				Required: false,
 			},
-			expected: "JSON",
+			expected: "[StringStringEntry!]",
 		},
 	}
 
@@ -279,7 +279,8 @@ func TestGraphQLGenerator_MapTypeToGraphQL(t *testing.T) {
 		{&ast.FieldType{Name: "timestamp", IsBuiltin: true}, "String"},
 		{&ast.FieldType{Name: "bytes", IsBuiltin: true}, "String"},
 		{&ast.FieldType{Name: "User", IsBuiltin: false}, "User"},
-		{&ast.FieldType{Name: "map", IsMap: true}, "JSON"},
+		{&ast.FieldType{Name: "map", IsMap: true, MapKey: "string", MapValue: "string"}, "StringStringEntry"},
+		{&ast.FieldType{Name: "map", IsMap: true, MapKey: "string", MapValue: "int32"}, "StringIntEntry"},
 	}
 
 	for _, tt := range tests {
@@ -812,5 +813,261 @@ func TestGenerateOptionalFieldsGraphQL(t *testing.T) {
 	// Explicitly optional should not have ! even if marked required
 	if strings.Contains(output, "email: String!") {
 		t.Error("Optional marker should override @required annotation")
+	}
+}
+
+func TestGraphQLGenerator_CollectMapTypes(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "metadata",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "string",
+						},
+					},
+					{
+						Name: "scores",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "int32",
+						},
+					},
+				},
+			},
+			{
+				Name: "Config",
+				Fields: []*ast.Field{
+					{
+						Name: "settings",
+						Type: &ast.FieldType{
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "string",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	mapTypes := gen.collectMapTypes(schema)
+
+	// Should collect unique map types
+	if len(mapTypes) != 2 {
+		t.Errorf("Expected 2 unique map types, got %d", len(mapTypes))
+	}
+
+	// Check that we have the expected map types
+	foundStringString := false
+	foundStringInt := false
+	for _, mt := range mapTypes {
+		if mt.KeyType == "string" && mt.ValueType == "string" {
+			foundStringString = true
+		}
+		if mt.KeyType == "string" && mt.ValueType == "int32" {
+			foundStringInt = true
+		}
+	}
+
+	if !foundStringString {
+		t.Error("Expected to find map<string, string> type")
+	}
+	if !foundStringInt {
+		t.Error("Expected to find map<string, int32> type")
+	}
+}
+
+func TestGraphQLGenerator_GetKeyValueTypeName(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	tests := []struct {
+		keyType   string
+		valueType string
+		expected  string
+	}{
+		{"string", "string", "StringStringEntry"},
+		{"string", "int32", "StringIntEntry"},
+		{"string", "int64", "StringIntEntry"},
+		{"int32", "string", "IntStringEntry"},
+		{"string", "User", "StringUserEntry"},
+	}
+
+	for _, tt := range tests {
+		result := gen.getKeyValueTypeName(tt.keyType, tt.valueType)
+		if result != tt.expected {
+			t.Errorf("getKeyValueTypeName(%q, %q) = %q, want %q", tt.keyType, tt.valueType, result, tt.expected)
+		}
+	}
+}
+
+func TestGraphQLGenerator_CapitalizeTypeName(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"string", "String"},
+		{"int", "Int"},
+		{"user", "User"},
+		{"", ""},
+		{"a", "A"},
+	}
+
+	for _, tt := range tests {
+		result := gen.capitalizeTypeName(tt.input)
+		if result != tt.expected {
+			t.Errorf("capitalizeTypeName(%q) = %q, want %q", tt.input, result, tt.expected)
+		}
+	}
+}
+
+func TestGraphQLGenerator_MapScalarToGraphQLType(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"string", "String"},
+		{"int32", "Int"},
+		{"int64", "Int"},
+		{"float32", "Float"},
+		{"float64", "Float"},
+		{"bool", "Boolean"},
+		{"timestamp", "String"},
+		{"bytes", "String"},
+		{"User", "User"},
+		{"com.example.User", "User"},
+	}
+
+	for _, tt := range tests {
+		result := gen.mapScalarToGraphQLType(tt.input)
+		if result != tt.expected {
+			t.Errorf("mapScalarToGraphQLType(%q) = %q, want %q", tt.input, result, tt.expected)
+		}
+	}
+}
+
+func TestGraphQLGenerator_GenerateKeyValueType(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	mapType := MapTypeKey{
+		KeyType:   "string",
+		ValueType: "int32",
+	}
+
+	// Test output type
+	output := gen.generateKeyValueType(mapType, false)
+	if !strings.Contains(output, "type StringIntEntry") {
+		t.Error("Expected type StringIntEntry in output")
+	}
+	if !strings.Contains(output, "key: String!") {
+		t.Error("Expected key field with type String!")
+	}
+	if !strings.Contains(output, "value: Int!") {
+		t.Error("Expected value field with type Int!")
+	}
+	if !strings.Contains(output, "map<string, int32>") {
+		t.Error("Expected documentation mentioning original map type")
+	}
+
+	// Test input type
+	inputOutput := gen.generateKeyValueType(mapType, true)
+	if !strings.Contains(inputOutput, "input StringIntEntryInput") {
+		t.Error("Expected input StringIntEntryInput in output")
+	}
+}
+
+func TestGraphQLGenerator_MapTypes(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "Configuration",
+				Fields: []*ast.Field{
+					{
+						Name: "metadata",
+						Type: &ast.FieldType{
+							Name:     "map",
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "string",
+						},
+						Required: true,
+					},
+					{
+						Name: "scores",
+						Type: &ast.FieldType{
+							Name:     "map",
+							IsMap:    true,
+							MapKey:   "string",
+							MapValue: "int32",
+						},
+						Required: false,
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGraphQLGenerator()
+	output := gen.Generate(schema)
+
+	// Check that KeyValue types are generated for output types
+	if !strings.Contains(output, "type StringStringEntry") {
+		t.Error("Expected StringStringEntry type to be generated")
+	}
+
+	if !strings.Contains(output, "type StringIntEntry") {
+		t.Error("Expected StringIntEntry type to be generated")
+	}
+
+	// Check that KeyValue input types are generated
+	if !strings.Contains(output, "input StringStringEntryInput") {
+		t.Error("Expected StringStringEntryInput type to be generated")
+	}
+
+	if !strings.Contains(output, "input StringIntEntryInput") {
+		t.Error("Expected StringIntEntryInput type to be generated")
+	}
+
+	// Check that key and value fields are present
+	if !strings.Contains(output, "key: String!") {
+		t.Error("Expected key field with type String!")
+	}
+
+	if !strings.Contains(output, "value: String!") {
+		t.Error("Expected value field with type String! in StringStringEntry")
+	}
+
+	if !strings.Contains(output, "value: Int!") {
+		t.Error("Expected value field with type Int! in StringIntEntry")
+	}
+
+	// Check that the Configuration type uses the KeyValue types as arrays
+	if !strings.Contains(output, "metadata: [StringStringEntry!]!") {
+		t.Error("Expected metadata field to be [StringStringEntry!]! (required array of non-null entries)")
+	}
+
+	if !strings.Contains(output, "scores: [StringIntEntry!]") {
+		t.Error("Expected scores field to be [StringIntEntry!] (optional array of non-null entries)")
+	}
+
+	// Check that JSON scalar is no longer generated
+	if strings.Contains(output, "scalar JSON") {
+		t.Error("Should not generate scalar JSON when using KeyValue types")
+	}
+
+	// Check for documentation
+	if !strings.Contains(output, "map<string, string>") {
+		t.Error("Expected documentation mentioning the original map type")
 	}
 }

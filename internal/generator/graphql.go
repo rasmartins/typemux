@@ -15,6 +15,103 @@ func NewGraphQLGenerator() *GraphQLGenerator {
 	return &GraphQLGenerator{}
 }
 
+// MapTypeKey represents a unique map type by its key and value types
+type MapTypeKey struct {
+	KeyType   string
+	ValueType string
+}
+
+// collectMapTypes collects all unique map types used in the schema
+func (g *GraphQLGenerator) collectMapTypes(schema *ast.Schema) []MapTypeKey {
+	mapTypesSet := make(map[MapTypeKey]bool)
+
+	// Helper to process fields
+	processFields := func(fields []*ast.Field) {
+		for _, field := range fields {
+			if field.Type.IsMap {
+				key := MapTypeKey{
+					KeyType:   field.Type.MapKey,
+					ValueType: field.Type.MapValue,
+				}
+				mapTypesSet[key] = true
+			}
+		}
+	}
+
+	// Collect from types
+	for _, typ := range schema.Types {
+		processFields(typ.Fields)
+	}
+
+	// Convert to slice
+	mapTypes := make([]MapTypeKey, 0, len(mapTypesSet))
+	for key := range mapTypesSet {
+		mapTypes = append(mapTypes, key)
+	}
+
+	return mapTypes
+}
+
+// getKeyValueTypeName generates a consistent name for a KeyValue type
+func (g *GraphQLGenerator) getKeyValueTypeName(keyType, valueType string) string {
+	// Capitalize the first letter of each type
+	keyTypeName := g.capitalizeTypeName(g.mapScalarToGraphQLType(keyType))
+	valueTypeName := g.capitalizeTypeName(g.mapScalarToGraphQLType(valueType))
+	return keyTypeName + valueTypeName + "Entry"
+}
+
+// capitalizeTypeName capitalizes the first letter of a type name
+func (g *GraphQLGenerator) capitalizeTypeName(typeName string) string {
+	if typeName == "" {
+		return ""
+	}
+	return strings.ToUpper(typeName[:1]) + typeName[1:]
+}
+
+// mapScalarToGraphQLType maps scalar types to their GraphQL equivalents
+func (g *GraphQLGenerator) mapScalarToGraphQLType(typeName string) string {
+	typeMap := map[string]string{
+		"string":    "String",
+		"int32":     "Int",
+		"int64":     "Int",
+		"float32":   "Float",
+		"float64":   "Float",
+		"bool":      "Boolean",
+		"timestamp": "String",
+		"bytes":     "String",
+	}
+
+	if gqlType, ok := typeMap[typeName]; ok {
+		return gqlType
+	}
+
+	// Custom type - use unqualified name
+	return ast.GetUnqualifiedName(typeName)
+}
+
+// generateKeyValueType generates a KeyValue type for a map
+func (g *GraphQLGenerator) generateKeyValueType(mapType MapTypeKey, isInput bool) string {
+	var sb strings.Builder
+
+	typeName := g.getKeyValueTypeName(mapType.KeyType, mapType.ValueType)
+	keyword := "type"
+	if isInput {
+		typeName += "Input"
+		keyword = "input"
+	}
+
+	keyGQLType := g.mapScalarToGraphQLType(mapType.KeyType)
+	valueGQLType := g.mapScalarToGraphQLType(mapType.ValueType)
+
+	sb.WriteString(fmt.Sprintf("\"%s represents a key-value pair for map<%s, %s>\"\n", typeName, mapType.KeyType, mapType.ValueType))
+	sb.WriteString(fmt.Sprintf("%s %s {\n", keyword, typeName))
+	sb.WriteString(fmt.Sprintf("  key: %s!\n", keyGQLType))
+	sb.WriteString(fmt.Sprintf("  value: %s!\n", valueGQLType))
+	sb.WriteString("}")
+
+	return sb.String()
+}
+
 // Generate creates a GraphQL schema string from the given schema.
 func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 	var sb strings.Builder
@@ -41,8 +138,18 @@ func (g *GraphQLGenerator) Generate(schema *ast.Schema) string {
 		sb.WriteString("\n")
 	}
 
-	// Add JSON scalar definition for map types
-	sb.WriteString("scalar JSON\n\n")
+	// Collect all map types used in the schema
+	mapTypes := g.collectMapTypes(schema)
+
+	// Generate KeyValue types for maps
+	if len(mapTypes) > 0 {
+		for _, mapType := range mapTypes {
+			sb.WriteString(g.generateKeyValueType(mapType, false))
+			sb.WriteString("\n\n")
+			sb.WriteString(g.generateKeyValueType(mapType, true))
+			sb.WriteString("\n\n")
+		}
+	}
 
 	// Add @oneOf directive for union input types
 	sb.WriteString("directive @oneOf on INPUT_OBJECT\n\n")
@@ -382,6 +489,22 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, typeUsage map[string]string, typeNameMap map[string]string) string {
 	gqlType := g.mapTypeToGraphQL(field.Type)
 
+	// For maps, we need to handle them as arrays of KeyValue types
+	if field.Type.IsMap {
+		// Get the appropriate KeyValue type name (input or output)
+		kvTypeName := g.getKeyValueTypeName(field.Type.MapKey, field.Type.MapValue)
+		if isInput {
+			kvTypeName += "Input"
+		}
+		gqlType = fmt.Sprintf("[%s!]", kvTypeName)
+
+		// Add non-null for the array itself if field is required
+		if field.Required && !field.Type.Optional {
+			gqlType += "!"
+		}
+		return gqlType
+	}
+
 	// Use unqualified name for lookups
 	fieldTypeName := ast.GetUnqualifiedName(field.Type.Name)
 
@@ -422,8 +545,8 @@ func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, type
 
 func (g *GraphQLGenerator) mapTypeToGraphQL(fieldType *ast.FieldType) string {
 	if fieldType.IsMap {
-		// GraphQL doesn't have native map support, use JSON scalar
-		return "JSON"
+		// GraphQL doesn't have native map support, use KeyValue list type
+		return g.getKeyValueTypeName(fieldType.MapKey, fieldType.MapValue)
 	}
 
 	typeMap := map[string]string{
