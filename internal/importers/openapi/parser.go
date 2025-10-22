@@ -368,6 +368,49 @@ func (p *Parser) parseSchema(schema map[string]interface{}) *Schema {
 		s.Maximum = &max
 	}
 
+	// Parse oneOf
+	if oneOf, ok := schema["oneOf"].([]interface{}); ok {
+		for _, item := range oneOf {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				s.OneOf = append(s.OneOf, p.parseSchema(itemMap))
+			}
+		}
+	}
+
+	// Parse anyOf
+	if anyOf, ok := schema["anyOf"].([]interface{}); ok {
+		for _, item := range anyOf {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				s.AnyOf = append(s.AnyOf, p.parseSchema(itemMap))
+			}
+		}
+	}
+
+	// Parse allOf
+	if allOf, ok := schema["allOf"].([]interface{}); ok {
+		for _, item := range allOf {
+			if itemMap, ok := item.(map[string]interface{}); ok {
+				s.AllOf = append(s.AllOf, p.parseSchema(itemMap))
+			}
+		}
+	}
+
+	// Parse additionalProperties
+	if addlProps := schema["additionalProperties"]; addlProps != nil {
+		s.AdditionalProperties = addlProps
+	}
+
+	// Parse string constraints
+	if pattern, ok := schema["pattern"].(string); ok {
+		s.Pattern = pattern
+	}
+	if minLength, ok := schema["minLength"].(int); ok {
+		s.MinLength = &minLength
+	}
+	if maxLength, ok := schema["maxLength"].(int); ok {
+		s.MaxLength = &maxLength
+	}
+
 	return s
 }
 

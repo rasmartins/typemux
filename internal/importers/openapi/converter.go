@@ -41,17 +41,20 @@ func (c *Converter) Convert(spec *OpenAPISpec) string {
 
 	// First, process all schemas from components
 	if spec.Components != nil && spec.Components.Schemas != nil {
-		// Collect all enums first
+		// Collect all enums, unions, and types
 		var enums []*Schema
+		var unions []*Schema
 		var types []*Schema
 
 		for name, schema := range spec.Components.Schemas {
 			resolvedSchema := c.resolveSchema(schema)
+			resolvedSchema.Title = name
+
 			if len(resolvedSchema.Enum) > 0 {
-				resolvedSchema.Title = name
 				enums = append(enums, resolvedSchema)
+			} else if c.isUnionSchema(resolvedSchema) {
+				unions = append(unions, resolvedSchema)
 			} else {
-				resolvedSchema.Title = name
 				types = append(types, resolvedSchema)
 			}
 		}
@@ -59,6 +62,12 @@ func (c *Converter) Convert(spec *OpenAPISpec) string {
 		// Write enums
 		for _, enum := range enums {
 			c.writeEnum(&sb, enum)
+			sb.WriteString("\n\n")
+		}
+
+		// Write unions
+		for _, union := range unions {
+			c.writeUnion(&sb, union)
 			sb.WriteString("\n\n")
 		}
 
@@ -97,6 +106,10 @@ func (c *Converter) resolveSchema(schema *Schema) *Schema {
 	return schema
 }
 
+func (c *Converter) isUnionSchema(schema *Schema) bool {
+	return len(schema.OneOf) > 0 || len(schema.AnyOf) > 0
+}
+
 func (c *Converter) writeEnum(sb *strings.Builder, schema *Schema) {
 	if schema.Description != "" {
 		c.writeDocumentation(sb, schema.Description)
@@ -115,6 +128,62 @@ func (c *Converter) writeEnum(sb *strings.Builder, schema *Schema) {
 		// Sanitize enum value name
 		valueName := strings.ToUpper(sanitizeName(valueStr))
 		sb.WriteString(fmt.Sprintf("  %s = %d\n", valueName, i))
+	}
+
+	sb.WriteString("}")
+}
+
+func (c *Converter) writeUnion(sb *strings.Builder, schema *Schema) {
+	if schema.Description != "" {
+		c.writeDocumentation(sb, schema.Description)
+	}
+
+	unionName := schema.Title
+	if unionName == "" {
+		unionName = "UnknownUnion"
+	}
+
+	sb.WriteString(fmt.Sprintf("union %s {\n", unionName))
+
+	// Process oneOf schemas (these are the union variants)
+	variants := schema.OneOf
+	if len(variants) == 0 {
+		// Fall back to anyOf if oneOf is not present
+		variants = schema.AnyOf
+	}
+
+	for _, variant := range variants {
+		resolvedVariant := c.resolveSchema(variant)
+
+		// Determine variant name and type
+		variantName := ""
+		variantType := ""
+
+		if resolvedVariant.Ref != "" {
+			// Reference to another type
+			typeName := ResolveRef(resolvedVariant.Ref)
+			variantName = typeName
+			variantType = typeName
+		} else if resolvedVariant.Title != "" {
+			// Named inline type
+			variantName = resolvedVariant.Title
+			variantType = resolvedVariant.Title
+		} else if len(resolvedVariant.Properties) > 0 {
+			// Anonymous object - create inline type definition
+			// Generate a name based on the first property or use generic name
+			variantName = "Variant"
+			for propName := range resolvedVariant.Properties {
+				variantName = strings.Title(propName) + "Variant"
+				break
+			}
+			variantType = variantName
+		} else {
+			// Primitive type
+			variantType = c.convertSchemaType(resolvedVariant)
+			variantName = strings.Title(variantType) + "Value"
+		}
+
+		sb.WriteString(fmt.Sprintf("  %s: %s\n", variantName, variantType))
 	}
 
 	sb.WriteString("}")

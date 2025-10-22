@@ -265,6 +265,138 @@ func TestParsePaths(t *testing.T) {
 	}
 }
 
+func TestParseOneOf(t *testing.T) {
+	input := `{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "Dog": {
+        "type": "object",
+        "properties": {
+          "breed": {"type": "string"}
+        }
+      },
+      "Cat": {
+        "type": "object",
+        "properties": {
+          "meow": {"type": "boolean"}
+        }
+      },
+      "Pet": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/Dog"},
+          {"$ref": "#/components/schemas/Cat"}
+        ]
+      }
+    }
+  }
+}`
+
+	parser := NewParser([]byte(input))
+	spec, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if spec.Components == nil {
+		t.Fatal("expected components")
+	}
+
+	petSchema, ok := spec.Components.Schemas["Pet"]
+	if !ok {
+		t.Fatal("expected Pet schema")
+	}
+
+	if len(petSchema.OneOf) != 2 {
+		t.Fatalf("expected 2 oneOf schemas, got %d", len(petSchema.OneOf))
+	}
+
+	// Check that oneOf references are present
+	if petSchema.OneOf[0].Ref != "#/components/schemas/Dog" {
+		t.Errorf("expected Dog ref, got %q", petSchema.OneOf[0].Ref)
+	}
+
+	if petSchema.OneOf[1].Ref != "#/components/schemas/Cat" {
+		t.Errorf("expected Cat ref, got %q", petSchema.OneOf[1].Ref)
+	}
+}
+
+func TestParseAnyOfAndAllOf(t *testing.T) {
+	input := `{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {
+      "FlexibleValue": {
+        "anyOf": [
+          {"type": "string"},
+          {"type": "integer"}
+        ]
+      },
+      "CombinedType": {
+        "allOf": [
+          {"$ref": "#/components/schemas/Base"},
+          {"type": "object", "properties": {"extra": {"type": "string"}}}
+        ]
+      }
+    }
+  }
+}`
+
+	parser := NewParser([]byte(input))
+	spec, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if spec.Components == nil {
+		t.Fatal("expected components")
+	}
+
+	// Check anyOf
+	flexibleSchema, ok := spec.Components.Schemas["FlexibleValue"]
+	if !ok {
+		t.Fatal("expected FlexibleValue schema")
+	}
+
+	if len(flexibleSchema.AnyOf) != 2 {
+		t.Fatalf("expected 2 anyOf schemas, got %d", len(flexibleSchema.AnyOf))
+	}
+
+	if flexibleSchema.AnyOf[0].Type != "string" {
+		t.Errorf("expected string type, got %q", flexibleSchema.AnyOf[0].Type)
+	}
+
+	if flexibleSchema.AnyOf[1].Type != "integer" {
+		t.Errorf("expected integer type, got %q", flexibleSchema.AnyOf[1].Type)
+	}
+
+	// Check allOf
+	combinedSchema, ok := spec.Components.Schemas["CombinedType"]
+	if !ok {
+		t.Fatal("expected CombinedType schema")
+	}
+
+	if len(combinedSchema.AllOf) != 2 {
+		t.Fatalf("expected 2 allOf schemas, got %d", len(combinedSchema.AllOf))
+	}
+
+	if combinedSchema.AllOf[0].Ref != "#/components/schemas/Base" {
+		t.Errorf("expected Base ref, got %q", combinedSchema.AllOf[0].Ref)
+	}
+
+	if len(combinedSchema.AllOf[1].Properties) != 1 {
+		t.Errorf("expected 1 property in second allOf schema, got %d", len(combinedSchema.AllOf[1].Properties))
+	}
+}
+
 func TestParseParameters(t *testing.T) {
 	input := `{
   "openapi": "3.0.0",
