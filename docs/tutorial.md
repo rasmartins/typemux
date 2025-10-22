@@ -130,17 +130,25 @@ Maps are converted differently by each output format:
 - **Protobuf:** Uses native map syntax (e.g., `map<string, string>`)
 - **OpenAPI:** Uses `additionalProperties` with proper typing
 
-For nested map structures, use explicit wrapper types:
+**Nested maps are fully supported:**
 
 ```typemux
-type MetadataWrapper {
-  data: map<string, string>
-}
-
 type Product {
-  nested_metadata: map<string, MetadataWrapper>
+  // Simple map
+  attributes: map<string, string>
+
+  // Nested map - directly supported
+  nested_metadata: map<string, map<string, string>>
+
+  // Triple nested map - also supported
+  deep_config: map<string, map<string, map<string, int32>>>
 }
 ```
+
+Each generator handles nested maps appropriately:
+- **GraphQL**: Auto-generates wrapper types (MapWrapper0, MapWrapper1, etc.)
+- **Protobuf**: Uses native nested `map<string, map<string, int32>>` syntax
+- **OpenAPI**: Uses nested `additionalProperties` structures
 
 ## Services and Methods
 

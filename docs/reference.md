@@ -110,22 +110,30 @@ type Configuration {
 
 **Map constraints:**
 - Key type must be `string` or an integer type
-- Value type can be any type (primitive, user-defined, or array)
-- The syntax `map<string, map<string, string>>` is not supported by the parser
+- Value type can be any type (primitive, user-defined, array, or nested map)
+- Nested maps are fully supported: `map<string, map<string, int32>>`
 
-**Nested map functionality:** While the parser doesn't support `map<string, map<string, string>>` syntax directly, you can achieve the same result using wrapper types:
+**Nested map support:**
+
+TypeMux fully supports nested map syntax:
 
 ```typemux
-type StringMapWrapper {
-  data: map<string, string>
-}
+type NestedMapExample {
+  // Simple map
+  settings: map<string, string>
 
-type NestedConfig {
-  nested_data: map<string, StringMapWrapper>
+  // Nested map (two levels)
+  nested: map<string, map<string, int32>>
+
+  // Triple nested map (three levels)
+  deep: map<string, map<string, map<string, bool>>>
 }
 ```
 
-This pattern works correctly across all output formats (GraphQL, Protobuf, and OpenAPI)
+Each generator handles nested maps according to its schema capabilities:
+- **GraphQL**: Auto-generates wrapper types (MapWrapper0, MapWrapper1, etc.)
+- **Protobuf**: Uses native nested map syntax
+- **OpenAPI**: Uses nested additionalProperties structures
 
 ### Nested Types
 
@@ -1079,6 +1087,74 @@ type Department {
 - **GraphQL:** Generates `StringUserEntry` type with `value: User!`
 - **Protobuf:** `map<string, User> users = 1;`
 - **OpenAPI:** `additionalProperties: { $ref: '#/components/schemas/User' }`
+
+**Nested maps:**
+
+TypeMux supports nested maps, with each generator handling them according to its schema capabilities:
+
+```typemux
+type NestedMapExample {
+  // Nested map (two levels)
+  nested: map<string, map<string, int32>>
+
+  // Triple nested map (three levels)
+  deep: map<string, map<string, map<string, bool>>>
+}
+```
+
+**GraphQL:**
+Auto-generates wrapper types for nested map levels:
+```graphql
+"MapWrapper0 is an auto-generated wrapper for nested map"
+type MapWrapper0 {
+  value: [StringIntEntry!]!
+}
+
+"StringMapWrapper0Entry represents a key-value pair for map<string, MapWrapper0>"
+type StringMapWrapper0Entry {
+  key: String!
+  value: MapWrapper0!
+}
+
+type NestedMapExample {
+  nested: [StringMapWrapper0Entry!]
+  deep: [StringMapWrapper1Entry!]
+}
+```
+
+**Protobuf:**
+Uses native nested map syntax:
+```protobuf
+message NestedMapExample {
+  map<string, map<string, int32>> nested = 1;
+  map<string, map<string, map<string, bool>>> deep = 2;
+}
+```
+
+**OpenAPI:**
+Uses nested additionalProperties structures:
+```yaml
+NestedMapExample:
+  type: object
+  properties:
+    nested:
+      type: object
+      description: Map of string to Map of string to int32
+      additionalProperties:
+        type: object
+        additionalProperties:
+          type: integer
+          format: int32
+    deep:
+      type: object
+      description: Map of string to Map of string to Map of string to bool
+      additionalProperties:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties:
+            type: boolean
+```
 
 ## Lexical Elements
 
