@@ -4,9 +4,11 @@
 @import "{{ site.theme }}";
 
 /* Fix inline code readability - improve contrast for better accessibility */
-code {
+code,
+.highlighter-rouge,
+.language-plaintext {
   background-color: rgba(255, 255, 255, 0.1) !important;
-  color: #e6e6e6 !important;
+  color: #a8d5ff !important; /* Lighter blue color for better readability */
   padding: 0.2em 0.4em !important;
   border-radius: 3px !important;
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace !important;
@@ -15,7 +17,9 @@ code {
 
 /* Ensure good contrast in light mode too */
 @media (prefers-color-scheme: light) {
-  code {
+  code,
+  .highlighter-rouge,
+  .language-plaintext {
     background-color: #f6f8fa !important;
     color: #24292e !important;
   }
