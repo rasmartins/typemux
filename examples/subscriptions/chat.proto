@@ -1,0 +1,36 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package chat;
+
+import "google/protobuf/timestamp.proto";
+
+message Message {
+  string id = 1;
+  string content = 2;
+  string sender = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message MessageRequest {
+  string content = 1;
+  string sender = 2;
+}
+
+message MessageQuery {
+  string messageId = 1;
+}
+
+message Empty {
+}
+
+// Chat service with queries, mutations, and subscriptions
+service ChatService {
+  rpc GetMessage(MessageQuery) returns (Message);
+  rpc ListMessages(Empty) returns (Message);
+  rpc SendMessage(MessageRequest) returns (Message);
+  rpc DeleteMessage(MessageQuery) returns (Empty);
+  rpc WatchMessages(Empty) returns (stream Message);
+  rpc WatchMessagesBySender(MessageQuery) returns (stream Message);
+}
+
