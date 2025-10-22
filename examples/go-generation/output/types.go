@@ -63,7 +63,7 @@ type Order struct {
 type CreditCard struct {
 	CardNumber string `json:"cardNumber"`
 	ExpiryDate string `json:"expiryDate"`
-	Cvv string `json:"cvv"`
+	Cvv        string `json:"cvv"`
 }
 
 // PayPal payment details
@@ -80,13 +80,13 @@ type GetProductResponse struct {
 }
 
 type ListProductsRequest struct {
-	Limit int32 `json:"limit"`
+	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
 type ListProductsResponse struct {
 	Products []Product `json:"products"`
-	Total int32 `json:"total"`
+	Total    int32     `json:"total"`
 }
 
 type DeleteProductResponse struct {
@@ -118,7 +118,6 @@ type PaymentMethodPayPal struct {
 
 func (PaymentMethodPayPal) isPaymentMethod() {}
 
-
 // Product service for managing inventory
 type ProductService interface {
 	// Get a product by ID
@@ -140,4 +139,3 @@ type OrderService interface {
 	// Get an order by ID
 	GetOrder(input *GetOrderRequest) (*GetOrderResponse, error)
 }
-

@@ -345,6 +345,7 @@ type User @proto.name("UserV2") @graphql.name("UserAccount") @openapi.name("User
 		t.Errorf("Expected OpenAPIName to be 'UserProfile', got '%s'", typ.Annotations.OpenAPIName)
 	}
 }
+
 // TestParser_MergeAnnotations tests the mergeAnnotations function
 func TestParser_MergeAnnotations(t *testing.T) {
 	p := &Parser{}

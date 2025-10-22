@@ -1262,7 +1262,7 @@ func TestGraphQLGenerator_Subscriptions(t *testing.T) {
 				},
 			},
 			{
-				Name: "Empty",
+				Name:   "Empty",
 				Fields: []*ast.Field{},
 			},
 		},
