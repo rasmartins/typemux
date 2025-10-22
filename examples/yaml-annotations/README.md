@@ -1,10 +1,10 @@
 # YAML Annotations Example
 
-This example demonstrates how to use YAML files to annotate TypeMux schemas instead of inline annotations.
+This example demonstrates how to use YAML files to annotate TypeMUX schemas instead of inline annotations.
 
 ## Files
 
-- `schema.typemux` - The TypeMux schema without any annotations
+- `schema.typemux` - The TypeMUX schema without any annotations
 - `annotations.yaml` - YAML file containing all annotations
 - `invalid.yaml` - Example of invalid annotations (for testing validation)
 

@@ -1,13 +1,13 @@
 # Protobuf Import Example
 
-This example demonstrates how to import existing Protobuf (.proto) files and convert them to TypeMux IDL format.
+This example demonstrates how to import existing Protobuf (.proto) files and convert them to TypeMUX IDL format.
 
 ## Files
 
 - `example.proto` - Original Protobuf schema
-- `example.typemux` - Converted TypeMux IDL (generated)
+- `example.typemux` - Converted TypeMUX IDL (generated)
 
-## Converting Protobuf to TypeMux
+## Converting Protobuf to TypeMUX
 
 Use the `proto2typemux` tool to convert Protobuf files:
 
@@ -90,10 +90,10 @@ namespace example @proto.option(go_package = "github.com/example/proto/example")
 
 ## Round-Trip Conversion
 
-After converting to TypeMux, you can generate back to Protobuf:
+After converting to TypeMUX, you can generate back to Protobuf:
 
 ```bash
-# Convert TypeMux back to Protobuf
+# Convert TypeMUX back to Protobuf
 typemux --input example.typemux --output ./generated --format proto
 
 # The generated schema.proto will be functionally equivalent to the original
@@ -116,12 +116,12 @@ typemux --input example.typemux --output ./generated --format proto
 ## What's Not Preserved
 
 ❌ Comments (not parsed from proto files)
-❌ Reserved field numbers (not critical for TypeMux)
+❌ Reserved field numbers (not critical for TypeMUX)
 ❌ Some advanced proto3 features (oneof converted to optional fields)
 
 ## Use Cases
 
-1. **Migration**: Convert existing Protobuf schemas to TypeMux IDL
+1. **Migration**: Convert existing Protobuf schemas to TypeMUX IDL
 2. **Multi-format Generation**: Import proto, generate GraphQL and OpenAPI from the same schema
-3. **Schema Unification**: Combine proto-based services with new TypeMux-defined services
+3. **Schema Unification**: Combine proto-based services with new TypeMUX-defined services
 4. **Documentation**: Generate multiple formats from a single source of truth

@@ -48,7 +48,7 @@ func (p *Parser) expectToken(t lexer.TokenType) bool {
 	return false
 }
 
-// Parse parses the input tokens into an abstract syntax tree (AST) representing a TypeMux schema.
+// Parse parses the input tokens into an abstract syntax tree (AST) representing a TypeMUX schema.
 func (p *Parser) Parse() *ast.Schema {
 	schema := &ast.Schema{
 		Namespace: "api", // default namespace
@@ -74,7 +74,7 @@ func (p *Parser) Parse() *ast.Schema {
 					if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
 						value := strings.Trim(p.curTok.Literal, "\"'")
 						if attrName == "typemux" {
-							schema.TypeMuxVersion = value
+							schema.TypeMUXVersion = value
 						} else {
 							schema.Version = value
 						}
@@ -124,7 +124,7 @@ func (p *Parser) Parse() *ast.Schema {
 					if p.curTok.Type == lexer.TOKEN_LPAREN {
 						p.nextToken()
 						if p.curTok.Type == lexer.TOKEN_STRING || p.curTok.Type == lexer.TOKEN_IDENT {
-							schema.TypeMuxVersion = strings.Trim(p.curTok.Literal, "\"'")
+							schema.TypeMUXVersion = strings.Trim(p.curTok.Literal, "\"'")
 							p.nextToken()
 							p.expectToken(lexer.TOKEN_RPAREN)
 						}

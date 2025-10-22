@@ -1,8 +1,8 @@
-# TypeMux VS Code Extension - Installation Guide
+# TypeMUX VS Code Extension - Installation Guide
 
 ## Extension Features
 
-✅ **Syntax Highlighting** - Full highlighting for TypeMux schema files
+✅ **Syntax Highlighting** - Full highlighting for TypeMUX schema files
 ✅ **Code Snippets** - 20+ snippets for quick code insertion
 ✅ **Auto-Completion** - Bracket and quote auto-closing
 ✅ **Code Folding** - Fold type and service definitions
@@ -127,7 +127,7 @@ Try these snippets (type and press Tab):
 
 2. **Force language mode:**
    - Click language in bottom-right of VS Code
-   - Select "TypeMux Schema"
+   - Select "TypeMUX Schema"
 
 3. **Check for conflicts:**
    - Other extensions might interfere

@@ -1,6 +1,6 @@
 @typemux("1.0.0")
 
-/// Test file for TypeMux VS Code extension
+/// Test file for TypeMUX VS Code extension
 /// This demonstrates syntax highlighting and snippets
 
 enum Status {

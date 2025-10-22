@@ -2,7 +2,7 @@
 
 ## Overview
 
-TypeMux supports defining annotations in a companion YAML file instead of inline in `.typemux` files. This allows for:
+TypeMUX supports defining annotations in a companion YAML file instead of inline in `.typemux` files. This allows for:
 - Separation of concerns (schema vs metadata)
 - Easier bulk annotation management
 - External configuration without modifying schema files
@@ -141,7 +141,7 @@ typemux generate schema.typemux --annotations base.yaml --annotations overrides.
 
 ## Namespace Support
 
-TypeMux supports using qualified names in YAML annotations to disambiguate types, enums, unions, and services that have the same name but exist in different namespaces.
+TypeMUX supports using qualified names in YAML annotations to disambiguate types, enums, unions, and services that have the same name but exist in different namespaces.
 
 ### Qualified Names
 

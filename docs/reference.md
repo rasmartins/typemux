@@ -1,6 +1,6 @@
 # Language Reference
 
-Complete specification of the TypeMux IDL syntax and semantics.
+Complete specification of the TypeMUX IDL syntax and semantics.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ Complete specification of the TypeMux IDL syntax and semantics.
 
 ## File Structure
 
-A TypeMux schema file (`.typemux`) has the following structure:
+A TypeMUX schema file (`.typemux`) has the following structure:
 
 ```typemux
 [namespace IDENTIFIER]
@@ -42,7 +42,7 @@ Elements can appear in any order, but best practice is:
 
 ## Primitive Types
 
-TypeMux supports these built-in types:
+TypeMUX supports these built-in types:
 
 | Type | Description | Size/Range |
 |------|-------------|------------|
@@ -115,7 +115,7 @@ type Configuration {
 
 **Nested map support:**
 
-TypeMux fully supports nested map syntax:
+TypeMUX fully supports nested map syntax:
 
 ```typemux
 type NestedMapExample {
@@ -885,7 +885,7 @@ service UserService {
 
 ### Circular Imports
 
-TypeMux detects circular imports and reports an error:
+TypeMUX detects circular imports and reports an error:
 
 **a.typemux:**
 ```typemux
@@ -909,11 +909,11 @@ type B {
 
 ## Type Mappings
 
-How TypeMux types map to output formats.
+How TypeMUX types map to output formats.
 
 ### Complete Mapping Table
 
-| TypeMux | GraphQL | Protobuf | OpenAPI |
+| TypeMUX | GraphQL | Protobuf | OpenAPI |
 |---------|---------|----------|---------|
 | `string` | `String` | `string` | `type: string` |
 | `int32` | `Int` | `int32` | `type: integer, format: int32` |
@@ -928,7 +928,7 @@ How TypeMux types map to output formats.
 
 ### Nullability
 
-**TypeMux:**
+**TypeMUX:**
 ```typemux
 type User {
   id: string @required
@@ -967,7 +967,7 @@ message User {
 
 ### Arrays
 
-**TypeMux:**
+**TypeMUX:**
 ```typemux
 type Post {
   tags: []string
@@ -1000,7 +1000,7 @@ Post:
 
 ### Maps
 
-**TypeMux:**
+**TypeMUX:**
 ```typemux
 type Config {
   settings: map<string, string>
@@ -1090,7 +1090,7 @@ type Department {
 
 **Nested maps:**
 
-TypeMux supports nested maps, with each generator handling them according to its schema capabilities:
+TypeMUX supports nested maps, with each generator handling them according to its schema capabilities:
 
 ```typemux
 type NestedMapExample {

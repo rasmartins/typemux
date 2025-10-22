@@ -6,10 +6,10 @@ import (
 	"unicode"
 )
 
-// TokenType represents the type of a lexical token in the TypeMux language.
+// TokenType represents the type of a lexical token in the TypeMUX language.
 type TokenType int
 
-// Token types for the TypeMux IDL lexer.
+// Token types for the TypeMUX IDL lexer.
 const (
 	TOKEN_EOF TokenType = iota
 	TOKEN_IDENT
@@ -49,7 +49,7 @@ type Token struct {
 	Column  int
 }
 
-// Lexer tokenizes TypeMux IDL source code into a stream of tokens.
+// Lexer tokenizes TypeMUX IDL source code into a stream of tokens.
 type Lexer struct {
 	input        string
 	position     int

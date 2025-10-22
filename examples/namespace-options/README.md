@@ -1,6 +1,6 @@
 # Namespace-Level Annotations Examples
 
-This directory demonstrates how to use namespace-level annotations in TypeMux to specify package-level configuration for different output formats.
+This directory demonstrates how to use namespace-level annotations in TypeMUX to specify package-level configuration for different output formats.
 
 ## Overview
 
@@ -261,7 +261,7 @@ typemux -input schema.typemux -annotations base.yaml -annotations overrides.yaml
 
 ## Learn More
 
-- [TypeMux Documentation](https://rasmartins.github.io/typemux)
+- [TypeMUX Documentation](https://rasmartins.github.io/typemux)
 - [Protocol Buffers Options](https://protobuf.dev/reference/protobuf/proto3-spec/#options)
 - [Apollo Federation](https://www.apollographql.com/docs/federation/)
 - [OpenAPI Specification](https://swagger.io/specification/)

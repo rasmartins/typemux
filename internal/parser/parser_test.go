@@ -2488,7 +2488,7 @@ type User {
 	}
 }
 
-func TestParseTypeMuxVersion(t *testing.T) {
+func TestParseTypeMUXVersion(t *testing.T) {
 	tests := []struct {
 		name          string
 		input         string
@@ -2532,8 +2532,8 @@ namespace api`,
 				t.Errorf("Unexpected errors: %s", p.PrintErrors())
 			}
 
-			if schema.TypeMuxVersion != tt.expectVersion {
-				t.Errorf("Expected version %q, got %q", tt.expectVersion, schema.TypeMuxVersion)
+			if schema.TypeMUXVersion != tt.expectVersion {
+				t.Errorf("Expected version %q, got %q", tt.expectVersion, schema.TypeMUXVersion)
 			}
 		})
 	}

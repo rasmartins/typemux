@@ -7,7 +7,7 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
-// GraphQLGenerator generates GraphQL schema definitions from TypeMux schemas.
+// GraphQLGenerator generates GraphQL schema definitions from TypeMUX schemas.
 type GraphQLGenerator struct{}
 
 // NewGraphQLGenerator creates a new GraphQL schema generator.

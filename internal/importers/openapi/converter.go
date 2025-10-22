@@ -418,7 +418,7 @@ func generateMethodName(path string, method string) string {
 	return result
 }
 
-// isReservedKeyword checks if a field name is a TypeMux reserved keyword
+// isReservedKeyword checks if a field name is a TypeMUX reserved keyword
 func isReservedKeyword(name string) bool {
 	reserved := map[string]bool{
 		"namespace": true,

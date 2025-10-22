@@ -106,7 +106,7 @@ func TestConvertRequiredFields(t *testing.T) {
 	converter := NewConverter()
 	result := converter.Convert(spec)
 
-	// Both fields should be present (required fields don't use ? in TypeMux)
+	// Both fields should be present (required fields don't use ? in TypeMUX)
 	if !strings.Contains(result, "id: string") {
 		t.Error("expected id field")
 	}

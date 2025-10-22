@@ -1,15 +1,15 @@
-# TypeMux
+# TypeMUX
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rasmartins/typemux)](https://goreportcard.com/report/github.com/rasmartins/typemux)
 
 **One Schema, Three Protocols**
 
-TypeMux is an Interface Definition Language (IDL) and code generator that converts a single schema definition into multiple output formats: GraphQL schemas, Protocol Buffers (proto3), and OpenAPI 3.0 specifications.
+TypeMUX is an Interface Definition Language (IDL) and code generator that converts a single schema definition into multiple output formats: GraphQL schemas, Protocol Buffers (proto3), and OpenAPI 3.0 specifications.
 
-## Why TypeMux?
+## Why TypeMUX?
 
-Stop maintaining separate schema definitions. Write your API schema once in TypeMux and generate GraphQL, Protobuf, and OpenAPI automatically.
+Stop maintaining separate schema definitions. Write your API schema once in TypeMUX and generate GraphQL, Protobuf, and OpenAPI automatically.
 
 ```typescript
 type User {
@@ -52,7 +52,7 @@ typemux -input schema.typemux -output ./generated
 📚 **[Full Documentation](https://rasmartins.github.io/typemux)**
 
 - [Quick Start Guide](https://rasmartins.github.io/typemux/quickstart) - Get started in 5 minutes
-- [Tutorial](https://rasmartins.github.io/typemux/tutorial) - Learn TypeMux step by step
+- [Tutorial](https://rasmartins.github.io/typemux/tutorial) - Learn TypeMUX step by step
 - [Language Reference](https://rasmartins.github.io/typemux/reference) - Complete syntax specification
 - [Examples](https://rasmartins.github.io/typemux/examples) - Real-world use cases
 - [Configuration](https://rasmartins.github.io/typemux/configuration) - CLI and annotations guide
@@ -87,7 +87,7 @@ typemux -input schema.typemux -output ./generated
 
 ## Example Output
 
-From a single TypeMux schema, generate:
+From a single TypeMUX schema, generate:
 
 **GraphQL**
 ```graphql
@@ -230,4 +230,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**TypeMux** - Write once, generate everywhere.
+**TypeMUX** - Write once, generate everywhere.

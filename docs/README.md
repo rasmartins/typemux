@@ -1,6 +1,6 @@
-# TypeMux Documentation
+# TypeMUX Documentation
 
-This directory contains the complete documentation for TypeMux, ready to be deployed as a GitHub Pages site.
+This directory contains the complete documentation for TypeMUX, ready to be deployed as a GitHub Pages site.
 
 ## Documentation Structure
 
@@ -129,7 +129,7 @@ Supported languages:
 
 ### Keeping Documentation in Sync
 
-When updating the TypeMux codebase:
+When updating the TypeMUX codebase:
 1. Update relevant documentation pages
 2. Add new examples if features are added
 3. Update the reference if syntax changes

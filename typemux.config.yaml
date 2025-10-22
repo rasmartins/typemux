@@ -1,7 +1,7 @@
-# TypeMux Configuration File
-# This file configures code generation for the TypeMux IDL compiler
+# TypeMUX Configuration File
+# This file configures code generation for the TypeMUX IDL compiler
 
-# Version of TypeMux this config is compatible with
+# Version of TypeMUX this config is compatible with
 version: "1.0.0"
 
 # Input configuration

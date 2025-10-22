@@ -5,7 +5,7 @@ import "strings"
 // Schema represents the entire IDL schema
 type Schema struct {
 	Namespace            string             // Optional namespace (e.g., "com.example.api")
-	TypeMuxVersion       string             // TypeMux IDL format version (e.g., "1.0.0")
+	TypeMUXVersion       string             // TypeMUX IDL format version (e.g., "1.0.0")
 	Version              string             // Schema version (e.g., "1.0.0", "2.1.3")
 	NamespaceAnnotations *FormatAnnotations // Namespace-level annotations
 	Imports              []string           // Imported file paths

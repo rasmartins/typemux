@@ -1,6 +1,6 @@
 # Tutorial
 
-This tutorial will teach you TypeMux from the ground up, building a complete e-commerce API schema.
+This tutorial will teach you TypeMUX from the ground up, building a complete e-commerce API schema.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This tutorial will teach you TypeMux from the ground up, building a complete e-c
 
 ## Basic Types
 
-TypeMux supports these primitive types:
+TypeMUX supports these primitive types:
 
 - `string` - Text data
 - `int32` - 32-bit integer

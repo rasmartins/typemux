@@ -1,6 +1,6 @@
 # Quick Start
 
-Get started with TypeMux in 5 minutes.
+Get started with TypeMUX in 5 minutes.
 
 ## Installation
 

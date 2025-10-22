@@ -8,9 +8,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config represents the TypeMux configuration
+// Config represents the TypeMUX configuration
 type Config struct {
-	// TypeMux version this config is compatible with
+	// TypeMUX version this config is compatible with
 	Version string `yaml:"version"`
 
 	// Input configuration

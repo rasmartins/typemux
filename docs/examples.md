@@ -1,6 +1,6 @@
 # Examples
 
-Real-world examples demonstrating TypeMux features and use cases.
+Real-world examples demonstrating TypeMUX features and use cases.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ Real-world examples demonstrating TypeMux features and use cases.
 
 ## Basic Example
 
-A complete user management API with posts, demonstrating core TypeMux features.
+A complete user management API with posts, demonstrating core TypeMUX features.
 
 ### Schema
 

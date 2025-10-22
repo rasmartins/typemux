@@ -7,7 +7,7 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
-// MarkdownGenerator generates Markdown API documentation from TypeMux schemas.
+// MarkdownGenerator generates Markdown API documentation from TypeMUX schemas.
 type MarkdownGenerator struct{}
 
 // NewMarkdownGenerator creates a new Markdown documentation generator.

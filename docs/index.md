@@ -1,12 +1,12 @@
-# TypeMux
+# TypeMUX
 
 **One Schema, Three Protocols**
 
-TypeMux is a powerful Interface Definition Language (IDL) that generates GraphQL schemas, Protocol Buffers, and OpenAPI specifications from a single source of truth.
+TypeMUX is a powerful Interface Definition Language (IDL) that generates GraphQL schemas, Protocol Buffers, and OpenAPI specifications from a single source of truth.
 
-## Why TypeMux?
+## Why TypeMUX?
 
-Maintaining separate schema definitions for GraphQL, Protocol Buffers, and OpenAPI is tedious and error-prone. TypeMux solves this by letting you write one `.typemux` schema file and automatically generating all three formats, ensuring consistency across your API specifications.
+Maintaining separate schema definitions for GraphQL, Protocol Buffers, and OpenAPI is tedious and error-prone. TypeMUX solves this by letting you write one `.typemux` schema file and automatically generating all three formats, ensuring consistency across your API specifications.
 
 ```typemux
 /// User entity with authentication roles
@@ -32,7 +32,7 @@ service UserService {
 }
 ```
 
-From this single schema, TypeMux generates:
+From this single schema, TypeMUX generates:
 - GraphQL schema with types, queries, and mutations
 - Protocol Buffers (proto3) with services and messages
 - OpenAPI 3.0 specification with paths and schemas
@@ -52,7 +52,7 @@ From this single schema, TypeMux generates:
 ## Quick Links
 
 - [Quick Start](quickstart.md) - Get started in 5 minutes
-- [Tutorial](tutorial.md) - Learn TypeMux step by step
+- [Tutorial](tutorial.md) - Learn TypeMUX step by step
 - [Language Reference](reference.md) - Complete language specification
 - [Configuration](configuration.md) - CLI flags and annotations
 - [Examples](examples.md) - Real-world use cases
@@ -88,7 +88,7 @@ typemux -input schema.typemux -annotations annotations.yaml -output ./generated
 
 ## Example Output
 
-Given a TypeMux schema, you get:
+Given a TypeMUX schema, you get:
 
 **GraphQL** (`schema.graphql`):
 ```graphql

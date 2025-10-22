@@ -1,14 +1,14 @@
 # GraphQL Import Example
 
-This example demonstrates how to import existing GraphQL schema files and convert them to TypeMux IDL format.
+This example demonstrates how to import existing GraphQL schema files and convert them to TypeMUX IDL format.
 
 ## Files
 
 - `example.graphqls` - Original GraphQL schema
-- `example.typemux` - Converted TypeMux IDL (generated)
+- `example.typemux` - Converted TypeMUX IDL (generated)
 - `generated/schema.graphql` - Round-trip generated GraphQL (for verification)
 
-## Converting GraphQL to TypeMux
+## Converting GraphQL to TypeMUX
 
 Use the `graphql2typemux` tool to convert GraphQL schema files:
 
@@ -145,7 +145,7 @@ service GraphQLService {
 scalar Time
 ```
 
-Custom scalars like `Time`, `DateTime`, and `Timestamp` are automatically mapped to TypeMux's `timestamp` type. Other scalars are preserved as type names.
+Custom scalars like `Time`, `DateTime`, and `Timestamp` are automatically mapped to TypeMUX's `timestamp` type. Other scalars are preserved as type names.
 
 ### 6. Multi-line Descriptions
 ```graphql
@@ -158,7 +158,7 @@ type User {
 }
 ```
 
-Multi-line descriptions in GraphQL are converted to single-line or multi-line comments in TypeMux:
+Multi-line descriptions in GraphQL are converted to single-line or multi-line comments in TypeMUX:
 ```typemux
 // User represents a user account in the system.
 // This includes all user profile information.
@@ -187,10 +187,10 @@ The converter handles multi-line field declarations with argument descriptions c
 
 ## Round-Trip Conversion
 
-After converting to TypeMux, you can generate back to GraphQL:
+After converting to TypeMUX, you can generate back to GraphQL:
 
 ```bash
-# Convert TypeMux back to GraphQL
+# Convert TypeMUX back to GraphQL
 typemux --input example.typemux --output ./generated --format graphql
 
 # The generated schema.graphql will be functionally equivalent to the original
@@ -198,9 +198,9 @@ typemux --input example.typemux --output ./generated --format graphql
 
 ## Type Mappings
 
-### GraphQL → TypeMux
+### GraphQL → TypeMUX
 
-| GraphQL Type | TypeMux Type | Notes |
+| GraphQL Type | TypeMUX Type | Notes |
 |--------------|--------------|-------|
 | `String` | `string` | |
 | `Int` | `int32` | |
@@ -236,7 +236,7 @@ typemux --input example.typemux --output ./generated --format graphql
 
 ## Reserved Keywords
 
-TypeMux has reserved keywords that cannot be used as field names. If your GraphQL schema uses these as field names, they will be automatically renamed with a trailing underscore:
+TypeMUX has reserved keywords that cannot be used as field names. If your GraphQL schema uses these as field names, they will be automatically renamed with a trailing underscore:
 
 - `namespace` → `namespace_`
 - `import` → `import_`
@@ -264,11 +264,11 @@ type FilterConfig {
 
 ## Use Cases
 
-1. **Schema Migration**: Convert existing GraphQL schemas to TypeMux IDL for multi-format code generation
+1. **Schema Migration**: Convert existing GraphQL schemas to TypeMUX IDL for multi-format code generation
 2. **API Unification**: Combine GraphQL APIs with Protobuf/OpenAPI using a single schema source
 3. **Multi-Format Generation**: Import GraphQL, then generate Protobuf and OpenAPI from the same source
 4. **Documentation**: Generate comprehensive API documentation across multiple formats
-5. **Polyglot Services**: Use TypeMux as a lingua franca between GraphQL, gRPC, and REST services
+5. **Polyglot Services**: Use TypeMUX as a lingua franca between GraphQL, gRPC, and REST services
 
 ## Known Limitations
 

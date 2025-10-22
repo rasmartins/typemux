@@ -11,7 +11,7 @@ import (
 )
 
 func TestSubscriptionsExample(t *testing.T) {
-	// Read the TypeMux schema
+	// Read the TypeMUX schema
 	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
 		t.Fatalf("Failed to read chat.typemux: %v", err)
@@ -122,7 +122,7 @@ func TestSubscriptionsExample(t *testing.T) {
 }
 
 func TestProtobufGeneration(t *testing.T) {
-	// Read the TypeMux schema
+	// Read the TypeMUX schema
 	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
 		t.Fatalf("Failed to read chat.typemux: %v", err)
@@ -168,7 +168,7 @@ func TestProtobufGeneration(t *testing.T) {
 }
 
 func TestOpenAPIGeneration(t *testing.T) {
-	// Read the TypeMux schema
+	// Read the TypeMUX schema
 	content, err := os.ReadFile("chat.typemux")
 	if err != nil {
 		t.Fatalf("Failed to read chat.typemux: %v", err)

@@ -1,6 +1,6 @@
 # Configuration Guide
 
-Guide to configuring and using TypeMux.
+Guide to configuring and using TypeMUX.
 
 ## Table of Contents
 
@@ -13,11 +13,11 @@ Guide to configuring and using TypeMux.
 
 ## CLI Flags
 
-TypeMux accepts the following command-line flags:
+TypeMUX accepts the following command-line flags:
 
 ### -input
 
-**Required.** Path to the input TypeMux schema file.
+**Required.** Path to the input TypeMUX schema file.
 
 ```bash
 typemux -input schema.typemux
@@ -310,7 +310,7 @@ See [Language Reference - Validation](reference.md#validation) for details on va
 
 ## Annotation Merging
 
-When annotations are specified in multiple places, TypeMux merges them with a specific priority.
+When annotations are specified in multiple places, TypeMUX merges them with a specific priority.
 
 ### Merge Order (highest to lowest priority)
 
@@ -553,12 +553,12 @@ If you encounter issues:
 
 1. Check the [Language Reference](reference.md) for syntax
 2. Review [examples](examples.md) for similar use cases
-3. Enable verbose output to see what TypeMux is doing
+3. Enable verbose output to see what TypeMUX is doing
 4. File an issue on [GitHub](https://github.com/rasmartins/typemux/issues)
 
 ## See Also
 
-- [Language Reference](reference.md) - Complete TypeMux syntax and annotations
+- [Language Reference](reference.md) - Complete TypeMUX syntax and annotations
 - [Tutorial](tutorial.md) - Step-by-step guide
 - [Quick Start](quickstart.md) - Get started in 5 minutes
 - [Examples](examples.md) - Real-world examples

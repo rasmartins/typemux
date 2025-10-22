@@ -12,7 +12,7 @@ import (
 
 func main() {
 	inputFile := flag.String("input", "", "Input OpenAPI file (.yaml, .yml, or .json) (required)")
-	outputDir := flag.String("output", "./imported", "Output directory for generated TypeMux files")
+	outputDir := flag.String("output", "./imported", "Output directory for generated TypeMUX files")
 
 	flag.Parse()
 
@@ -37,7 +37,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Convert to TypeMux IDL
+	// Convert to TypeMUX IDL
 	converter := openapi.NewConverter()
 	typemuxIDL := converter.Convert(spec)
 
@@ -58,7 +58,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Successfully converted OpenAPI spec to TypeMux IDL\n")
+	fmt.Printf("Successfully converted OpenAPI spec to TypeMUX IDL\n")
 	fmt.Printf("Input:  %s\n", *inputFile)
 	fmt.Printf("Output: %s\n", outputFile)
 }

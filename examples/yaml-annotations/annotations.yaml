@@ -1,5 +1,5 @@
 # YAML Annotations Example
-# This file demonstrates how to use YAML to annotate TypeMux schemas
+# This file demonstrates how to use YAML to annotate TypeMUX schemas
 
 types:
   User:

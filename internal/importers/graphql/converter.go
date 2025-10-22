@@ -13,7 +13,7 @@ func NewConverter() *Converter {
 	return &Converter{}
 }
 
-// isReservedKeyword checks if a field name is a TypeMux reserved keyword
+// isReservedKeyword checks if a field name is a TypeMUX reserved keyword
 func isReservedKeyword(name string) bool {
 	reserved := map[string]bool{
 		"namespace": true,
@@ -109,7 +109,7 @@ func (c *Converter) writeEnum(sb *strings.Builder, enum *GraphQLEnum) {
 }
 
 func (c *Converter) writeScalar(sb *strings.Builder, scalar *GraphQLScalar) {
-	// Map common GraphQL scalars to TypeMux types
+	// Map common GraphQL scalars to TypeMUX types
 	typemuxType := c.mapScalarType(scalar.Name)
 	if typemuxType == scalar.Name {
 		// Custom scalar, create a type alias
@@ -239,7 +239,7 @@ func (c *Converter) writeMethod(sb *strings.Builder, field *GraphQLField, method
 	// Wrap non-null types in a response type
 	outputTypeName := UnwrapType(field.Type)
 
-	// Note: Annotations on RPC methods are not yet supported in TypeMux parser
+	// Note: Annotations on RPC methods are not yet supported in TypeMUX parser
 	// We document the method type in comments instead
 	sb.WriteString(fmt.Sprintf("  // GraphQL %s\n", methodType))
 
@@ -279,10 +279,10 @@ func (c *Converter) convertGraphQLType(graphqlType string) string {
 		innerType = strings.TrimSuffix(innerType, "!")
 		typemuxInnerType := c.mapType(innerType)
 
-		// In TypeMux, arrays are represented as []Type
+		// In TypeMUX, arrays are represented as []Type
 		result := "[]" + typemuxInnerType
 
-		// Note: TypeMux doesn't have a direct way to express non-null lists vs nullable lists
+		// Note: TypeMUX doesn't have a direct way to express non-null lists vs nullable lists
 		// We'll use the required annotation if needed
 		return result
 	}
@@ -290,7 +290,7 @@ func (c *Converter) convertGraphQLType(graphqlType string) string {
 	// Map scalar and object types
 	typemuxType := c.mapType(graphqlType)
 
-	// Note: TypeMux doesn't have optional/required at the type level for proto compatibility
+	// Note: TypeMUX doesn't have optional/required at the type level for proto compatibility
 	// Required/optional is handled by proto3 semantics
 	_ = isRequired // We acknowledge the requirement but proto3 handles it differently
 
@@ -298,7 +298,7 @@ func (c *Converter) convertGraphQLType(graphqlType string) string {
 }
 
 func (c *Converter) mapType(graphqlType string) string {
-	// Map GraphQL built-in scalars to TypeMux types
+	// Map GraphQL built-in scalars to TypeMUX types
 	switch graphqlType {
 	case "String":
 		return "string"

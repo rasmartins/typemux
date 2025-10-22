@@ -16,8 +16,8 @@ import (
 	"github.com/rasmartins/typemux/internal/parser"
 )
 
-// CurrentTypeMuxVersion is the TypeMux IDL version supported by this compiler.
-const CurrentTypeMuxVersion = "1.0.0"
+// CurrentTypeMUXVersion is the TypeMUX IDL version supported by this compiler.
+const CurrentTypeMUXVersion = "1.0.0"
 
 // arrayFlags is a custom flag type that accumulates multiple values
 type arrayFlags []string
@@ -60,8 +60,8 @@ func parseSchemaWithImports(filePath string, visited map[string]bool) (*ast.Sche
 		return nil, fmt.Errorf("parser errors in %s:\n%s", absPath, p.PrintErrors())
 	}
 
-	// Validate TypeMux version if specified
-	if err := validateTypeMuxVersion(schema.TypeMuxVersion, absPath); err != nil {
+	// Validate TypeMUX version if specified
+	if err := validateTypeMUXVersion(schema.TypeMUXVersion, absPath); err != nil {
 		return nil, err
 	}
 
@@ -383,8 +383,8 @@ func generateMarkdownDocs(schema *ast.Schema, outputDir string) {
 	fmt.Printf("Generated Markdown documentation: %s\n", outputPath)
 }
 
-// validateTypeMuxVersion validates that the schema's TypeMux version is compatible
-func validateTypeMuxVersion(schemaVersion, filePath string) error {
+// validateTypeMUXVersion validates that the schema's TypeMUX version is compatible
+func validateTypeMUXVersion(schemaVersion, filePath string) error {
 	// If no version is specified, accept it (backward compatibility)
 	if schemaVersion == "" {
 		fmt.Printf("Warning: No @typemux version specified in %s\n", filePath)
@@ -392,11 +392,11 @@ func validateTypeMuxVersion(schemaVersion, filePath string) error {
 	}
 
 	// Parse versions (simple major.minor.patch comparison)
-	if schemaVersion != CurrentTypeMuxVersion {
+	if schemaVersion != CurrentTypeMUXVersion {
 		// For now, only accept exact version match
 		// In the future, we could implement more sophisticated version compatibility
-		return fmt.Errorf("incompatible TypeMux version in %s: schema requires %s, but compiler supports %s",
-			filePath, schemaVersion, CurrentTypeMuxVersion)
+		return fmt.Errorf("incompatible TypeMUX version in %s: schema requires %s, but compiler supports %s",
+			filePath, schemaVersion, CurrentTypeMUXVersion)
 	}
 
 	return nil

@@ -7,7 +7,7 @@ import (
 	"github.com/rasmartins/typemux/internal/ast"
 )
 
-// ProtobufGenerator generates Protocol Buffers (proto3) schemas from TypeMux schemas.
+// ProtobufGenerator generates Protocol Buffers (proto3) schemas from TypeMUX schemas.
 type ProtobufGenerator struct{}
 
 // NewProtobufGenerator creates a new Protobuf schema generator.

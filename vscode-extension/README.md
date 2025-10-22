@@ -1,10 +1,10 @@
-# TypeMux Schema Language Support
+# TypeMUX Schema Language Support
 
-VS Code extension providing language support for TypeMux IDL schema files (`.typemux`).
+VS Code extension providing language support for TypeMUX IDL schema files (`.typemux`).
 
 ## Features
 
-- **Syntax Highlighting**: Full syntax highlighting for TypeMux schema files
+- **Syntax Highlighting**: Full syntax highlighting for TypeMUX schema files
   - Keywords: `enum`, `type`, `service`, `rpc`, `returns`
   - Types: `string`, `int32`, `int64`, `float32`, `float64`, `bool`, `timestamp`, `bytes`
   - Attributes: `@required`, `@default`, `@exclude`, `@only`, `@http`, `@graphql`, `@path`
@@ -110,7 +110,7 @@ type User {
 ### 0.1.0
 
 Initial release:
-- Syntax highlighting for TypeMux schema files
+- Syntax highlighting for TypeMUX schema files
 - 20+ code snippets
 - Auto-completion and bracket matching
 - Code folding support

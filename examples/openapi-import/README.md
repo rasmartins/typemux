@@ -1,14 +1,14 @@
 ## OpenAPI Import Example
 
-This example demonstrates how to import existing OpenAPI 3.0 specifications and convert them to TypeMux IDL format.
+This example demonstrates how to import existing OpenAPI 3.0 specifications and convert them to TypeMUX IDL format.
 
 ## Files
 
 - `example.yaml` - Original OpenAPI 3.0 specification
-- `example.typemux` - Converted TypeMux IDL (generated)
+- `example.typemux` - Converted TypeMUX IDL (generated)
 - `generated/openapi.yaml` - Round-trip generated OpenAPI (for verification)
 
-## Converting OpenAPI to TypeMux
+## Converting OpenAPI to TypeMUX
 
 Use the `openapi2typemux` tool to convert OpenAPI specifications:
 
@@ -119,7 +119,7 @@ service PetStoreAPIService {
 
 ### 5. Type Mappings
 
-| OpenAPI Type | Format | TypeMux Type | Notes |
+| OpenAPI Type | Format | TypeMUX Type | Notes |
 |--------------|--------|--------------|-------|
 | `string` | - | `string` | |
 | `string` | `date-time` | `timestamp` | |
@@ -148,7 +148,7 @@ returns (Pet)
 
 ### 7. Descriptions and Documentation
 
-All descriptions from OpenAPI are preserved as comments in TypeMux:
+All descriptions from OpenAPI are preserved as comments in TypeMUX:
 
 ```yaml
 description: |
@@ -164,10 +164,10 @@ Converts to:
 
 ## Round-Trip Conversion
 
-After converting to TypeMux, you can generate back to OpenAPI:
+After converting to TypeMUX, you can generate back to OpenAPI:
 
 ```bash
-# Convert TypeMux back to OpenAPI
+# Convert TypeMUX back to OpenAPI
 typemux --input example.typemux --output ./generated --format openapi
 
 # The generated openapi.yaml will be functionally equivalent
@@ -201,7 +201,7 @@ typemux --input example.typemux --output ./generated --format openapi
 
 ## Reserved Keywords
 
-TypeMux reserved keywords are automatically escaped with a trailing underscore:
+TypeMUX reserved keywords are automatically escaped with a trailing underscore:
 
 - `type` → `type_`
 - `namespace` → `namespace_`
@@ -222,10 +222,10 @@ type_: string = 1
 
 ## Use Cases
 
-1. **API Unification**: Convert REST APIs to TypeMux for multi-format generation
+1. **API Unification**: Convert REST APIs to TypeMUX for multi-format generation
 2. **gRPC from REST**: Import OpenAPI specs and generate gRPC/Protobuf services
 3. **GraphQL from REST**: Generate GraphQL schemas from existing REST APIs
-4. **Schema Migration**: Modernize legacy OpenAPI specs with TypeMux
+4. **Schema Migration**: Modernize legacy OpenAPI specs with TypeMUX
 5. **Multi-Protocol Services**: Support REST, gRPC, and GraphQL from one schema
 
 ## Testing with Real-World Specs

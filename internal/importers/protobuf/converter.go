@@ -14,7 +14,7 @@ func NewConverter() *Converter {
 func (c *Converter) Convert(schema *ProtoSchema) string {
 	var sb strings.Builder
 
-	// Write TypeMux version
+	// Write TypeMUX version
 	sb.WriteString("@typemux(\"1.0.0\")\n")
 
 	// Write namespace with options as annotations
@@ -120,7 +120,7 @@ func (c *Converter) writeMessage(sb *strings.Builder, msg *ProtoMessage, indent 
 func (c *Converter) writeField(sb *strings.Builder, field *ProtoField, indent int) {
 	indentStr := strings.Repeat("  ", indent)
 
-	// Convert proto type to TypeMux type
+	// Convert proto type to TypeMUX type
 	typemuxType := c.convertType(field.Type)
 
 	// Handle repeated (arrays)
@@ -129,7 +129,7 @@ func (c *Converter) writeField(sb *strings.Builder, field *ProtoField, indent in
 	}
 
 	// In proto3, all fields are optional by default, so we don't need the ? marker
-	// TypeMux will treat them as optional unless marked @required
+	// TypeMUX will treat them as optional unless marked @required
 
 	// Build field line
 	fieldLine := fmt.Sprintf("%s%s: %s = %d",
@@ -147,7 +147,7 @@ func (c *Converter) writeField(sb *strings.Builder, field *ProtoField, indent in
 }
 
 func (c *Converter) convertType(protoType string) string {
-	// Map protobuf types to TypeMux types
+	// Map protobuf types to TypeMUX types
 	typeMap := map[string]string{
 		"string":   "string",
 		"int32":    "int32",

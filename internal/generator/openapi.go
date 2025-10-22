@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// OpenAPIGenerator generates OpenAPI 3.0 specifications from TypeMux schemas.
+// OpenAPIGenerator generates OpenAPI 3.0 specifications from TypeMUX schemas.
 type OpenAPIGenerator struct{}
 
 // NewOpenAPIGenerator creates a new OpenAPI specification generator.

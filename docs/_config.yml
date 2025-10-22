@@ -1,6 +1,6 @@
 # Jekyll configuration for GitHub Pages
 theme: jekyll-theme-cayman
-title: TypeMux
+title: TypeMUX
 description: One Schema, Three Protocols - Generate GraphQL, Protobuf, and OpenAPI from a single IDL
 
 # GitHub repository

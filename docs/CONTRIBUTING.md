@@ -1,6 +1,6 @@
-# Contributing to TypeMux
+# Contributing to TypeMUX
 
-Thank you for your interest in contributing to TypeMux! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to TypeMUX! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
@@ -15,7 +15,7 @@ If you find a bug, please create an issue with:
 1. **Clear title** describing the bug
 2. **Steps to reproduce** the issue
 3. **Expected behavior** vs **actual behavior**
-4. **Environment details** (OS, Go version, TypeMux version)
+4. **Environment details** (OS, Go version, TypeMUX version)
 5. **Schema example** (if applicable) - minimal reproducible example
 6. **Generated output** (if relevant)
 
@@ -39,7 +39,7 @@ Actual: union Message = TextMessage | ImageMessage | VideoMessage
 Environment:
 - OS: Ubuntu 22.04
 - Go version: 1.21
-- TypeMux version: main branch (commit abc123)
+- TypeMUX version: main branch (commit abc123)
 
 Schema:
 [Attach minimal .typemux file]
@@ -115,7 +115,7 @@ make examples  # or test manually
 
 **Example:**
 ```go
-// ParseSchema parses a TypeMux schema file and returns an AST.
+// ParseSchema parses a TypeMUX schema file and returns an AST.
 // Returns an error if the file cannot be read or parsed.
 func ParseSchema(filename string) (*ast.Schema, error) {
     // Implementation
@@ -363,4 +363,4 @@ Contributors will be recognized in:
 - Release notes
 - GitHub contributors page
 
-Thank you for contributing to TypeMux!
+Thank you for contributing to TypeMUX!

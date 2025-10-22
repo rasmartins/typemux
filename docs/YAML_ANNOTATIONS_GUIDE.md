@@ -1,6 +1,6 @@
 # YAML Annotations Guide
 
-A comprehensive guide to using YAML annotations in TypeMux for managing API metadata separately from schema definitions.
+A comprehensive guide to using YAML annotations in TypeMUX for managing API metadata separately from schema definitions.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ A comprehensive guide to using YAML annotations in TypeMux for managing API meta
 
 ## Overview
 
-YAML annotations allow you to define TypeMux metadata in external YAML files instead of inline in your `.typemux` schema files. This provides:
+YAML annotations allow you to define TypeMUX metadata in external YAML files instead of inline in your `.typemux` schema files. This provides:
 
 - **Separation of Concerns** - Keep schema definitions clean and focused
 - **Easier Maintenance** - Update annotations without modifying schema files
@@ -744,7 +744,7 @@ fields:
 
 ## Validation
 
-TypeMux validates all YAML annotations before code generation. Validation catches:
+TypeMUX validates all YAML annotations before code generation. Validation catches:
 
 ### Reference Validation
 
@@ -1189,7 +1189,7 @@ types:
 
 - **Specification:** See [YAML_ANNOTATIONS.md](YAML_ANNOTATIONS.md) for technical specification
 - **Examples:** Check `examples/yaml-annotations/` and `examples/namespaces/` directories
-- **Schema Syntax:** See main [README.md](../README.md) for TypeMux IDL syntax
+- **Schema Syntax:** See main [README.md](../README.md) for TypeMUX IDL syntax
 
 ---
 

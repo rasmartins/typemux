@@ -23,7 +23,7 @@ func (i *arrayFlags) Set(value string) error {
 
 func main() {
 	inputFile := flag.String("input", "", "Input .proto file (required)")
-	outputDir := flag.String("output", "./imported", "Output directory for generated TypeMux files")
+	outputDir := flag.String("output", "./imported", "Output directory for generated TypeMUX files")
 	var importPaths arrayFlags
 	flag.Var(&importPaths, "I", "Import search path (can be specified multiple times)")
 
@@ -60,12 +60,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Convert each schema to TypeMux and write to separate files
+	// Convert each schema to TypeMUX and write to separate files
 	converter := protobuf.NewConverter()
 	filesGenerated := 0
 
 	for protoPath, schema := range schemas {
-		// Convert to TypeMux
+		// Convert to TypeMUX
 		typemuxIDL := converter.Convert(schema)
 
 		// Generate output path preserving directory structure
@@ -92,7 +92,7 @@ func main() {
 			continue
 		}
 
-		// Write the TypeMux file
+		// Write the TypeMUX file
 		if err := os.WriteFile(outputPath, []byte(typemuxIDL), 0o600); err != nil {
 			fmt.Printf("Error writing output file %s: %v\n", outputPath, err)
 			continue
