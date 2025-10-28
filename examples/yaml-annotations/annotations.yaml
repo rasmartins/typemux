@@ -1,0 +1,76 @@
+# YAML Annotations Example
+# This file demonstrates how to use YAML to annotate TypeMUX schemas
+
+types:
+  User:
+    # Type-level annotations - custom names per generator
+    proto:
+      name: "UserV2"
+    graphql:
+      name: "UserAccount"
+    openapi:
+      name: "UserProfile"
+
+    # Field-level annotations
+    fields:
+      username:
+        required: true
+      email:
+        required: true
+        openapi:
+          extension: '{"x-format": "email"}'
+      status:
+        required: true
+      createdAt:
+        required: true
+
+  Product:
+    proto:
+      name: "ProductV3"
+    fields:
+      name:
+        required: true
+      price:
+        required: true
+        openapi:
+          extension: '{"x-format": "currency"}'
+
+  GetUserRequest:
+    fields:
+      userId:
+        required: true
+
+  GetUserResponse:
+    fields:
+      user:
+        required: true
+      success:
+        required: true
+
+  CreateProductRequest:
+    fields:
+      name:
+        required: true
+      price:
+        required: true
+
+  CreateProductResponse:
+    fields:
+      product:
+        required: true
+
+services:
+  UserService:
+    methods:
+      GetUser:
+        http: "GET"
+        path: "/api/v1/users/{userId}"
+        graphql: "query"
+        errors: [404, 500]
+
+      CreateProduct:
+        http: "POST"
+        path: "/api/v1/products"
+        graphql: "mutation"
+        success: [201]
+        errors: [400, 500]

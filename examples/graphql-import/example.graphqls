@@ -1,0 +1,193 @@
+"""
+User status enumeration
+"""
+enum UserStatus {
+  """
+  User account is active
+  """
+  ACTIVE
+  """
+  User account is inactive
+  """
+  INACTIVE
+  """
+  User account is suspended
+  """
+  SUSPENDED
+}
+
+"""
+User represents a user account in the system
+"""
+type User {
+  """
+  Unique identifier for the user
+  """
+  id: ID!
+  """
+  User's display name
+  """
+  name: String!
+  """
+  User's email address
+  """
+  email: String!
+  """
+  User's age (optional)
+  """
+  age: Int
+  """
+  Current status of the user account
+  """
+  status: UserStatus!
+  """
+  Timestamp when the user was created
+  """
+  createdAt: Time!
+  """
+  List of tags associated with the user
+  """
+  tags: [String!]!
+  """
+  Whether the user account is verified
+  """
+  isVerified: Boolean!
+}
+
+"""
+Input for creating a new user
+"""
+input CreateUserInput {
+  """
+  User's display name
+  """
+  name: String!
+  """
+  User's email address
+  """
+  email: String!
+  """
+  User's age (optional)
+  """
+  age: Int
+  """
+  Initial tags for the user
+  """
+  tags: [String!]
+}
+
+"""
+Input for updating an existing user
+"""
+input UpdateUserInput {
+  """
+  User's display name
+  """
+  name: String
+  """
+  User's email address
+  """
+  email: String
+  """
+  User's age
+  """
+  age: Int
+  """
+  Current status of the user account
+  """
+  status: UserStatus
+}
+
+"""
+Result of user creation
+"""
+type CreateUserResult {
+  """
+  The newly created user
+  """
+  user: User!
+  """
+  Success message
+  """
+  message: String!
+}
+
+"""
+Custom scalar for timestamps
+"""
+scalar Time
+
+extend type Query {
+  """
+  Get a user by their ID
+  """
+  getUser(id: ID!): User!
+
+  """
+  List all users with optional filtering
+  """
+  listUsers(
+    """
+    Maximum number of users to return
+    """
+    limit: Int = 10
+    """
+    Offset for pagination
+    """
+    offset: Int = 0
+    """
+    Filter by user status
+    """
+    status: UserStatus
+  ): [User!]!
+
+  """
+  Search users by name or email
+  """
+  searchUsers(query: String!): [User!]!
+}
+
+extend type Mutation {
+  """
+  Create a new user account
+  """
+  createUser(input: CreateUserInput!): CreateUserResult!
+
+  """
+  Update an existing user account
+  """
+  updateUser(
+    """
+    ID of the user to update
+    """
+    id: ID!
+    """
+    Fields to update
+    """
+    input: UpdateUserInput!
+  ): User!
+
+  """
+  Delete a user account
+  """
+  deleteUser(
+    """
+    ID of the user to delete
+    """
+    id: ID!
+  ): Boolean!
+
+  """
+  Verify a user's email address
+  """
+  verifyUserEmail(
+    """
+    User ID
+    """
+    userId: ID!
+    """
+    Verification token
+    """
+    token: String!
+  ): Boolean!
+}

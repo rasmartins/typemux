@@ -1,0 +1,40 @@
+# Jekyll configuration for GitHub Pages
+theme: jekyll-theme-cayman
+title: TypeMUX
+description: One Schema, Three Protocols - Generate GraphQL, Protobuf, and OpenAPI from a single IDL
+
+# GitHub repository
+repository: rasmartins/typemux
+github:
+  is_project_page: true
+
+# Navigation
+navigation:
+  - title: Home
+    url: /
+  - title: Quick Start
+    url: /quickstart
+  - title: Tutorial
+    url: /tutorial
+  - title: Reference
+    url: /reference
+  - title: Examples
+    url: /examples
+  - title: Configuration
+    url: /configuration
+
+# Build settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-readme-index
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md

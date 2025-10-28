@@ -1,0 +1,112 @@
+@typemux("1.0.0")
+
+// Example Schema Definition
+// This IDL supports types, enums, and services
+
+/// User role enumeration
+/// Defines the different roles a user can have in the system
+enum UserRole {
+  /// Administrator with full access
+  ADMIN = 10
+  /// Regular user with limited access
+  USER = 20
+  /// Guest user with read-only access
+  GUEST = 30
+}
+
+/// Status enumeration for various entities
+enum Status {
+  ACTIVE = 1
+  INACTIVE = 2
+  PENDING = 3
+}
+
+/// User entity representing a system user
+/// @proto User message containing all user information
+/// @graphql User type for GraphQL queries
+/// @openapi User schema for REST API
+type User {
+  /// Unique identifier for the user
+  id: string @required
+  /// Full name of the user
+  name: string @required
+  /// Email address for contact
+  email: string @required
+  /// User's age in years
+  age: int32
+  /// Role assigned to the user
+  role: UserRole @required
+  /// Whether the user account is active
+  isActive: bool @default(true)
+  /// Timestamp when the user was created
+  createdAt: timestamp @required
+  /// Custom tags for categorization
+  tags: []string
+  /// Additional metadata key-value pairs
+  metadata: map<string, string>
+  /// Internal database version (excluded from GraphQL and OpenAPI)
+  dbVersion: int32 @exclude(graphql,openapi)
+  /// Password hash (only in Protobuf for internal services)
+  passwordHash: string @only(proto)
+}
+
+type Post {
+  id: string @required
+  title: string @required
+  content: string
+  authorId: string @required
+  status: Status @required
+  publishedAt: timestamp
+  viewCount: int64 @default(0)
+  tags: []string
+}
+
+type CreateUserRequest {
+  name: string @required
+  email: string @required
+  role: UserRole @required
+}
+
+type CreateUserResponse {
+  user: User @required
+  success: bool @required
+}
+
+type GetUserRequest {
+  id: string @required
+}
+
+type GetUserResponse {
+  user: User
+}
+
+type ListUsersRequest {
+  limit: int32 @default(10)
+  offset: int32 @default(0)
+  role: UserRole
+}
+
+type ListUsersResponse {
+  users: []User @required
+  total: int32 @required
+}
+
+/// User service for managing users
+service UserService {
+  /// Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) @http(POST) @path("/api/v1/users") @graphql(mutation)
+  /// Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) @http(GET) @path("/api/v1/users/{id}") @graphql(query)
+  /// List all users with pagination
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) @http(GET) @path("/api/v1/users") @graphql(query)
+  /// Delete a user
+  rpc DeleteUser(GetUserRequest) returns (GetUserResponse) @http(DELETE) @path("/api/v1/users/{id}") @graphql(mutation)
+}
+
+/// Post service for managing blog posts
+service PostService {
+  /// Create a new post
+  rpc CreatePost(Post) returns (Post) @http(POST) @path("/api/v1/posts") @graphql(mutation)
+  /// Get a post by ID
+  rpc GetPost(GetUserRequest) returns (Post) @http(GET) @path("/api/v1/posts/{id}") @graphql(query)
+}

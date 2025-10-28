@@ -1,0 +1,68 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* Override theme CSS variables for better code readability */
+:root {
+  --primary-dark: #ffd580 !important; /* Light yellow/orange instead of dark blue */
+}
+
+/* Fix inline code readability - improve contrast for better accessibility */
+code,
+.highlighter-rouge,
+.language-plaintext {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffd580 !important; /* Light yellow/orange for high contrast on dark background */
+  padding: 0.2em 0.4em !important;
+  border-radius: 3px !important;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace !important;
+  font-size: 0.9em !important;
+}
+
+/* Ensure good contrast in light mode too */
+@media (prefers-color-scheme: light) {
+  code,
+  .highlighter-rouge,
+  .language-plaintext {
+    background-color: #f6f8fa !important;
+    color: #24292e !important;
+  }
+}
+
+/* Fix pre code blocks to maintain original styling */
+pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+/* Additional improvements for better readability */
+pre {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333 !important;
+  border-radius: 5px !important;
+  padding: 16px !important;
+}
+
+@media (prefers-color-scheme: light) {
+  pre {
+    background-color: #f6f8fa !important;
+    border: 1px solid #d0d7de !important;
+  }
+}
+
+/* Improve table readability */
+table code {
+  white-space: nowrap;
+}
+
+/* Fix link contrast in dark mode */
+@media (prefers-color-scheme: dark) {
+  a {
+    color: #58a6ff !important;
+  }
+
+  a:hover {
+    color: #79c0ff !important;
+  }
+}

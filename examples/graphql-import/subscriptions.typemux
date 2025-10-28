@@ -1,0 +1,52 @@
+@typemux("1.0.0")
+namespace graphql
+
+// User status enumeration
+enum UserStatus {
+  ACTIVE = 0
+  INACTIVE = 1
+  SUSPENDED = 2
+}
+
+
+
+// User type
+type User {
+  id: string = 1
+  name: string = 2
+  status: UserStatus = 3
+}
+
+// User update event
+type UserUpdate {
+  // The user that was updated
+  user: User = 1
+  // The type of update that occurred
+  updateType: string = 2
+  // Timestamp of the update
+  timestamp: timestamp = 3
+}
+
+// Message in a chat
+type ChatMessage {
+  id: string = 1
+  userId: string = 2
+  text: string = 3
+  timestamp: timestamp = 4
+}
+
+service GraphQLService {
+  // Get a user by ID
+  // GraphQL query
+  rpc GetUser(GetUserRequest) returns (User)
+  // Subscribe to user updates
+  // Real-time notifications when a user is created, updated, or deleted
+  // GraphQL subscription
+  rpc UserUpdates(UserUpdatesRequest) returns (stream UserUpdate)
+  // Subscribe to new chat messages
+  // GraphQL subscription
+  rpc NewMessages(NewMessagesRequest) returns (stream ChatMessage)
+  // Subscribe to user status changes
+  // GraphQL subscription
+  rpc UserStatusChanged(Empty) returns (stream User)
+}

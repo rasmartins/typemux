@@ -1,0 +1,40 @@
+@typemux("1.0.0")
+
+/// Example demonstrating format-specific annotations
+/// This shows how to add Protobuf options, GraphQL directives, and OpenAPI extensions
+
+/// User type with GraphQL Federation support
+type User @graphql.directive(@key(fields: "id")) {
+    id: string @required @graphql.directive(@external)
+    email: string @required
+    name: string @required
+    tags: []string @proto.option([packed = false])
+}
+
+/// Product with OpenAPI extensions
+type Product @openapi.extension({"x-internal-id": "prod-v1", "x-category": "commerce"}) {
+    id: string @required
+    price: float64 @required @openapi.extension({"x-format": "currency", "x-precision": 2})
+    inStock: bool @required
+}
+
+/// Configuration with retention and nested OpenAPI metadata
+type Config @openapi.extension({"x-metadata": {"version": "v2", "internal": true, "features": ["auth", "caching"]}}) {
+    apiKey: bytes @proto.option([retention = RETENTION_SOURCE])
+    timeout: int32 @default(30) @openapi.extension({"x-validation": {"min": 1, "max": 3600, "default": 30}})
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User @required
+}
+
+service UserService {
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+        @http(GET)
+        @path("/api/v1/users/{userId}")
+        @errors(404,500)
+}

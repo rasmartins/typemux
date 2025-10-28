@@ -1,0 +1,54 @@
+@typemux("1.0.0")
+
+/// Example demonstrating namespace usage
+/// This schema uses a custom namespace for package organization
+namespace com.example.userservice
+
+/// User status enumeration
+enum UserStatus {
+    ACTIVE = 1
+    INACTIVE = 2
+    SUSPENDED = 3
+}
+
+/// User entity
+type User {
+    id: string = 1 @required
+    username: string = 2 @required
+    email: string = 3 @required
+    status: UserStatus = 4 @required
+    createdAt: timestamp = 5 @required
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User @required
+}
+
+type CreateUserRequest {
+    username: string @required
+    email: string @required
+}
+
+type CreateUserResponse {
+    user: User @required
+    success: bool @required
+}
+
+/// User management service
+service UserService {
+    /// Get a user by ID
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+    @http(GET)
+    @path("/api/v1/users/{id}")
+    @graphql(query)
+
+    /// Create a new user
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
+    @http(POST)
+    @path("/api/v1/users")
+    @graphql(mutation)
+}

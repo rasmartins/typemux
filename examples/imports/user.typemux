@@ -1,0 +1,46 @@
+@typemux("1.0.0")
+
+import "common.typemux"
+
+/// User service types
+
+type User {
+    id: string = 1 @required
+    name: string = 2 @required
+    email: string = 3 @required
+    address: Address = 4
+    status: Status = 5 @required
+}
+
+type CreateUserRequest {
+    name: string @required
+    email: string @required
+    address: Address @required
+}
+
+type CreateUserResponse {
+    user: User @required
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User
+}
+
+service UserService {
+    /// Create a new user
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
+    @http(POST)
+    @path("/api/v1/users")
+    @success(201)
+    @errors(400,409,500)
+
+    /// Get a user by ID
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+    @http(GET)
+    @path("/api/v1/users/{id}")
+    @errors(404,500)
+}

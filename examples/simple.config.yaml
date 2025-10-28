@@ -1,0 +1,11 @@
+# Simple TypeMUX configuration example
+version: "1.0.0"
+
+input:
+  schema: basic/basic.typemux
+
+output:
+  directory: ./output
+  formats:
+    - all
+  clean: true

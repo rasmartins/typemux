@@ -1,0 +1,19 @@
+[project]
+name = "validate"
+version = "0.1.0"
+description = "Schema validation tests for IDL code generator"
+readme = "README.md"
+authors = [
+    { name = "Ricardo Martins", email = "rasmartins@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pytest>=8.0.0",
+    "openapi-spec-validator>=0.7.0",
+    "graphql-core>=3.2.0",
+    "pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.15,<0.9.0"]
+build-backend = "uv_build"

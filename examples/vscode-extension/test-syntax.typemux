@@ -1,0 +1,42 @@
+@typemux("1.0.0")
+
+/// Test file for TypeMUX VS Code extension
+/// This demonstrates syntax highlighting and snippets
+
+enum Status {
+    ACTIVE = 1
+    INACTIVE = 2
+    PENDING = 3
+}
+
+/// User entity with custom field numbers
+/// @proto User message for internal services
+/// @graphql User type for GraphQL API
+type User {
+    id: string = 1 @required
+    name: string = 2 @required
+    email: string = 5 @required
+    age: int32 = 10
+    status: Status = 15 @required
+    isActive: bool = 20 @default(true)
+    createdAt: timestamp = 25 @required
+    tags: []string = 30
+    metadata: map<string, string> = 35
+    /// Internal field excluded from GraphQL and OpenAPI
+    dbVersion: int32 = 40 @exclude(graphql,openapi)
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User
+    success: bool @required
+}
+
+/// User management service
+service UserService {
+    /// Get a user by ID
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) @http(GET) @path("/api/v1/users/{id}") @graphql(query)
+}

@@ -1,0 +1,24 @@
+# Example of namespace-level annotations via YAML (Option 2)
+# This approach is useful for separating concerns and environment-specific configs
+
+namespaces:
+  com.example.users:
+    proto:
+      options:
+        go_package: "github.com/rasmartins/typemux/examples/proto"
+        java_package: "com.example.proto"
+        java_multiple_files: "true"
+        csharp_namespace: "Example.Proto"
+        objc_class_prefix: "EXP"
+
+    graphql:
+      directive: "@link(url: \"https://specs.apollo.dev/federation/v2.0\")"
+
+    openapi:
+      info:
+        title: "User Service API"
+        version: "1.0.0"
+        description: "User management service"
+      extensions:
+        x-api-id: "user-service"
+        x-internal-id: "prod-users-001"

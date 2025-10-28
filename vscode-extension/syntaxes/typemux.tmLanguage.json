@@ -1,0 +1,121 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "TypeMux Schema",
+  "scopeName": "source.typemux",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#attributes" },
+    { "include": "#operators" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.typemux",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.documentation.typemux",
+          "match": "///.*$"
+        },
+        {
+          "name": "comment.block.typemux",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.typemux",
+          "match": "\\b(namespace|import|enum|type|union|service|rpc|returns)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.primitive.typemux",
+          "match": "\\b(string|int32|int64|float32|float64|bool|timestamp|bytes)\\b"
+        },
+        {
+          "name": "support.type.map.typemux",
+          "match": "\\bmap\\s*<"
+        },
+        {
+          "name": "entity.name.type.qualified.typemux",
+          "match": "\\b[a-z][a-zA-Z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)*\\.[A-Z][a-zA-Z0-9]*\\b"
+        },
+        {
+          "name": "entity.name.type.typemux",
+          "match": "\\b[A-Z][a-zA-Z0-9]*\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.typemux",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.typemux",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.typemux",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.format-name.typemux",
+          "match": "@(proto|graphql|openapi)\\.name\\b"
+        },
+        {
+          "name": "entity.other.attribute-name.format-specific.typemux",
+          "match": "@(proto|graphql|openapi)\\.(option|directive|extension)\\b"
+        },
+        {
+          "name": "keyword.other.attribute.typemux",
+          "match": "@(required|default|exclude|only|http|graphql|path|proto|openapi|success|errors)\\b"
+        },
+        {
+          "name": "entity.other.attribute-name.typemux",
+          "match": "@\\w+"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.typemux",
+          "match": "=|:"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.definition.typemux",
+          "match": "[{}()\\[\\]<>,]"
+        }
+      ]
+    }
+  }
+}

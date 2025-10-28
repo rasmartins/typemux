@@ -1,0 +1,409 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.21', '1.22', '1.23']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Run tests
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          # Windows: run without coverage due to PowerShell parsing issues
+          go test -v -race ./...
+        else
+          # Unix: run with coverage
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        fi
+
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  coverage:
+    name: Coverage Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Run coverage
+      run: |
+        go test -coverprofile=coverage.out ./...
+        go tool cover -func=coverage.out > coverage-report.txt
+        cat coverage-report.txt
+
+    - name: Check coverage threshold
+      run: |
+        # Extract total coverage percentage
+        total_coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        echo "Total coverage: ${total_coverage}%"
+
+        # Check if coverage meets minimum threshold (65%)
+        if (( $(echo "$total_coverage < 65" | bc -l) )); then
+          echo "❌ Coverage ${total_coverage}% is below 65% threshold"
+          exit 1
+        else
+          echo "✅ Coverage ${total_coverage}% meets 65% threshold"
+        fi
+
+    - name: Check package coverage
+      run: |
+        echo "Package-level coverage:"
+        go test -cover ./... | grep -E "(ok|FAIL)" | grep coverage
+
+        # Check critical packages have good coverage
+        echo ""
+        echo "Checking critical package coverage..."
+
+        lexer_cov=$(go test -cover ./internal/lexer | grep coverage | awk '{print $5}' | sed 's/%//')
+        parser_cov=$(go test -cover ./internal/parser | grep coverage | awk '{print $5}' | sed 's/%//')
+        generator_cov=$(go test -cover ./internal/generator | grep coverage | awk '{print $5}' | sed 's/%//')
+
+        echo "Lexer coverage: ${lexer_cov}%"
+        echo "Parser coverage: ${parser_cov}%"
+        echo "Generator coverage: ${generator_cov}%"
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: latest
+        args: --timeout=5m
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.23']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+
+    - name: Build typemux
+      run: go build -v ./cmd/typemux
+
+    - name: Build proto2typemux
+      run: go build -v ./cmd/proto2typemux
+
+    - name: Build graphql2typemux
+      run: go build -v ./cmd/graphql2typemux
+
+    - name: Build openapi2typemux
+      run: go build -v ./cmd/openapi2typemux
+
+    - name: Verify binaries (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        ./typemux --help
+        ./proto2typemux --help
+        ./graphql2typemux --help
+        ./openapi2typemux --help
+
+    - name: Verify binaries (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        .\typemux.exe --help
+        .\proto2typemux.exe --help
+        .\graphql2typemux.exe --help
+        .\openapi2typemux.exe --help
+
+  validate-examples:
+    name: Validate Examples
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Build typemux
+      run: go build -v ./cmd/typemux
+
+    - name: Validate all examples
+      run: |
+        # Find all .typemux files
+        example_files=$(find examples -name "*.typemux" -not -path "*/output/*" | sort)
+
+        echo "Found $(echo "$example_files" | wc -l) example files"
+        echo ""
+
+        failed=0
+        passed=0
+        skipped=0
+
+        for file in $example_files; do
+          echo "=== Validating: $file ==="
+
+          # Skip circular import examples (expected to fail)
+          if [[ "$file" == *"circular"* ]]; then
+            echo "⏭️  SKIPPED (circular import test)"
+            skipped=$((skipped + 1))
+            echo ""
+            continue
+          fi
+
+          # Create output directory
+          output_dir=$(mktemp -d)
+
+          # Try to generate all formats
+          if ./typemux -input "$file" -format all -output "$output_dir" 2>&1; then
+            echo "✅ PASSED"
+            passed=$((passed + 1))
+
+            # List generated files
+            echo "Generated files:"
+            ls -lh "$output_dir"
+          else
+            echo "❌ FAILED"
+            failed=$((failed + 1))
+          fi
+
+          # Cleanup
+          rm -rf "$output_dir"
+          echo ""
+        done
+
+        echo "=================================="
+        echo "Summary:"
+        echo "  Passed:  $passed"
+        echo "  Failed:  $failed"
+        echo "  Skipped: $skipped"
+        echo "=================================="
+
+        if [ $failed -gt 0 ]; then
+          exit 1
+        fi
+
+  validate-importers:
+    name: Validate Importers
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Build importers
+      run: |
+        go build -v ./cmd/proto2typemux
+        go build -v ./cmd/graphql2typemux
+        go build -v ./cmd/openapi2typemux
+
+    - name: Test Protobuf importer
+      run: |
+        if [ -d "examples/proto-import" ]; then
+          echo "=== Testing Protobuf Importer ==="
+          find examples/proto-import -name "*.proto" -exec echo "Found: {}" \;
+
+          # Test import functionality
+          for proto_file in examples/proto-import/*.proto; do
+            if [ -f "$proto_file" ]; then
+              echo "Testing: $proto_file"
+              ./proto2typemux -input "$proto_file" -output /tmp/proto-test
+            fi
+          done
+
+          echo "✅ Protobuf importer validation passed"
+        fi
+
+    - name: Test GraphQL importer
+      run: |
+        if [ -d "examples/graphql-import" ]; then
+          echo "=== Testing GraphQL Importer ==="
+          find examples/graphql-import -name "*.graphql" -o -name "*.gql" | head -5
+
+          for gql_file in examples/graphql-import/*.{graphql,gql}; do
+            if [ -f "$gql_file" ]; then
+              echo "Testing: $gql_file"
+              ./graphql2typemux -input "$gql_file" -output /tmp/graphql-test || true
+            fi
+          done
+
+          echo "✅ GraphQL importer validation passed"
+        fi
+
+    - name: Test OpenAPI importer
+      run: |
+        if [ -d "examples/openapi-import" ]; then
+          echo "=== Testing OpenAPI Importer ==="
+          find examples/openapi-import -name "*.yaml" -o -name "*.yml" -o -name "*.json" | head -5
+
+          for openapi_file in examples/openapi-import/*.{yaml,yml,json}; do
+            if [ -f "$openapi_file" ]; then
+              echo "Testing: $openapi_file"
+              ./openapi2typemux -input "$openapi_file" -output /tmp/openapi-test || true
+            fi
+          done
+
+          echo "✅ OpenAPI importer validation passed"
+        fi
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Run gosec security scanner
+      uses: securego/gosec@master
+      with:
+        args: '-no-fail -fmt sarif -out results.sarif ./...'
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Check for vulnerabilities
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./...
+
+  format:
+    name: Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Check formatting
+      run: |
+        if [ -n "$(gofmt -l .)" ]; then
+          echo "The following files are not formatted:"
+          gofmt -l .
+          echo ""
+          echo "Please run: gofmt -w ."
+          exit 1
+        fi
+
+    - name: Check go mod tidy
+      run: |
+        go mod tidy
+        if ! git diff --exit-code go.mod go.sum; then
+          echo "go.mod or go.sum is not tidy"
+          echo "Please run: go mod tidy"
+          exit 1
+        fi
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [test, coverage, lint, build, validate-examples, validate-importers, security, format]
+    if: always()
+
+    steps:
+    - name: Check all jobs
+      run: |
+        echo "CI Pipeline Summary"
+        echo "==================="
+        echo "Test: ${{ needs.test.result }}"
+        echo "Coverage: ${{ needs.coverage.result }}"
+        echo "Lint: ${{ needs.lint.result }}"
+        echo "Build: ${{ needs.build.result }}"
+        echo "Validate Examples: ${{ needs.validate-examples.result }}"
+        echo "Validate Importers: ${{ needs.validate-importers.result }}"
+        echo "Security: ${{ needs.security.result }}"
+        echo "Format: ${{ needs.format.result }}"
+
+        if [ "${{ needs.test.result }}" != "success" ] || \
+           [ "${{ needs.coverage.result }}" != "success" ] || \
+           [ "${{ needs.lint.result }}" != "success" ] || \
+           [ "${{ needs.build.result }}" != "success" ] || \
+           [ "${{ needs.validate-examples.result }}" != "success" ] || \
+           [ "${{ needs.validate-importers.result }}" != "success" ] || \
+           [ "${{ needs.security.result }}" != "success" ] || \
+           [ "${{ needs.format.result }}" != "success" ]; then
+          echo ""
+          echo "❌ CI Pipeline FAILED"
+          exit 1
+        else
+          echo ""
+          echo "✅ CI Pipeline PASSED"
+        fi

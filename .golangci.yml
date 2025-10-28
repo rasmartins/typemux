@@ -1,0 +1,112 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Vet examines Go source code
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Go static analysis
+    - unused        # Check for unused code
+    - gofmt         # Check formatting
+    - goimports     # Check imports formatting
+    - misspell      # Check for misspelled words
+    - revive        # Fast, configurable linter
+    - gocritic      # Opinionated Go linter
+    - gosec         # Security checks
+    - unconvert     # Remove unnecessary type conversions
+    - unparam       # Reports unused function parameters
+    - prealloc      # Find slice declarations that could be preallocated
+
+  disable:
+    - typecheck     # Can conflict with generated code
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  govet:
+    enable-all: true
+    disable:
+      - shadow          # Too strict for this project
+      - fieldalignment  # Memory optimization not priority
+
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: unexported-return
+        disabled: true
+      - name: unused-parameter
+        disabled: true
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - unnamedResult
+      - hugeParam
+      - ifElseChain        # Style preference
+      - paramTypeCombine   # Style preference
+      - sprintfQuotedString  # Already using %q where needed
+
+  gosec:
+    excludes:
+      - G304  # File path from variable - needed for file operations
+      - G204  # Subprocess with variable - needed for CLI tools
+
+  misspell:
+    locale: US
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+  exclude-rules:
+    # Exclude some linters from test files
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+        - gocritic
+        - govet  # Allow unused writes in table-driven tests
+
+    # Exclude generated code
+    - path: (.*)?_generated\.go
+      linters:
+        - all
+
+    # Allow fmt.Println in cmd/ packages
+    - path: cmd/
+      linters:
+        - forbidigo
+
+    # Exclude some staticcheck messages
+    - linters:
+        - staticcheck
+      text: "SA9003:"
+
+    # Long lines in tests are okay
+    - path: _test\.go
+      linters:
+        - lll
+
+  exclude-dirs:
+    - vendor
+    - examples/output
+    - examples/proto-import-output
+    - internal/importers  # Importers are separate tools with their own style
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true

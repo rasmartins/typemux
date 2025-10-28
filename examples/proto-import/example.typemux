@@ -1,0 +1,65 @@
+@typemux("1.0.0")
+namespace example @proto.option(go_package = "github.com/example/proto/example")
+
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0
+  USER_STATUS_ACTIVE = 1
+  USER_STATUS_INACTIVE = 2
+  USER_STATUS_SUSPENDED = 3
+}
+
+type User {
+  id: string = 1
+  name: string = 2
+  email: string = 3
+  age: int32 = 4
+  status: UserStatus = 5
+  created_at: timestamp = 6
+  tags: []string = 7
+  metadata: map<string, string> = 8
+}
+
+type CreateUserRequest {
+  name: string = 1
+  email: string = 2
+  age: int32 = 3
+}
+
+type CreateUserResponse {
+  user: User = 1
+}
+
+type GetUserRequest {
+  id: string = 1
+}
+
+type GetUserResponse {
+  user: User = 1
+}
+
+type ListUsersRequest {
+  page_size: int32 = 1
+  page_token: string = 2
+}
+
+type ListUsersResponse {
+  users: []User = 1
+  next_page_token: string = 2
+}
+
+type StreamUsersRequest {
+  filter: string = 1
+}
+
+type StreamUsersResponse {
+  user: User = 1
+}
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
+  rpc GetUser(GetUserRequest) returns (GetUserResponse)
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse)
+  rpc StreamUsers(StreamUsersRequest) returns (stream StreamUsersResponse)
+}
+

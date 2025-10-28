@@ -1,0 +1,62 @@
+# YAML annotations using qualified names to disambiguate between types in different namespaces
+
+types:
+  # Using qualified name to target the User type in com.example.users namespace
+  com.example.users.User:
+    proto:
+      name: "UserAccount"
+    graphql:
+      name: "UserAccount"
+    fields:
+      username:
+        required: true
+      email:
+        required: true
+        openapi:
+          extension: '{"x-format": "email"}'
+
+  # Using qualified name to target the User type in com.example.products namespace
+  com.example.products.User:
+    proto:
+      name: "ProductUser"
+    graphql:
+      name: "ProductOwner"
+    fields:
+      productName:
+        required: true
+      ownerId:
+        required: true
+
+  # Simple name works when there's no ambiguity
+  GetProductRequest:
+    fields:
+      productId:
+        required: true
+
+  GetProductResponse:
+    fields:
+      user:
+        required: true
+      success:
+        required: true
+
+enums:
+  # Qualified name for UserStatus in users namespace
+  com.example.users.UserStatus:
+    proto:
+      name: "UserAccountStatus"
+
+  # Simple name for Status (no ambiguity)
+  Status:
+    proto:
+      name: "ProductAvailability"
+
+services:
+  # Qualified service name
+  com.example.products.ProductService:
+    methods:
+      GetProduct:
+        http: "GET"
+        path: "/api/v1/products/{productId}"
+        graphql: "query"
+        errors: [404, 500]

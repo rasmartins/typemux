@@ -1,0 +1,49 @@
+# TypeMUX Configuration File
+# This file configures code generation for the TypeMUX IDL compiler
+
+# Version of TypeMUX this config is compatible with
+version: "1.0.0"
+
+# Input configuration
+input:
+  # Main schema file (required)
+  schema: examples/basic/basic.typemux
+
+  # Additional annotation files (optional)
+  # annotations:
+  #   - examples/annotations/annotations.yaml
+
+# Output configuration
+output:
+  # Output directory for generated files
+  directory: ./generated
+
+  # Formats to generate
+  # Options: graphql, protobuf (or proto), openapi, all
+  formats:
+    - graphql
+    - protobuf
+    - openapi
+
+  # Clean output directory before generation (optional, default: false)
+  clean: false
+
+# Generator-specific settings (optional)
+generators:
+  graphql:
+    # Custom output filename (default: schema.graphql)
+    filename: schema.graphql
+
+  protobuf:
+    # Custom output filename for single namespace (default: schema.proto)
+    filename: schema.proto
+
+    # Import buf validate for validation rules (optional)
+    import_buf_validate: true
+
+  openapi:
+    # Custom output filename (default: openapi.yaml)
+    filename: openapi.yaml
+
+    # OpenAPI version (default: 3.0.0)
+    version: "3.0.0"

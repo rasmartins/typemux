@@ -1,0 +1,90 @@
+@typemux("1.0.0")
+namespace graphql
+
+// User status enumeration
+enum UserStatus {
+  // User account is active
+  ACTIVE = 0
+  // User account is inactive
+  INACTIVE = 1
+  // User account is suspended
+  SUSPENDED = 2
+}
+
+
+
+// Input for creating a new user
+type CreateUserInput {
+  // User's display name
+  name: string = 1
+  // User's email address
+  email: string = 2
+  // User's age (optional)
+  age: int32 = 3
+  // Initial tags for the user
+  tags: []string = 4
+}
+
+// Input for updating an existing user
+type UpdateUserInput {
+  // User's display name
+  name: string = 1
+  // User's email address
+  email: string = 2
+  // User's age
+  age: int32 = 3
+  // Current status of the user account
+  status: UserStatus = 4
+}
+
+// User represents a user account in the system
+type User {
+  // Unique identifier for the user
+  id: string = 1
+  // User's display name
+  name: string = 2
+  // User's email address
+  email: string = 3
+  // User's age (optional)
+  age: int32 = 4
+  // Current status of the user account
+  status: UserStatus = 5
+  // Timestamp when the user was created
+  createdAt: timestamp = 6
+  // List of tags associated with the user
+  tags: []string = 7
+  // Whether the user account is verified
+  isVerified: bool = 8
+}
+
+// Result of user creation
+type CreateUserResult {
+  // The newly created user
+  user: User = 1
+  // Success message
+  message: string = 2
+}
+
+service GraphQLService {
+  // Get a user by their ID
+  // GraphQL query
+  rpc GetUser(GetUserRequest) returns (User)
+  // List all users with optional filtering
+  // GraphQL query
+  rpc ListUsers(ListUsersRequest) returns (User)
+  // Search users by name or email
+  // GraphQL query
+  rpc SearchUsers(SearchUsersRequest) returns (User)
+  // Create a new user account
+  // GraphQL mutation
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResult)
+  // Update an existing user account
+  // GraphQL mutation
+  rpc UpdateUser(UpdateUserRequest) returns (User)
+  // Delete a user account
+  // GraphQL mutation
+  rpc DeleteUser(DeleteUserRequest) returns (Boolean)
+  // Verify a user's email address
+  // GraphQL mutation
+  rpc VerifyUserEmail(VerifyUserEmailRequest) returns (Boolean)
+}

@@ -1,0 +1,61 @@
+@typemux("1.0.0")
+
+/// Example demonstrating union/oneOf types
+
+type TextMessage {
+    content: string @required
+    timestamp: timestamp @required
+}
+
+type ImageMessage {
+    imageUrl: string @required
+    thumbnail: string
+    timestamp: timestamp @required
+}
+
+type VideoMessage {
+    videoUrl: string @required
+    duration: int32 @required
+    thumbnail: string
+    timestamp: timestamp @required
+}
+
+/// A message can be text, image, or video
+union Message {
+    TextMessage
+    ImageMessage
+    VideoMessage
+}
+
+type SendMessageRequest {
+    chatId: string @required
+    message: Message @required
+}
+
+type SendMessageResponse {
+    messageId: string @required
+    success: bool @required
+}
+
+type GetMessageRequest {
+    messageId: string @required
+}
+
+type GetMessageResponse {
+    message: Message @required
+}
+
+service MessageService {
+    /// Send a message (text, image, or video)
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse)
+        @http(POST)
+        @path("/api/v1/messages")
+        @success(201)
+        @errors(400,500)
+
+    /// Get a message by ID
+    rpc GetMessage(GetMessageRequest) returns (GetMessageResponse)
+        @http(GET)
+        @path("/api/v1/messages/{id}")
+        @errors(404,500)
+}

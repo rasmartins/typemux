@@ -1,0 +1,48 @@
+@typemux("1.0.0")
+
+/// Example demonstrating YAML annotations
+/// Annotations are defined in a separate annotations.yaml file
+namespace com.example.api
+
+enum Status {
+    ACTIVE = 1
+    INACTIVE = 2
+    DELETED = 3
+}
+
+type User {
+    id: string = 1
+    username: string = 2
+    email: string = 3
+    status: Status = 4
+    createdAt: timestamp = 5
+}
+
+type Product {
+    id: string = 1
+    name: string = 2
+    price: float64 = 3
+}
+
+type GetUserRequest {
+    userId: string
+}
+
+type GetUserResponse {
+    user: User
+    success: bool
+}
+
+type CreateProductRequest {
+    name: string
+    price: float64
+}
+
+type CreateProductResponse {
+    product: Product
+}
+
+service UserService {
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+    rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse)
+}

@@ -1,0 +1,123 @@
+openapi: 3.0.0
+info:
+    title: chat API
+    version: 1.0.0
+paths:
+    /chatservice/deletemessage:
+        post:
+            summary: DeleteMessage operation
+            operationId: DeleteMessage
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MessageQuery'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Empty'
+    /chatservice/getmessage:
+        get:
+            summary: GetMessage operation
+            operationId: GetMessage
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+    /chatservice/listmessages:
+        get:
+            summary: ListMessages operation
+            operationId: ListMessages
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+    /chatservice/sendmessage:
+        post:
+            summary: SendMessage operation
+            operationId: SendMessage
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MessageRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+    /chatservice/watchmessages:
+        post:
+            summary: WatchMessages operation
+            operationId: WatchMessages
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Empty'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+    /chatservice/watchmessagesbysender:
+        post:
+            summary: WatchMessagesBySender operation
+            operationId: WatchMessagesBySender
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/MessageQuery'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Message'
+components:
+    schemas:
+        Empty:
+            type: object
+        Message:
+            type: object
+            properties:
+                content:
+                    type: string
+                id:
+                    type: string
+                sender:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+        MessageQuery:
+            type: object
+            properties:
+                messageId:
+                    type: string
+        MessageRequest:
+            type: object
+            properties:
+                content:
+                    type: string
+                sender:
+                    type: string

@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/example/common";
+
+// Common status enum
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+}
+
+// Common address type
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip_code = 4;
+  string country = 5;
+}
+
+// Common metadata
+message Metadata {
+  map<string, string> labels = 1;
+  repeated string tags = 2;
+}

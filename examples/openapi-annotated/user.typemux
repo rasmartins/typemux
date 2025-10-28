@@ -1,0 +1,81 @@
+@typemux("1.0.0")
+namespace user
+
+// User represents a user in the system
+type User {
+  id: string = 1
+  username: string = 2
+  email: string = 3
+  role: UserRole = 4
+  createdAt: timestamp = 5
+}
+
+// UserRole defines user permission levels
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+
+// Request to get a user by ID
+type GetUserRequest {
+  id: string = 1
+}
+
+// Request to create a new user
+type CreateUserRequest {
+  username: string = 1
+  email: string = 2
+  role: UserRole = 3
+}
+
+// Request to update a user
+type UpdateUserRequest {
+  id: string = 1
+  username: string = 2
+  email: string = 3
+}
+
+// Request to list users with pagination
+type ListUsersRequest {
+  limit: int32 = 1
+  offset: int32 = 2
+}
+
+// Response containing a list of users
+type UserListResponse {
+  users: []User = 1
+  total: int32 = 2
+}
+
+// Empty response type
+type Empty {
+}
+
+// UserService provides user management operations
+service UserService {
+  // Get a specific user by ID
+  rpc GetUser(GetUserRequest) returns (User)
+    @http(GET)
+    @path("/api/v1/users/{id}")
+
+  // List all users with pagination
+  rpc ListUsers(ListUsersRequest) returns (UserListResponse)
+    @http(GET)
+    @path("/api/v1/users")
+
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (User)
+    @http(POST)
+    @path("/api/v1/users")
+
+  // Update an existing user
+  rpc UpdateUser(UpdateUserRequest) returns (User)
+    @http(PUT)
+    @path("/api/v1/users/{id}")
+
+  // Delete a user by ID
+  rpc DeleteUser(GetUserRequest) returns (Empty)
+    @http(DELETE)
+    @path("/api/v1/users/{id}")
+}

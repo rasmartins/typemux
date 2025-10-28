@@ -1,0 +1,16 @@
+@typemux("1.0.0")
+
+/// Common types shared across services
+
+enum Status {
+    ACTIVE = 1
+    INACTIVE = 2
+    PENDING = 3
+}
+
+type Address {
+    street: string = 1 @required
+    city: string = 2 @required
+    country: string = 3 @required
+    zipCode: string = 4
+}

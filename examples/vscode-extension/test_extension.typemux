@@ -1,0 +1,11 @@
+@typemux("1.0.0")
+
+enum Status {
+ACTIVE = 1
+INACTIVE = 2
+}
+
+type User {
+id: string
+name: string
+}

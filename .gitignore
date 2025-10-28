@@ -1,0 +1,53 @@
+# Binaries (at root level only)
+bin/
+/typemux
+/proto2typemux
+/graphql2typemux
+/openapi2typemux
+/idl-codegen
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Generated files
+generated/
+examples/output/
+examples/proto-import-output/
+
+# Test directories
+test-import/
+test-*/
+
+# Go files
+*.test
+*.out
+go.work
+
+# Coverage files
+coverage.out
+coverage.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+.pytest_cache/
+__pycache__/
+
+# Claude
+CLAUDE.md
+.claude/
+
+# VS Code Extension
+vscode-extension/node_modules/
+vscode-extension/out/
+vscode-extension/*.vsix

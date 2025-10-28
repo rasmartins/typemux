@@ -1,0 +1,44 @@
+// Test schema with multiple namespaces
+// This demonstrates that YAML annotations can use qualified names to disambiguate
+
+@typemux("1.0.0")
+namespace com.example.users
+
+type User {
+    id: string
+    username: string
+    email: string
+}
+
+enum UserStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+}
+
+@typemux("1.0.0")
+namespace com.example.products
+
+type User {
+    id: string
+    productName: string
+    ownerId: string
+}
+
+enum Status {
+    AVAILABLE
+    OUT_OF_STOCK
+}
+
+service ProductService {
+    rpc GetProduct(GetProductRequest) returns (GetProductResponse)
+}
+
+type GetProductRequest {
+    productId: string
+}
+
+type GetProductResponse {
+    user: User
+    success: bool
+}

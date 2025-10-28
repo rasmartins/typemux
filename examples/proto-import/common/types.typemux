@@ -1,0 +1,22 @@
+@typemux("1.0.0")
+namespace common @proto.option(go_package = "github.com/example/common")
+
+enum Status {
+  STATUS_UNSPECIFIED = 0
+  STATUS_ACTIVE = 1
+  STATUS_INACTIVE = 2
+}
+
+type Address {
+  street: string = 1
+  city: string = 2
+  state: string = 3
+  zip_code: string = 4
+  country: string = 5
+}
+
+type Metadata {
+  labels: map<string, string> = 1
+  tags: []string = 2
+}
+

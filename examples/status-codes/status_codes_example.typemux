@@ -1,0 +1,58 @@
+@typemux("1.0.0")
+
+/// Example demonstrating @success and @errors annotations
+
+type User {
+    id: string = 1 @required
+    name: string = 2 @required
+    email: string = 3 @required
+}
+
+type CreateUserRequest {
+    name: string @required
+    email: string @required
+}
+
+type CreateUserResponse {
+    user: User @required
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User
+}
+
+type UpdateUserRequest {
+    userId: string @required
+    name: string
+    email: string
+}
+
+type UpdateUserResponse {
+    user: User @required
+}
+
+service UserService {
+    /// Create a new user - returns 201 Created
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
+        @http(POST)
+        @path("/api/v1/users")
+        @success(201)
+        @errors(400,409,500)
+
+    /// Get a user by ID - standard 200 response
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+        @http(GET)
+        @path("/api/v1/users/{id}")
+        @errors(404,500)
+
+    /// Update a user - can return 200 or 204
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse)
+        @http(PUT)
+        @path("/api/v1/users/{id}")
+        @success(204)
+        @errors(400,404,500)
+}

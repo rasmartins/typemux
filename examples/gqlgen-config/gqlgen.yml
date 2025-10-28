@@ -1,0 +1,56 @@
+schema:
+    - schema.graphql
+exec:
+    filename: generated/exec.go
+    package: github.com/example/userservice/generated
+model:
+    filename: models_gen.go
+resolver:
+    filename: resolver.go
+    type: Resolver
+autobind:
+    - github.com/example/userservice/models
+models:
+    Bytes:
+        model:
+            - '[]byte'
+    CreateUserRequest:
+        model:
+            - github.com/example/userservice/models.CreateUserRequest
+    Empty:
+        model:
+            - github.com/example/userservice/models.Empty
+    GetUserRequest:
+        model:
+            - github.com/example/userservice/models.GetUserRequest
+    ListUsersRequest:
+        model:
+            - github.com/example/userservice/models.ListUsersRequest
+    Timestamp:
+        model:
+            - time.Time
+    UpdateUserRequest:
+        model:
+            - github.com/example/userservice/models.UpdateUserRequest
+    User:
+        model:
+            - github.com/example/userservice/models.User
+    UserListResponse:
+        model:
+            - github.com/example/userservice/models.UserListResponse
+    UserRole:
+        model:
+            - github.com/example/userservice/models.UserRole
+structs:
+    CreateUserRequest:
+        model:
+            - github.com/example/userservice/models.CreateUserRequest
+    GetUserRequest:
+        model:
+            - github.com/example/userservice/models.GetUserRequest
+    ListUsersRequest:
+        model:
+            - github.com/example/userservice/models.ListUsersRequest
+    UpdateUserRequest:
+        model:
+            - github.com/example/userservice/models.UpdateUserRequest

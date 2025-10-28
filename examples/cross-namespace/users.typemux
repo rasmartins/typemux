@@ -1,0 +1,26 @@
+@typemux("1.0.0")
+
+/// Users namespace - defines user-related types
+namespace com.example.users
+
+enum UserStatus {
+    ACTIVE = 1
+    INACTIVE = 2
+    SUSPENDED = 3
+}
+
+enum UserRole {
+    CUSTOMER = 1
+    ADMIN = 2
+    MODERATOR = 3
+}
+
+/// User entity for the users service
+type User {
+    id: string = 1 @required
+    username: string = 2 @required
+    email: string = 3 @required
+    status: UserStatus = 4 @required
+    role: UserRole = 5 @required
+    createdAt: timestamp = 6 @required
+}

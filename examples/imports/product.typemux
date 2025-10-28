@@ -1,0 +1,47 @@
+@typemux("1.0.0")
+
+import "common.typemux"
+
+/// Product service types
+
+type Product {
+    id: string = 1 @required
+    name: string = 2 @required
+    description: string = 3
+    price: float64 = 4 @required
+    status: Status = 5 @required
+    shippingAddress: Address = 6
+}
+
+type CreateProductRequest {
+    name: string @required
+    description: string
+    price: float64 @required
+}
+
+type CreateProductResponse {
+    product: Product @required
+}
+
+type GetProductRequest {
+    productId: string @required
+}
+
+type GetProductResponse {
+    product: Product
+}
+
+service ProductService {
+    /// Create a new product
+    rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse)
+        @http(POST)
+        @path("/api/v1/products")
+        @success(201)
+        @errors(400,500)
+
+    /// Get a product by ID
+    rpc GetProduct(GetProductRequest) returns (GetProductResponse)
+        @http(GET)
+        @path("/api/v1/products/{id}")
+        @errors(404,500)
+}

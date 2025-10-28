@@ -1,0 +1,43 @@
+@typemux("1.0.0")
+
+/// Example demonstrating custom protobuf field numbers
+
+type User {
+    id: string = 1 @required
+    name: string = 2 @required
+    email: string = 5 @required
+    age: int32 = 10
+    /// This field will auto-assign number 11 (next after 10)
+    createdAt: timestamp
+}
+
+type Product {
+    /// Custom sparse numbering (e.g., for backward compatibility)
+    id: string = 1 @required
+    name: string = 2
+    /// Reserved space for future fields (3-9)
+    price: float64 = 10
+    description: string = 11
+    /// Auto-assigned fields continue from 12
+    category: string
+    inStock: bool
+}
+
+enum Priority {
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    URGENT = 10
+}
+
+service UserService {
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+}
+
+type GetUserRequest {
+    userId: string = 1 @required
+}
+
+type GetUserResponse {
+    user: User = 1
+}

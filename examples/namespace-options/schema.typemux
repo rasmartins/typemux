@@ -1,0 +1,45 @@
+@typemux("1.0.0")
+
+/// Example demonstrating namespace-level annotations
+/// Both inline and YAML-based approaches
+
+// Inline namespace annotations (Option 1)
+@proto.option(go_package="github.com/rasmartins/typemux/examples/proto")
+@proto.option(java_package="com.example.proto")
+@proto.option(java_multiple_files=true)
+namespace com.example.users
+
+type User {
+  id: string = 1
+  email: string = 2
+  username: string = 3
+  role: UserRole = 4
+}
+
+enum UserRole {
+  ADMIN = 0
+  USER = 1
+  GUEST = 2
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User)
+    @http(GET)
+    @path("/api/v1/users/{id}")
+    @graphql(query)
+
+  rpc CreateUser(CreateUserRequest) returns (User)
+    @http(POST)
+    @path("/api/v1/users")
+    @graphql(mutation)
+}
+
+type GetUserRequest {
+  id: string = 1
+}
+
+type CreateUserRequest {
+  email: string = 1
+  username: string = 2
+  role: UserRole = 3
+}

@@ -1,0 +1,74 @@
+@typemux("1.0.0")
+
+/// Example demonstrating generator-specific name annotations
+/// Use @proto.name(), @graphql.name(), and @openapi.name() to specify
+/// different type names for each output format
+///
+/// Annotations can be placed BEFORE the declaration (leading) or AFTER (trailing)
+/// This example demonstrates both styles
+namespace com.example.api
+
+enum Status {
+    ACTIVE = 1
+    INACTIVE = 2
+    DELETED = 3
+}
+
+/// User type with different names in each format:
+/// - Protobuf: UserV2
+/// - GraphQL: UserAccount
+/// - OpenAPI: UserProfile
+///
+/// This example uses LEADING annotations (before the type keyword)
+@proto.name("UserV2")
+@graphql.name("UserAccount")
+@openapi.name("UserProfile")
+type User {
+    id: string = 1 @required
+    @required
+    username: string = 2
+    email: string = 3 @required
+    status: Status = 4 @required
+    createdAt: timestamp = 5 @required
+}
+
+/// Product type with custom Protobuf name for versioning
+/// This example uses TRAILING annotation (after the type name)
+type Product @proto.name("ProductV3") {
+    id: string = 1 @required
+    name: string = 2 @required
+    price: float64 = 3 @required
+}
+
+type GetUserRequest {
+    userId: string @required
+}
+
+type GetUserResponse {
+    user: User @required
+    success: bool @required
+}
+
+type CreateProductRequest {
+    name: string @required
+    price: float64 @required
+}
+
+type CreateProductResponse {
+    product: Product @required
+}
+
+/// User service demonstrating name annotations
+service UserService {
+    /// Get a user by ID
+    rpc GetUser(GetUserRequest) returns (GetUserResponse)
+    @http(GET)
+    @path("/api/v1/users/{userId}")
+    @graphql(query)
+
+    /// Create a new product
+    rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse)
+    @http(POST)
+    @path("/api/v1/products")
+    @graphql(mutation)
+}

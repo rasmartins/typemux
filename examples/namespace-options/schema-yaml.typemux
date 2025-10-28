@@ -1,0 +1,17 @@
+/// Example using YAML annotations for namespace-level configuration
+@typemux("1.0.0")
+namespace com.example.users
+
+type User {
+  id: string = 1
+  email: string = 2
+  username: string = 3
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User)
+}
+
+type GetUserRequest {
+  id: string = 1
+}

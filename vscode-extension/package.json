@@ -1,0 +1,72 @@
+{
+  "name": "typemux-schema",
+  "displayName": "TypeMux Schema Language",
+  "description": "Language support for TypeMux IDL schema files",
+  "version": "0.4.0",
+  "publisher": "rasmartins",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "keywords": [
+    "typemux",
+    "idl",
+    "schema",
+    "protobuf",
+    "graphql",
+    "openapi"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "typemux-schema",
+        "aliases": [
+          "TypeMux Schema",
+          "typemux"
+        ],
+        "extensions": [
+          ".typemux"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/icon.png",
+          "dark": "./icons/icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "typemux-schema",
+        "scopeName": "source.typemux",
+        "path": "./syntaxes/typemux.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typemux-schema",
+        "path": "./snippets/typemux.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.70.0",
+    "@vscode/vsce": "^3.6.2",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rasmartins/typemux.git"
+  },
+  "license": "MIT"
+}
