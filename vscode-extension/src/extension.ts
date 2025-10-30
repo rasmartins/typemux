@@ -5,14 +5,15 @@ import { TypeMuxHoverProvider } from './hoverProvider';
 import { TypeMuxSchemaTreeProvider } from './schemaTreeProvider';
 import { TypeMuxCodeActionsProvider } from './codeActionsProvider';
 import { newTypeWizard, newServiceWizard, newFileWizard, importFromExternalFormat } from './wizards';
+import { VisualEditorPanel } from './visualEditorPanel';
 
 export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel('TypeMux');
     outputChannel.show(); // Show the output channel
     outputChannel.appendLine('=================================');
-    outputChannel.appendLine('TypeMux extension v0.6.0 activated');
+    outputChannel.appendLine('TypeMux extension v0.7.0 activated');
     outputChannel.appendLine('Build timestamp: ' + new Date().toISOString());
-    outputChannel.appendLine('Features: Wizards, Import support, Schema tree view');
+    outputChannel.appendLine('Features: Visual Editor, Wizards, Import support, Schema tree view');
     outputChannel.appendLine('=================================');
     console.log('TypeMux extension activated');
 
@@ -120,6 +121,19 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('typemux.import', importFromExternalFormat)
     );
     outputChannel.appendLine('Wizard commands registered');
+
+    // Register visual editor command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('typemux.openVisualEditor', () => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor && editor.document.languageId === 'typemux-schema') {
+                VisualEditorPanel.createOrShow(context.extensionUri, editor.document);
+            } else {
+                vscode.window.showErrorMessage('Please open a .typemux file first');
+            }
+        })
+    );
+    outputChannel.appendLine('Visual editor command registered');
 }
 
 function registerCodeActionCommands(context: vscode.ExtensionContext) {

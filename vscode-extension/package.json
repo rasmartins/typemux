@@ -2,7 +2,7 @@
   "name": "typemux-schema",
   "displayName": "TypeMux Schema Language",
   "description": "Language support for TypeMux IDL schema files",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "rasmartins",
   "engines": {
     "vscode": "^1.70.0"
@@ -91,6 +91,12 @@
         "title": "Import from Proto/GraphQL/OpenAPI",
         "category": "TypeMux",
         "icon": "$(file-code)"
+      },
+      {
+        "command": "typemux.openVisualEditor",
+        "title": "Open Visual Editor",
+        "category": "TypeMux",
+        "icon": "$(preview)"
       }
     ],
     "menus": {
@@ -111,6 +117,11 @@
           "command": "typemux.newService",
           "when": "resourceLangId == typemux-schema",
           "group": "typemux@2"
+        },
+        {
+          "command": "typemux.openVisualEditor",
+          "when": "resourceLangId == typemux-schema",
+          "group": "typemux@3"
         }
       ],
       "explorer/context": [
@@ -136,6 +147,10 @@
         },
         {
           "command": "typemux.import"
+        },
+        {
+          "command": "typemux.openVisualEditor",
+          "when": "resourceLangId == typemux-schema"
         }
       ]
     }
