@@ -474,16 +474,22 @@ export class VisualEditorPanel {
                 </div>
                 <div id="addFieldForm_${type.name}" style="display: none;" class="inline-form">
                     <input type="text" id="fieldName_${type.name}" placeholder="fieldName" />
-                    <select id="fieldType_${type.name}">
-                        <option>string</option>
-                        <option>int32</option>
-                        <option>int64</option>
-                        <option>float32</option>
-                        <option>float64</option>
-                        <option>bool</option>
-                        <option>bytes</option>
-                        <option>timestamp</option>
-                    </select>
+                    <input type="text" id="fieldType_${type.name}" list="typeList_${type.name}" placeholder="Type" style="width: 150px;" />
+                    <datalist id="typeList_${type.name}">
+                        <option value="string">string</option>
+                        <option value="int32">int32</option>
+                        <option value="int64">int64</option>
+                        <option value="float32">float32</option>
+                        <option value="float64">float64</option>
+                        <option value="bool">bool</option>
+                        <option value="bytes">bytes</option>
+                        <option value="timestamp">timestamp</option>
+                        <option value="[]string">[]string (array)</option>
+                        <option value="map<string,string>">map&lt;string,string&gt;</option>
+                        ${schema.types.map(t => `<option value="${t.name}">${t.name} (custom type)</option>`).join('')}
+                        ${schema.enums.map(e => `<option value="${e.name}">${e.name} (enum)</option>`).join('')}
+                        ${schema.unions.map(u => `<option value="${u.name}">${u.name} (union)</option>`).join('')}
+                    </datalist>
                     <input type="number" id="fieldNumber_${type.name}" placeholder="Field #" style="width: 80px;" />
                     <label><input type="checkbox" id="fieldRequired_${type.name}" /> Required</label>
                     <button class="add-button" onclick="confirmAddField('${type.name}')">Add</button>
@@ -572,15 +578,19 @@ export class VisualEditorPanel {
 
         function cancelAddField(typeName) {
             document.getElementById('addFieldForm_' + typeName).style.display = 'none';
+            document.getElementById('fieldName_' + typeName).value = '';
+            document.getElementById('fieldType_' + typeName).value = '';
+            document.getElementById('fieldNumber_' + typeName).value = '';
+            document.getElementById('fieldRequired_' + typeName).checked = false;
         }
 
         function confirmAddField(typeName) {
             const name = document.getElementById('fieldName_' + typeName).value.trim();
-            const type = document.getElementById('fieldType_' + typeName).value;
+            const type = document.getElementById('fieldType_' + typeName).value.trim();
             const fieldNumber = parseInt(document.getElementById('fieldNumber_' + typeName).value) || undefined;
             const required = document.getElementById('fieldRequired_' + typeName).checked;
 
-            if (name) {
+            if (name && type) {
                 vscode.postMessage({
                     type: 'addField',
                     typeName,
