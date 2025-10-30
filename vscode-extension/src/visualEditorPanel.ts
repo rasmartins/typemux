@@ -667,30 +667,44 @@ export class VisualEditorPanel {
                                 <button onclick="deleteTypeAnnotation('${type.name}', '${ann.name}')" title="Remove">×</button>
                             </span>
                         `).join('')}
-                        <button class="add-annotation-btn" onclick="addTypeAnnotation('${type.name}')">+ annotation</button>
+                        <button class="add-annotation-btn" onclick="showAddTypeAnnotation('${type.name}')">+ annotation</button>
                     </div>
                 ` : `
                     <div class="annotations">
-                        <button class="add-annotation-btn" onclick="addTypeAnnotation('${type.name}')">+ Add annotation</button>
+                        <button class="add-annotation-btn" onclick="showAddTypeAnnotation('${type.name}')">+ Add annotation</button>
                     </div>
                 `}
+                <div id="addTypeAnnotationForm_${type.name}" style="display: none;" class="inline-form">
+                    <input type="text" id="typeAnnotationName_${type.name}" placeholder="@annotation" style="width: 200px;" />
+                    <input type="text" id="typeAnnotationValue_${type.name}" placeholder="value (optional)" style="width: 200px;" />
+                    <button class="add-button" onclick="confirmAddTypeAnnotation('${type.name}')">Add</button>
+                    <button class="add-button" onclick="cancelAddTypeAnnotation('${type.name}')">Cancel</button>
+                </div>
                 <div class="field-list">
                     ${type.fields.length === 0 ? '<div style="color: var(--vscode-descriptionForeground); padding: 10px;">No fields</div>' : ''}
                     ${type.fields.map(field => `
-                        <div class="field-item">
-                            <div class="field-info">
-                                <span class="field-name">${field.name}</span>
-                                <span class="field-type">${field.type}</span>
-                                ${field.fieldNumber !== undefined ? `<span class="field-meta">= ${field.fieldNumber}</span>` : ''}
-                                ${field.required ? '<span class="field-meta">@required</span>' : ''}
-                                ${field.defaultValue ? `<span class="field-meta">@default(${field.defaultValue})</span>` : ''}
-                                ${field.annotations.filter(a => a.name !== '@required' && !a.name.startsWith('@default')).map(ann => `
-                                    <span class="field-meta">${ann.name}${ann.value ? `(${ann.value})` : ''}</span>
-                                `).join('')}
+                        <div>
+                            <div class="field-item">
+                                <div class="field-info">
+                                    <span class="field-name">${field.name}</span>
+                                    <span class="field-type">${field.type}</span>
+                                    ${field.fieldNumber !== undefined ? `<span class="field-meta">= ${field.fieldNumber}</span>` : ''}
+                                    ${field.required ? '<span class="field-meta">@required</span>' : ''}
+                                    ${field.defaultValue ? `<span class="field-meta">@default(${field.defaultValue})</span>` : ''}
+                                    ${field.annotations.filter(a => a.name !== '@required' && !a.name.startsWith('@default')).map(ann => `
+                                        <span class="field-meta">${ann.name}${ann.value ? `(${ann.value})` : ''}</span>
+                                    `).join('')}
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button onclick="showAddFieldAnnotation('${type.name}', '${field.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
+                                    <button onclick="deleteField('${type.name}', '${field.name}')" title="Delete Field">🗑️</button>
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 5px;">
-                                <button onclick="addFieldAnnotation('${type.name}', '${field.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
-                                <button onclick="deleteField('${type.name}', '${field.name}')" title="Delete Field">🗑️</button>
+                            <div id="addFieldAnnotationForm_${type.name}_${field.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
+                                <input type="text" id="fieldAnnotationName_${type.name}_${field.name}" placeholder="@annotation" style="width: 150px;" />
+                                <input type="text" id="fieldAnnotationValue_${type.name}_${field.name}" placeholder="value (optional)" style="width: 150px;" />
+                                <button class="add-button" onclick="confirmAddFieldAnnotation('${type.name}', '${field.name}')">Add</button>
+                                <button class="add-button" onclick="cancelAddFieldAnnotation('${type.name}', '${field.name}')">Cancel</button>
                             </div>
                         </div>
                     `).join('')}
@@ -756,24 +770,32 @@ export class VisualEditorPanel {
                 </div>
                 ${service.documentation ? `<div style="color: var(--vscode-descriptionForeground); margin-bottom: 10px;">${service.documentation}</div>` : ''}
                 ${service.methods.map(method => `
-                    <div class="field-item" style="flex-direction: column; align-items: flex-start;">
-                        <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
-                            <div class="field-info">
-                                <span class="field-name">${method.name}</span>
-                                <span class="field-type">(${method.request}) → ${method.response}</span>
+                    <div>
+                        <div class="field-item" style="flex-direction: column; align-items: flex-start;">
+                            <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                                <div class="field-info">
+                                    <span class="field-name">${method.name}</span>
+                                    <span class="field-type">(${method.request}) → ${method.response}</span>
+                                </div>
+                                <button onclick="showAddMethodAnnotation('${service.name}', '${method.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
                             </div>
-                            <button onclick="addMethodAnnotation('${service.name}', '${method.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
+                            ${method.annotations.length > 0 ? `
+                                <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                    ${method.annotations.map(ann => `
+                                        <span class="annotation-tag">
+                                            ${ann.name}${ann.value ? `(${ann.value})` : ''}
+                                            <button onclick="deleteMethodAnnotation('${service.name}', '${method.name}', '${ann.name}')" title="Remove">×</button>
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
-                        ${method.annotations.length > 0 ? `
-                            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
-                                ${method.annotations.map(ann => `
-                                    <span class="annotation-tag">
-                                        ${ann.name}${ann.value ? `(${ann.value})` : ''}
-                                        <button onclick="deleteMethodAnnotation('${service.name}', '${method.name}', '${ann.name}')" title="Remove">×</button>
-                                    </span>
-                                `).join('')}
-                            </div>
-                        ` : ''}
+                        <div id="addMethodAnnotationForm_${service.name}_${method.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
+                            <input type="text" id="methodAnnotationName_${service.name}_${method.name}" placeholder="@annotation" style="width: 150px;" />
+                            <input type="text" id="methodAnnotationValue_${service.name}_${method.name}" placeholder="value (optional)" style="width: 150px;" />
+                            <button class="add-button" onclick="confirmAddMethodAnnotation('${service.name}', '${method.name}')">Add</button>
+                            <button class="add-button" onclick="cancelAddMethodAnnotation('${service.name}', '${method.name}')">Cancel</button>
+                        </div>
                     </div>
                 `).join('')}
             </div>
@@ -853,13 +875,25 @@ export class VisualEditorPanel {
         }
 
         // Type annotation functions
-        function addTypeAnnotation(typeName) {
-            const annotation = prompt('Enter annotation (e.g., @proto.name("CustomName") or @graphql.directive(@key(fields: "id")))');
-            if (annotation) {
-                const parsed = parseAnnotation(annotation);
-                if (parsed) {
-                    vscode.postMessage({ type: 'addTypeAnnotation', typeName, annotation: parsed });
-                }
+        function showAddTypeAnnotation(typeName) {
+            document.getElementById('addTypeAnnotationForm_' + typeName).style.display = 'flex';
+            document.getElementById('typeAnnotationName_' + typeName).focus();
+        }
+
+        function cancelAddTypeAnnotation(typeName) {
+            document.getElementById('addTypeAnnotationForm_' + typeName).style.display = 'none';
+            document.getElementById('typeAnnotationName_' + typeName).value = '';
+            document.getElementById('typeAnnotationValue_' + typeName).value = '';
+        }
+
+        function confirmAddTypeAnnotation(typeName) {
+            const name = document.getElementById('typeAnnotationName_' + typeName).value.trim();
+            const value = document.getElementById('typeAnnotationValue_' + typeName).value.trim();
+
+            if (name) {
+                const parsed = parseAnnotation(name, value);
+                vscode.postMessage({ type: 'addTypeAnnotation', typeName, annotation: parsed });
+                cancelAddTypeAnnotation(typeName);
             }
         }
 
@@ -868,24 +902,48 @@ export class VisualEditorPanel {
         }
 
         // Field annotation functions
-        function addFieldAnnotation(typeName, fieldName) {
-            const annotation = prompt('Enter annotation (e.g., @required, @proto.option([packed = false]), @graphql.directive(@external))');
-            if (annotation) {
-                const parsed = parseAnnotation(annotation);
-                if (parsed) {
-                    vscode.postMessage({ type: 'addFieldAnnotation', typeName, fieldName, annotation: parsed });
-                }
+        function showAddFieldAnnotation(typeName, fieldName) {
+            document.getElementById('addFieldAnnotationForm_' + typeName + '_' + fieldName).style.display = 'flex';
+            document.getElementById('fieldAnnotationName_' + typeName + '_' + fieldName).focus();
+        }
+
+        function cancelAddFieldAnnotation(typeName, fieldName) {
+            document.getElementById('addFieldAnnotationForm_' + typeName + '_' + fieldName).style.display = 'none';
+            document.getElementById('fieldAnnotationName_' + typeName + '_' + fieldName).value = '';
+            document.getElementById('fieldAnnotationValue_' + typeName + '_' + fieldName).value = '';
+        }
+
+        function confirmAddFieldAnnotation(typeName, fieldName) {
+            const name = document.getElementById('fieldAnnotationName_' + typeName + '_' + fieldName).value.trim();
+            const value = document.getElementById('fieldAnnotationValue_' + typeName + '_' + fieldName).value.trim();
+
+            if (name) {
+                const parsed = parseAnnotation(name, value);
+                vscode.postMessage({ type: 'addFieldAnnotation', typeName, fieldName, annotation: parsed });
+                cancelAddFieldAnnotation(typeName, fieldName);
             }
         }
 
         // Method annotation functions
-        function addMethodAnnotation(serviceName, methodName) {
-            const annotation = prompt('Enter annotation (e.g., @http(GET), @path("/api/v1/users"), @errors(404,500))');
-            if (annotation) {
-                const parsed = parseAnnotation(annotation);
-                if (parsed) {
-                    vscode.postMessage({ type: 'addMethodAnnotation', serviceName, methodName, annotation: parsed });
-                }
+        function showAddMethodAnnotation(serviceName, methodName) {
+            document.getElementById('addMethodAnnotationForm_' + serviceName + '_' + methodName).style.display = 'flex';
+            document.getElementById('methodAnnotationName_' + serviceName + '_' + methodName).focus();
+        }
+
+        function cancelAddMethodAnnotation(serviceName, methodName) {
+            document.getElementById('addMethodAnnotationForm_' + serviceName + '_' + methodName).style.display = 'none';
+            document.getElementById('methodAnnotationName_' + serviceName + '_' + methodName).value = '';
+            document.getElementById('methodAnnotationValue_' + serviceName + '_' + methodName).value = '';
+        }
+
+        function confirmAddMethodAnnotation(serviceName, methodName) {
+            const name = document.getElementById('methodAnnotationName_' + serviceName + '_' + methodName).value.trim();
+            const value = document.getElementById('methodAnnotationValue_' + serviceName + '_' + methodName).value.trim();
+
+            if (name) {
+                const parsed = parseAnnotation(name, value);
+                vscode.postMessage({ type: 'addMethodAnnotation', serviceName, methodName, annotation: parsed });
+                cancelAddMethodAnnotation(serviceName, methodName);
             }
         }
 
@@ -893,26 +951,16 @@ export class VisualEditorPanel {
             vscode.postMessage({ type: 'deleteMethodAnnotation', serviceName, methodName, annotationName });
         }
 
-        // Helper function to parse annotation string
-        function parseAnnotation(str) {
-            str = str.trim();
-            if (!str.startsWith('@')) {
-                str = '@' + str;
+        // Helper function to parse annotation
+        function parseAnnotation(name, value) {
+            name = name.trim();
+            if (!name.startsWith('@')) {
+                name = '@' + name;
             }
 
-            // Match @name or @name(value)
-            const match = str.match(/^(@[\\w.]+)(?:\\((.*)\\))?$/);
-            if (match) {
-                return {
-                    name: match[1],
-                    value: match[2] || undefined
-                };
-            }
-
-            // If no match, treat the whole thing as name
             return {
-                name: str,
-                value: undefined
+                name: name,
+                value: value || undefined
             };
         }
     </script>
