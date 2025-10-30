@@ -675,8 +675,15 @@ export class VisualEditorPanel {
                     </div>
                 `}
                 <div id="addTypeAnnotationForm_${type.name}" style="display: none;" class="inline-form">
-                    <input type="text" id="typeAnnotationName_${type.name}" placeholder="@annotation" style="width: 200px;" />
-                    <input type="text" id="typeAnnotationValue_${type.name}" placeholder="value (optional)" style="width: 200px;" />
+                    <input type="text" id="typeAnnotationName_${type.name}" list="typeAnnotations" placeholder="@annotation" style="width: 220px;" />
+                    <datalist id="typeAnnotations">
+                        <option value="@proto.name">@proto.name(name) - Custom Protobuf name</option>
+                        <option value="@graphql.name">@graphql.name(name) - Custom GraphQL name</option>
+                        <option value="@openapi.name">@openapi.name(name) - Custom OpenAPI name</option>
+                        <option value="@graphql.directive">@graphql.directive(@key(...)) - GraphQL directive</option>
+                        <option value="@openapi.extension">@openapi.extension({...}) - OpenAPI extension</option>
+                    </datalist>
+                    <input type="text" id="typeAnnotationValue_${type.name}" placeholder='value: "Name" or {key:"val"}' style="width: 220px;" />
                     <button class="add-button" onclick="confirmAddTypeAnnotation('${type.name}')">Add</button>
                     <button class="add-button" onclick="cancelAddTypeAnnotation('${type.name}')">Cancel</button>
                 </div>
@@ -701,8 +708,16 @@ export class VisualEditorPanel {
                                 </div>
                             </div>
                             <div id="addFieldAnnotationForm_${type.name}_${field.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
-                                <input type="text" id="fieldAnnotationName_${type.name}_${field.name}" placeholder="@annotation" style="width: 150px;" />
-                                <input type="text" id="fieldAnnotationValue_${type.name}_${field.name}" placeholder="value (optional)" style="width: 150px;" />
+                                <input type="text" id="fieldAnnotationName_${type.name}_${field.name}" list="fieldAnnotations" placeholder="@annotation" style="width: 180px;" />
+                                <datalist id="fieldAnnotations">
+                                    <option value="@required">@required - Field is required</option>
+                                    <option value="@default">@default(value) - Default value</option>
+                                    <option value="@proto.option">@proto.option([...]) - Protobuf field option</option>
+                                    <option value="@graphql.directive">@graphql.directive(@...) - GraphQL directive</option>
+                                    <option value="@openapi.extension">@openapi.extension({...}) - OpenAPI extension</option>
+                                    <option value="@deprecated">@deprecated - Mark as deprecated</option>
+                                </datalist>
+                                <input type="text" id="fieldAnnotationValue_${type.name}_${field.name}" placeholder='value (optional)' style="width: 180px;" />
                                 <button class="add-button" onclick="confirmAddFieldAnnotation('${type.name}', '${field.name}')">Add</button>
                                 <button class="add-button" onclick="cancelAddFieldAnnotation('${type.name}', '${field.name}')">Cancel</button>
                             </div>
@@ -791,8 +806,16 @@ export class VisualEditorPanel {
                             ` : ''}
                         </div>
                         <div id="addMethodAnnotationForm_${service.name}_${method.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
-                            <input type="text" id="methodAnnotationName_${service.name}_${method.name}" placeholder="@annotation" style="width: 150px;" />
-                            <input type="text" id="methodAnnotationValue_${service.name}_${method.name}" placeholder="value (optional)" style="width: 150px;" />
+                            <input type="text" id="methodAnnotationName_${service.name}_${method.name}" list="methodAnnotations" placeholder="@annotation" style="width: 180px;" />
+                            <datalist id="methodAnnotations">
+                                <option value="@http">@http(GET|POST|PUT|DELETE|PATCH) - HTTP method</option>
+                                <option value="@path">@path("/api/v1/...") - URL path</option>
+                                <option value="@graphql">@graphql(query|mutation|subscription) - GraphQL operation</option>
+                                <option value="@success">@success(201|204) - Success status code</option>
+                                <option value="@errors">@errors(400,404,500) - Error status codes</option>
+                                <option value="@deprecated">@deprecated - Mark as deprecated</option>
+                            </datalist>
+                            <input type="text" id="methodAnnotationValue_${service.name}_${method.name}" placeholder='value: GET, "/path", etc.' style="width: 180px;" />
                             <button class="add-button" onclick="confirmAddMethodAnnotation('${service.name}', '${method.name}')">Add</button>
                             <button class="add-button" onclick="cancelAddMethodAnnotation('${service.name}', '${method.name}')">Cancel</button>
                         </div>
