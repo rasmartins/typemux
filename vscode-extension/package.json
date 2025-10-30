@@ -2,7 +2,7 @@
   "name": "typemux-schema",
   "displayName": "TypeMux Schema Language",
   "description": "Language support for TypeMux IDL schema files",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "rasmartins",
   "engines": {
     "vscode": "^1.70.0"
@@ -67,6 +67,30 @@
         "title": "Refresh Schema Tree",
         "category": "TypeMux",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "typemux.newType",
+        "title": "New Type (Wizard)",
+        "category": "TypeMux",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "typemux.newService",
+        "title": "New Service (Wizard)",
+        "category": "TypeMux",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "typemux.newFile",
+        "title": "New TypeMux File",
+        "category": "TypeMux",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "typemux.import",
+        "title": "Import from Proto/GraphQL/OpenAPI",
+        "category": "TypeMux",
+        "icon": "$(file-code)"
       }
     ],
     "menus": {
@@ -75,6 +99,43 @@
           "command": "typemux.refreshSchemaTree",
           "when": "view == typemuxSchemaTree",
           "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "typemux.newType",
+          "when": "resourceLangId == typemux-schema",
+          "group": "typemux@1"
+        },
+        {
+          "command": "typemux.newService",
+          "when": "resourceLangId == typemux-schema",
+          "group": "typemux@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "typemux.newFile",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@10"
+        },
+        {
+          "command": "typemux.import",
+          "when": "explorerResourceIsFolder",
+          "group": "typemux@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "typemux.newType",
+          "when": "resourceLangId == typemux-schema"
+        },
+        {
+          "command": "typemux.newService",
+          "when": "resourceLangId == typemux-schema"
+        },
+        {
+          "command": "typemux.import"
         }
       ]
     }

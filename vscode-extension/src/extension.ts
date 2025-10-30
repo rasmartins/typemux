@@ -4,14 +4,15 @@ import { TypeMuxDefinitionProvider } from './definitionProvider';
 import { TypeMuxHoverProvider } from './hoverProvider';
 import { TypeMuxSchemaTreeProvider } from './schemaTreeProvider';
 import { TypeMuxCodeActionsProvider } from './codeActionsProvider';
+import { newTypeWizard, newServiceWizard, newFileWizard, importFromExternalFormat } from './wizards';
 
 export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel('TypeMux');
     outputChannel.show(); // Show the output channel
     outputChannel.appendLine('=================================');
-    outputChannel.appendLine('TypeMux extension v0.5.0 activated');
+    outputChannel.appendLine('TypeMux extension v0.6.0 activated');
     outputChannel.appendLine('Build timestamp: ' + new Date().toISOString());
-    outputChannel.appendLine('Features: Namespace support, Schema tree view');
+    outputChannel.appendLine('Features: Wizards, Import support, Schema tree view');
     outputChannel.appendLine('=================================');
     console.log('TypeMux extension activated');
 
@@ -104,6 +105,21 @@ export function activate(context: vscode.ExtensionContext) {
     // Register code action commands
     registerCodeActionCommands(context);
     outputChannel.appendLine('Code action commands registered');
+
+    // Register wizard commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('typemux.newType', newTypeWizard)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('typemux.newService', newServiceWizard)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('typemux.newFile', newFileWizard)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('typemux.import', importFromExternalFormat)
+    );
+    outputChannel.appendLine('Wizard commands registered');
 }
 
 function registerCodeActionCommands(context: vscode.ExtensionContext) {
