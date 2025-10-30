@@ -1,0 +1,60 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Example demonstrating union/oneOf types
+message TextMessage {
+  string content = 1;
+  google.protobuf.Timestamp timestamp = 2;
+}
+
+message ImageMessage {
+  string imageUrl = 1;
+  string thumbnail = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message VideoMessage {
+  string videoUrl = 1;
+  int32 duration = 2;
+  string thumbnail = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message SendMessageRequest {
+  string chatId = 1;
+  Message message = 2;
+}
+
+message SendMessageResponse {
+  string messageId = 1;
+  bool success = 2;
+}
+
+message GetMessageRequest {
+  string messageId = 1;
+}
+
+message GetMessageResponse {
+  Message message = 1;
+}
+
+// A message can be text, image, or video
+message Message {
+  oneof value {
+    TextMessage textMessage = 1;
+    ImageMessage imageMessage = 2;
+    VideoMessage videoMessage = 3;
+  }
+}
+
+service MessageService {
+  // Send a message (text, image, or video)
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  // Get a message by ID
+  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse);
+}
+

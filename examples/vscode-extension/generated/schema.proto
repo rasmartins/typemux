@@ -1,0 +1,46 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Test file for TypeMUX VS Code extension
+// This demonstrates syntax highlighting and snippets
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  PENDING = 3;
+}
+
+// User message for internal services
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 5;
+  int32 age = 10;
+  Status status = 15;
+  bool isActive = 20;
+  google.protobuf.Timestamp createdAt = 25;
+  repeated string tags = 30;
+  map<string, string> metadata = 35;
+  // Internal field excluded from GraphQL and OpenAPI
+  int32 dbVersion = 40;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+  bool success = 2;
+}
+
+// User management service
+service UserService {
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+

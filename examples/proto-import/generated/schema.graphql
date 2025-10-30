@@ -1,0 +1,83 @@
+# Generated GraphQL Schema
+# Namespace: example
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED
+  USER_STATUS_ACTIVE
+  USER_STATUS_INACTIVE
+  USER_STATUS_SUSPENDED
+}
+
+type User {
+  id: String
+  name: String
+  email: String
+  age: Int
+  status: UserStatus
+  created_at: String
+  tags: [String]
+  metadata: [StringStringEntry!]
+}
+
+input CreateUserRequest {
+  name: String
+  email: String
+  age: Int
+}
+
+type CreateUserResponse {
+  user: User
+}
+
+input GetUserRequest {
+  id: String
+}
+
+type GetUserResponse {
+  user: User
+}
+
+input ListUsersRequest {
+  page_size: Int
+  page_token: String
+}
+
+type ListUsersResponse {
+  users: [User]
+  next_page_token: String
+}
+
+input StreamUsersRequest {
+  filter: String
+}
+
+type StreamUsersResponse {
+  user: User
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+  listUsers(input: ListUsersRequest): ListUsersResponse
+}
+
+type Mutation {
+  createUser(input: CreateUserRequest): CreateUserResponse
+}
+
+type Subscription {
+  streamUsers(input: StreamUsersRequest): StreamUsersResponse
+}

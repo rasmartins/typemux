@@ -1,0 +1,32 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.products;
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  AVAILABLE = 1;
+  OUT_OF_STOCK = 2;
+}
+
+message User {
+  string id = 1;
+  string productName = 2;
+  string ownerId = 3;
+}
+
+message GetProductRequest {
+  string productId = 1;
+}
+
+message GetProductResponse {
+  User user = 1;
+  bool success = 2;
+}
+
+service ProductService {
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+}
+

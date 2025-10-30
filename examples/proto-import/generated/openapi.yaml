@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+    title: example API
+    version: 1.0.0
+paths:
+    /userservice/createuser:
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+    /userservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+    /userservice/listusers:
+        get:
+            summary: ListUsers operation
+            operationId: ListUsers
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersResponse'
+    /userservice/streamusers:
+        post:
+            summary: StreamUsers operation
+            operationId: StreamUsers
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/StreamUsersRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/StreamUsersResponse'
+components:
+    schemas:
+        CreateUserRequest:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                email:
+                    type: string
+                name:
+                    type: string
+        CreateUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        GetUserRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        ListUsersRequest:
+            type: object
+            properties:
+                page_size:
+                    type: integer
+                    format: int32
+                page_token:
+                    type: string
+        ListUsersResponse:
+            type: object
+            properties:
+                next_page_token:
+                    type: string
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/User'
+        StreamUsersRequest:
+            type: object
+            properties:
+                filter:
+                    type: string
+        StreamUsersResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        User:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                created_at:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                metadata:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                tags:
+                    type: array
+                    items:
+                        type: string
+        UserStatus:
+            type: string
+            enum:
+                - USER_STATUS_UNSPECIFIED
+                - USER_STATUS_ACTIVE
+                - USER_STATUS_INACTIVE
+                - USER_STATUS_SUSPENDED

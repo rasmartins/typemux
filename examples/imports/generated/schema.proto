@@ -1,0 +1,56 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Common types shared across services
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  PENDING = 3;
+}
+
+// User service types
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  Address address = 4;
+  Status status = 5;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  Address address = 3;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string country = 3;
+  string zipCode = 4;
+}
+
+service UserService {
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+

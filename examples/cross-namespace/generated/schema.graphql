@@ -1,0 +1,27 @@
+# Generated GraphQL Schema
+# Namespace: com.example.users
+
+directive @oneOf on INPUT_OBJECT
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  MODERATOR
+}
+
+"User entity for the users service"
+type User {
+  id: String!
+  username: String!
+  email: String!
+  status: UserStatus!
+  role: UserRole!
+  createdAt: String!
+}
+

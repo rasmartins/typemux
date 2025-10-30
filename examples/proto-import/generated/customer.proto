@@ -1,0 +1,62 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package customer;
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+}
+
+message Customer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  Status status = 4;
+  Address billing_address = 5;
+  Address shipping_address = 6;
+  Metadata metadata = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CreateCustomerRequest {
+  string name = 1;
+  string email = 2;
+  Address billing_address = 3;
+  Address shipping_address = 4;
+}
+
+message CreateCustomerResponse {
+  Customer customer = 1;
+}
+
+message GetCustomerRequest {
+  string id = 1;
+}
+
+message GetCustomerResponse {
+  Customer customer = 1;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip_code = 4;
+  string country = 5;
+}
+
+message Metadata {
+  map<string, string> labels = 1;
+  repeated string tags = 2;
+}
+
+service CustomerService {
+  rpc CreateCustomer(CreateCustomerRequest) returns (CreateCustomerResponse);
+  rpc GetCustomer(GetCustomerRequest) returns (GetCustomerResponse);
+}
+

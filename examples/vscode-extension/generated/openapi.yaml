@@ -1,0 +1,85 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/users/{id}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+components:
+    schemas:
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - success
+        Status:
+            type: string
+            description: |-
+                Test file for TypeMUX VS Code extension
+                This demonstrates syntax highlighting and snippets
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - PENDING
+        User:
+            type: object
+            description: User entity with custom field numbers
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                isActive:
+                    type: boolean
+                    default: true
+                metadata:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/Status'
+                tags:
+                    type: array
+                    items:
+                        type: string
+            required:
+                - id
+                - name
+                - email
+                - status
+                - createdAt

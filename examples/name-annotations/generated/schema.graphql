@@ -1,0 +1,53 @@
+# Generated GraphQL Schema
+# Namespace: com.example.api
+
+directive @oneOf on INPUT_OBJECT
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+"User type with different names in each format: - Protobuf: UserV2 - GraphQL: UserAccount - OpenAPI: UserProfile  This example uses LEADING annotations (before the type keyword)"
+type UserAccount {
+  id: String!
+  username: String!
+  email: String!
+  status: Status!
+  createdAt: String!
+}
+
+"Product type with custom Protobuf name for versioning This example uses TRAILING annotation (after the type name)"
+type Product {
+  id: String!
+  name: String!
+  price: Float!
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: UserAccount!
+  success: Boolean!
+}
+
+input CreateProductRequest {
+  name: String!
+  price: Float!
+}
+
+type CreateProductResponse {
+  product: Product!
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+
+type Mutation {
+  createProduct(input: CreateProductRequest): CreateProductResponse
+}
+

@@ -1,0 +1,69 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.userservice;
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // Added in version 1.0.0
+  string username = 2 [(buf.validate.field).string.min_len = 3, (buf.validate.field).string.max_len = 30];
+  // Added in version 1.0.0
+  string email = 3 [(buf.validate.field).string.max_len = 255, (buf.validate.field).string.email = true];
+  // Added in version 1.0.0
+  int32 age = 4 [(buf.validate.field).int.gte = 0, (buf.validate.field).int.lte = 150];
+  // Added in version 1.5.0
+  string fullName = 5 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 100];
+  // DEPRECATED (since 2.0.0) - will be removed in 3.0.0
+  // Use fullName instead
+  string displayName = 6 [deprecated = true];
+  // Added in version 2.0.0
+  string website = 7 [(buf.validate.field).string.uri = true];
+  // Added in version 1.0.0
+  int64 balance = 8 [(buf.validate.field).int.gte = 0];
+  // Added in version 1.0.0
+  google.protobuf.Timestamp createdAt = 9;
+  // Added in version 1.5.0
+  google.protobuf.Timestamp lastLogin = 10;
+  // Added in version 1.0.0
+  bool isActive = 11;
+  // Added in version 2.0.0
+  repeated string tags = 12 [(buf.validate.field).repeated.min_items = 0, (buf.validate.field).repeated.max_items = 10, (buf.validate.field).repeated.unique = true];
+  // DEPRECATED (since 1.8.0) - will be removed in 2.5.0
+  // Use email field instead
+  string legacyEmail = 13 [deprecated = true];
+}
+
+message UserPreferences {
+  string userId = 1 [(buf.validate.field).string.uuid = true];
+  string theme = 2;
+  string language = 3 [(buf.validate.field).string.min_len = 2, (buf.validate.field).string.max_len = 5];
+  bool notificationsEnabled = 4;
+}
+
+message UserIdRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListUsersRequest {
+  int32 pageSize = 1 [(buf.validate.field).int.gte = 1, (buf.validate.field).int.lte = 100];
+  string pageToken = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  string nextPageToken = 2;
+}
+
+message EmptyResponse {
+}
+
+service UserService {
+  rpc CreateUser(User) returns (User);
+  rpc GetUser(UserIdRequest) returns (User);
+  rpc UpdateUser(User) returns (User);
+  rpc DeleteUser(UserIdRequest) returns (EmptyResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}
+

@@ -1,0 +1,38 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+directive @oneOf on INPUT_OBJECT
+
+"Example demonstrating format-specific annotations This shows how to add Protobuf options, GraphQL directives, and OpenAPI extensions User type with GraphQL Federation support"
+type User @key(fields:"id") {
+  id: String! @external
+  email: String!
+  name: String!
+  tags: [String]
+}
+
+"Product with OpenAPI extensions"
+type Product {
+  id: String!
+  price: Float!
+  inStock: Boolean!
+}
+
+"Configuration with retention and nested OpenAPI metadata"
+type Config {
+  apiKey: String
+  timeout: Int
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: User!
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+

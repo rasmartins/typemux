@@ -1,0 +1,42 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Example demonstrating format-specific annotations
+// This shows how to add Protobuf options, GraphQL directives, and OpenAPI extensions
+// User type with GraphQL Federation support
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  repeated string tags = 4 [[packed = false]];
+}
+
+// Product with OpenAPI extensions
+message Product {
+  string id = 1;
+  double price = 2;
+  bool inStock = 3;
+}
+
+// Configuration with retention and nested OpenAPI metadata
+message Config {
+  bytes apiKey = 1 [[retention = RETENTION_SOURCE]];
+  int32 timeout = 2;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+

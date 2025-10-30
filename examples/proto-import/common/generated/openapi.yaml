@@ -1,0 +1,38 @@
+openapi: 3.0.0
+info:
+    title: common API
+    version: 1.0.0
+paths: {}
+components:
+    schemas:
+        Address:
+            type: object
+            properties:
+                city:
+                    type: string
+                country:
+                    type: string
+                state:
+                    type: string
+                street:
+                    type: string
+                zip_code:
+                    type: string
+        Metadata:
+            type: object
+            properties:
+                labels:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+        Status:
+            type: string
+            enum:
+                - STATUS_UNSPECIFIED
+                - STATUS_ACTIVE
+                - STATUS_INACTIVE

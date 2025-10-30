@@ -1,0 +1,90 @@
+openapi: 3.0.0
+info:
+    title: com.example.api API
+    version: 1.0.0
+paths:
+    /userservice/createproduct:
+        post:
+            summary: CreateProduct operation
+            operationId: CreateProduct
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateProductRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateProductResponse'
+    /userservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+components:
+    schemas:
+        CreateProductRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+        CreateProductResponse:
+            type: object
+            properties:
+                product:
+                    $ref: '#/components/schemas/Product'
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+        GetUserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                user:
+                    $ref: '#/components/schemas/User'
+        Product:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+        Status:
+            type: string
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - DELETED
+        User:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/Status'
+                username:
+                    type: string

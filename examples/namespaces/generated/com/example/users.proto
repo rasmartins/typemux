@@ -1,0 +1,20 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.users;
+
+import "google/protobuf/timestamp.proto";
+
+enum UserStatus {
+  USERSTATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  SUSPENDED = 3;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+

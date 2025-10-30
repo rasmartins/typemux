@@ -1,0 +1,19 @@
+# Generated GraphQL Schema
+# Namespace: com.example.users
+
+directive @oneOf on INPUT_OBJECT
+
+type User {
+  id: String
+  email: String
+  username: String
+}
+
+input GetUserRequest {
+  id: String
+}
+
+type Query {
+  getUser(input: GetUserRequest): User
+}
+

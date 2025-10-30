@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /userservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+components:
+    schemas:
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        Priority:
+            type: string
+            enum:
+                - LOW
+                - MEDIUM
+                - HIGH
+                - URGENT
+        Product:
+            type: object
+            properties:
+                category:
+                    type: string
+                    description: Auto-assigned fields continue from 12
+                description:
+                    type: string
+                id:
+                    type: string
+                    description: Custom sparse numbering (e.g., for backward compatibility)
+                inStock:
+                    type: boolean
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+                    description: Reserved space for future fields (3-9)
+            required:
+                - id
+        User:
+            type: object
+            description: Example demonstrating custom protobuf field numbers
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: This field will auto-assign number 11 (next after 10)
+                email:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+            required:
+                - id
+                - name
+                - email

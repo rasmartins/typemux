@@ -1,0 +1,106 @@
+openapi: 3.0.0
+info:
+    title: graphql API
+    version: 1.0.0
+paths:
+    /graphqlservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /graphqlservice/newmessages:
+        post:
+            summary: NewMessages operation
+            operationId: NewMessages
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/NewMessagesRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ChatMessage'
+    /graphqlservice/userstatuschanged:
+        post:
+            summary: UserStatusChanged operation
+            operationId: UserStatusChanged
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Empty'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /graphqlservice/userupdates:
+        post:
+            summary: UserUpdates operation
+            operationId: UserUpdates
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserUpdatesRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserUpdate'
+components:
+    schemas:
+        ChatMessage:
+            type: object
+            properties:
+                id:
+                    type: string
+                text:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+                userId:
+                    type: string
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+        UserStatus:
+            type: string
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - SUSPENDED
+        UserUpdate:
+            type: object
+            properties:
+                timestamp:
+                    type: string
+                    format: date-time
+                updateType:
+                    type: string
+                user:
+                    $ref: '#/components/schemas/User'

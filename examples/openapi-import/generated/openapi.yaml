@@ -1,0 +1,165 @@
+openapi: 3.0.0
+info:
+    title: PetStoreAPI API
+    version: 1.0.0
+paths:
+    /petstoreapiservice/createpet:
+        post:
+            summary: CreatePet operation
+            operationId: CreatePet
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreatePetRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Pet'
+    /petstoreapiservice/deletepet:
+        post:
+            summary: DeletePet operation
+            operationId: DeletePet
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeletePetRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Empty'
+    /petstoreapiservice/getpetbyid:
+        get:
+            summary: GetPetById operation
+            operationId: GetPetById
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Pet'
+    /petstoreapiservice/listpets:
+        get:
+            summary: ListPets operation
+            operationId: ListPets
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PetList'
+    /petstoreapiservice/updatepet:
+        post:
+            summary: UpdatePet operation
+            operationId: UpdatePet
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdatePetRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Pet'
+components:
+    schemas:
+        Error:
+            type: object
+            properties:
+                code:
+                    type: string
+                details:
+                    type: string
+                message:
+                    type: string
+        NewPet:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                breed:
+                    type: string
+                name:
+                    type: string
+                species:
+                    type: string
+                status:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+        Pet:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                breed:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                id:
+                    type: string
+                name:
+                    type: string
+                species:
+                    type: string
+                status:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+        PetList:
+            type: object
+            properties:
+                nextOffset:
+                    type: integer
+                    format: int32
+                pets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Pet'
+                total:
+                    type: integer
+                    format: int32
+        PetStatus:
+            type: string
+            enum:
+                - AVAILABLE
+                - PENDING
+                - SOLD
+        UpdatePet:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                breed:
+                    type: string
+                name:
+                    type: string
+                status:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string

@@ -1,0 +1,62 @@
+# Generated GraphQL Schema
+# Namespace: com.example.optionals
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"Example demonstrating optional field syntax Fields marked with ? are explicitly optional Fields marked with @required are required Fields without either are treated as optional by default User profile with a mix of required and optional fields"
+type UserProfile {
+  id: String!
+  username: String!
+  email: String
+  displayName: String
+  bio: String
+  age: Int
+  avatarUrl: String
+  preferences: [StringStringEntry!]
+  tags: [String]
+  createdAt: String!
+  lastLoginAt: String
+}
+
+"Product with pricing information"
+type Product {
+  id: String!
+  name: String!
+  description: String
+  price: Float!
+  discountPercent: Float
+  stockQuantity: Int
+}
+
+input GetProfileRequest {
+  userId: String!
+}
+
+input UpdateProfileRequest {
+  userId: String!
+  email: String
+  displayName: String
+  bio: String
+  avatarUrl: String
+}
+
+type Query {
+  getProfile(input: GetProfileRequest): UserProfile
+}
+
+type Mutation {
+  updateProfile(input: UpdateProfileRequest): UserProfile
+}
+

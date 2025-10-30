@@ -1,0 +1,59 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package user;
+
+import "google/protobuf/timestamp.proto";
+
+enum UserRole {
+  USERROLE_UNSPECIFIED = 0;
+  ADMIN = 1;
+  USER = 2;
+  GUEST = 3;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  UserRole role = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  UserRole role = 3;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message ListUsersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message UserListResponse {
+  repeated User users = 1;
+  int32 total = 2;
+}
+
+message Empty {
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc ListUsers(ListUsersRequest) returns (UserListResponse);
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc DeleteUser(GetUserRequest) returns (Empty);
+}
+

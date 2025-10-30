@@ -1,0 +1,43 @@
+openapi: 3.0.0
+info:
+    title: com.example.users API
+    version: 1.0.0
+paths: {}
+components:
+    schemas:
+        User:
+            type: object
+            description: User entity for the users service
+            properties:
+                createdAt:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                role:
+                    $ref: '#/components/schemas/UserRole'
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                username:
+                    type: string
+            required:
+                - id
+                - username
+                - email
+                - status
+                - role
+                - createdAt
+        UserRole:
+            type: string
+            enum:
+                - CUSTOMER
+                - ADMIN
+                - MODERATOR
+        UserStatus:
+            type: string
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - SUSPENDED

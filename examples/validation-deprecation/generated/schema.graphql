@@ -1,0 +1,72 @@
+# Generated GraphQL Schema
+# Namespace: com.example.userservice
+
+directive @oneOf on INPUT_OBJECT
+
+input UserInput {
+  id: String
+  username: String
+  email: String
+  age: Int
+  fullName: String
+  displayName: String
+  website: String
+  balance: Int
+  createdAt: String
+  lastLogin: String
+  isActive: Boolean
+  tags: [String]
+  legacyEmail: String
+}
+
+type User {
+  id: String
+  username: String
+  email: String
+  age: Int
+  fullName: String
+  displayName: String @deprecated(reason: "Use fullName instead")
+  website: String
+  balance: Int
+  createdAt: String
+  lastLogin: String
+  isActive: Boolean
+  tags: [String]
+  legacyEmail: String @deprecated(reason: "Use email field instead")
+}
+
+type UserPreferences {
+  userId: String
+  theme: String
+  language: String
+  notificationsEnabled: Boolean
+}
+
+input UserIdRequest {
+  id: String
+}
+
+input ListUsersRequest {
+  pageSize: Int
+  pageToken: String
+}
+
+type ListUsersResponse {
+  users: [User]
+  nextPageToken: String
+}
+
+type EmptyResponse {
+}
+
+type Query {
+  getUser(input: UserIdRequest): User
+  listUsers(input: ListUsersRequest): ListUsersResponse
+}
+
+type Mutation {
+  createUser(input: UserInput): User
+  updateUser(input: UserInput): User
+  deleteUser(input: UserIdRequest): EmptyResponse
+}
+

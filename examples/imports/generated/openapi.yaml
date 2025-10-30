@@ -1,0 +1,185 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/users:
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                "201":
+                    description: Created - Resource created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                "400":
+                    description: Bad Request - Invalid input parameters
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "409":
+                    description: Conflict - Resource already exists or conflict
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+    /api/v1/users/{id}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+                "404":
+                    description: Not Found - Resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+components:
+    schemas:
+        Address:
+            type: object
+            properties:
+                city:
+                    type: string
+                country:
+                    type: string
+                street:
+                    type: string
+                zipCode:
+                    type: string
+            required:
+                - street
+                - city
+                - country
+        CreateUserRequest:
+            type: object
+            properties:
+                address:
+                    $ref: '#/components/schemas/Address'
+                email:
+                    type: string
+                name:
+                    type: string
+            required:
+                - name
+                - email
+                - address
+        CreateUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        Status:
+            type: string
+            description: Common types shared across services
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - PENDING
+        User:
+            type: object
+            description: User service types
+            properties:
+                address:
+                    $ref: '#/components/schemas/Address'
+                email:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/Status'
+            required:
+                - id
+                - name
+                - email
+                - status

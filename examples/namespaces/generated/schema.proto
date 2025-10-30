@@ -1,0 +1,50 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.userservice;
+
+import "google/protobuf/timestamp.proto";
+
+// User status enumeration
+enum UserStatus {
+  USERSTATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  SUSPENDED = 3;
+}
+
+// User entity
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  UserStatus status = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+}
+
+message CreateUserResponse {
+  User user = 1;
+  bool success = 2;
+}
+
+// User management service
+service UserService {
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+}
+

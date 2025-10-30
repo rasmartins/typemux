@@ -1,0 +1,48 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+directive @oneOf on INPUT_OBJECT
+
+"Example demonstrating @success and @errors annotations"
+type User {
+  id: String!
+  name: String!
+  email: String!
+}
+
+input CreateUserRequest {
+  name: String!
+  email: String!
+}
+
+type CreateUserResponse {
+  user: User!
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: User
+}
+
+input UpdateUserRequest {
+  userId: String!
+  name: String
+  email: String
+}
+
+type UpdateUserResponse {
+  user: User!
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+
+type Mutation {
+  createUser(input: CreateUserRequest): CreateUserResponse
+  updateUser(input: UpdateUserRequest): UpdateUserResponse
+}
+

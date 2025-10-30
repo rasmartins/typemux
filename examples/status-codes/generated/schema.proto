@@ -1,0 +1,50 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Example demonstrating @success and @errors annotations
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string userId = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+service UserService {
+  // Create a new user - returns 201 Created
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Get a user by ID - standard 200 response
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Update a user - can return 200 or 204
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+}
+

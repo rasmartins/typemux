@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+    title: user API
+    version: 1.0.0
+paths:
+    /api/v1/users:
+        get:
+            summary: ListUsers operation
+            operationId: ListUsers
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserListResponse'
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /api/v1/users/{id}:
+        delete:
+            summary: DeleteUser operation
+            operationId: DeleteUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Empty'
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+        put:
+            summary: UpdateUser operation
+            operationId: UpdateUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+components:
+    schemas:
+        CreateUserRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                role:
+                    $ref: '#/components/schemas/UserRole'
+                username:
+                    type: string
+        Empty:
+            type: object
+        GetUserRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        ListUsersRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+                offset:
+                    type: integer
+                    format: int32
+        UpdateUserRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                username:
+                    type: string
+        User:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                role:
+                    $ref: '#/components/schemas/UserRole'
+                username:
+                    type: string
+        UserListResponse:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/User'
+        UserRole:
+            type: string
+            enum:
+                - ADMIN
+                - USER
+                - GUEST

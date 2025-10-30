@@ -1,0 +1,125 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/users/{userId}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+                "404":
+                    description: Not Found - Resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+components:
+    schemas:
+        Config:
+            type: object
+            description: Configuration with retention and nested OpenAPI metadata
+            properties:
+                apiKey:
+                    type: string
+                    format: byte
+                timeout:
+                    type: integer
+                    format: int32
+                    default: 30
+                    x-validation:
+                        default: 30
+                        max: 3600
+                        min: 1
+            x-metadata:
+                features:
+                    - auth
+                    - caching
+                internal: true
+                version: v2
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+        Product:
+            type: object
+            description: Product with OpenAPI extensions
+            properties:
+                id:
+                    type: string
+                inStock:
+                    type: boolean
+                price:
+                    type: number
+                    format: double
+                    x-format: currency
+                    x-precision: 2
+            required:
+                - id
+                - price
+                - inStock
+            x-category: commerce
+            x-internal-id: prod-v1
+        User:
+            type: object
+            description: |-
+                Example demonstrating format-specific annotations
+                This shows how to add Protobuf options, GraphQL directives, and OpenAPI extensions
+                User type with GraphQL Federation support
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+            required:
+                - id
+                - email
+                - name

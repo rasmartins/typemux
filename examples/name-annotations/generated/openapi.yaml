@@ -1,0 +1,126 @@
+openapi: 3.0.0
+info:
+    title: com.example.api API
+    version: 1.0.0
+paths:
+    /api/v1/products:
+        post:
+            summary: CreateProduct operation
+            operationId: CreateProduct
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateProductRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateProductResponse'
+    /api/v1/users/{userId}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+components:
+    schemas:
+        CreateProductRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+            required:
+                - name
+                - price
+        CreateProductResponse:
+            type: object
+            properties:
+                product:
+                    $ref: '#/components/schemas/Product'
+            required:
+                - product
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                user:
+                    $ref: '#/components/schemas/UserProfile'
+            required:
+                - user
+                - success
+        Product:
+            type: object
+            description: |-
+                Product type with custom Protobuf name for versioning
+                This example uses TRAILING annotation (after the type name)
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+            required:
+                - id
+                - name
+                - price
+        Status:
+            type: string
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - DELETED
+        UserProfile:
+            type: object
+            description: |-
+                User type with different names in each format:
+                - Protobuf: UserV2
+                - GraphQL: UserAccount
+                - OpenAPI: UserProfile
+
+                This example uses LEADING annotations (before the type keyword)
+            properties:
+                createdAt:
+                    type: string
+                    format: date-time
+                email:
+                    type: string
+                id:
+                    type: string
+                status:
+                    $ref: '#/components/schemas/Status'
+                username:
+                    type: string
+            required:
+                - id
+                - username
+                - email
+                - status
+                - createdAt

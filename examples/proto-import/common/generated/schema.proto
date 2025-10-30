@@ -1,0 +1,26 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package common;
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_ACTIVE = 1;
+  STATUS_INACTIVE = 2;
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip_code = 4;
+  string country = 5;
+}
+
+message Metadata {
+  map<string, string> labels = 1;
+  repeated string tags = 2;
+}
+

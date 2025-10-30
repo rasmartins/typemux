@@ -1,0 +1,21 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.users;
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User);
+}
+

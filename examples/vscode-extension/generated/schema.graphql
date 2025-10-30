@@ -1,0 +1,50 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"Test file for TypeMUX VS Code extension This demonstrates syntax highlighting and snippets"
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+"User type for GraphQL API"
+type User {
+  id: String!
+  name: String!
+  email: String!
+  age: Int
+  status: Status!
+  isActive: Boolean
+  createdAt: String!
+  tags: [String]
+  metadata: [StringStringEntry!]
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: User
+  success: Boolean!
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+

@@ -1,0 +1,36 @@
+# Generated GraphQL Schema
+# Namespace: common
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+enum Status {
+  STATUS_UNSPECIFIED
+  STATUS_ACTIVE
+  STATUS_INACTIVE
+}
+
+type Address {
+  street: String
+  city: String
+  state: String
+  zip_code: String
+  country: String
+}
+
+type Metadata {
+  labels: [StringStringEntry!]
+  tags: [String]
+}
+

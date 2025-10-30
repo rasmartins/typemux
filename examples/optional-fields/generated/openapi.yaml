@@ -1,0 +1,137 @@
+openapi: 3.0.0
+info:
+    title: com.example.optionals API
+    version: 1.0.0
+paths:
+    /userservice/getprofile:
+        get:
+            summary: GetProfile operation
+            operationId: GetProfile
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserProfile'
+    /userservice/updateprofile:
+        post:
+            summary: UpdateProfile operation
+            operationId: UpdateProfile
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateProfileRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserProfile'
+components:
+    schemas:
+        GetProfileRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        Product:
+            type: object
+            description: Product with pricing information
+            properties:
+                description:
+                    type: string
+                    description: Optional description
+                discountPercent:
+                    type: number
+                    format: float
+                    description: Optional discount percentage
+                id:
+                    type: string
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+                    description: Price is required
+                stockQuantity:
+                    type: integer
+                    format: int32
+                    description: Optional stock quantity
+            required:
+                - id
+                - name
+                - price
+        UpdateProfileRequest:
+            type: object
+            properties:
+                avatarUrl:
+                    type: string
+                bio:
+                    type: string
+                displayName:
+                    type: string
+                email:
+                    type: string
+                userId:
+                    type: string
+            required:
+                - userId
+        UserProfile:
+            type: object
+            description: |-
+                Example demonstrating optional field syntax
+                Fields marked with ? are explicitly optional
+                Fields marked with @required are required
+                Fields without either are treated as optional by default
+                User profile with a mix of required and optional fields
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                    description: Age in years (explicitly optional)
+                avatarUrl:
+                    type: string
+                    description: Profile picture URL (optional)
+                bio:
+                    type: string
+                    description: Bio text (explicitly optional)
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: Created timestamp (required)
+                displayName:
+                    type: string
+                    description: Display name (optional, has default behavior)
+                email:
+                    type: string
+                    description: Email address (explicitly optional)
+                id:
+                    type: string
+                    description: Unique identifier (always required)
+                lastLoginAt:
+                    type: string
+                    format: date-time
+                    description: Last login (explicitly optional)
+                preferences:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                tags:
+                    type: array
+                    description: List of tags (explicitly optional array)
+                    items:
+                        type: string
+                username:
+                    type: string
+                    description: Username (always required)
+            required:
+                - id
+                - username
+                - createdAt

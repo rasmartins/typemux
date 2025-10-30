@@ -1,0 +1,51 @@
+# Generated GraphQL Schema
+# Namespace: com.example.api
+
+directive @oneOf on INPUT_OBJECT
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+type User {
+  id: String
+  username: String
+  email: String
+  status: Status
+  createdAt: String
+}
+
+type Product {
+  id: String
+  name: String
+  price: Float
+}
+
+input GetUserRequest {
+  userId: String
+}
+
+type GetUserResponse {
+  user: User
+  success: Boolean
+}
+
+input CreateProductRequest {
+  name: String
+  price: Float
+}
+
+type CreateProductResponse {
+  product: Product
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+
+type Mutation {
+  createProduct(input: CreateProductRequest): CreateProductResponse
+}
+

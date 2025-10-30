@@ -164,11 +164,13 @@ security: ## Run security checks
 
 .PHONY: validate-examples
 validate-examples: build ## Validate all example files
+	@echo "==> Cleaning previous generated output..."
+	@find examples -type d -name "generated" -not -path "*/node_modules/*" -exec rm -rf {} + 2>/dev/null || true
 	@echo "==> Validating example files..."
 	@failed=0; \
 	passed=0; \
 	skipped=0; \
-	for file in $$(find examples -name "*.typemux" -not -path "*/output/*" -not -path "*/proto-import-output/*" | sort); do \
+	for file in $$(find examples -name "*.typemux" -not -path "*/generated/*" -not -path "*/proto-import-output/*" | sort); do \
 		echo "=== Validating: $$file ==="; \
 		if echo "$$file" | grep -q "circular"; then \
 			echo "⏭️  SKIPPED (circular import test)"; \
@@ -176,16 +178,17 @@ validate-examples: build ## Validate all example files
 			echo ""; \
 			continue; \
 		fi; \
-		output_dir=$$(mktemp -d); \
+		dir=$$(dirname "$$file"); \
+		output_dir="$$dir/generated"; \
+		mkdir -p "$$output_dir"; \
 		if ./bin/typemux -input "$$file" -format all -output "$$output_dir" >/dev/null 2>&1; then \
-			echo "✅ PASSED"; \
+			echo "✅ PASSED (output in $$output_dir)"; \
 			passed=$$((passed + 1)); \
 		else \
 			echo "❌ FAILED"; \
 			./bin/typemux -input "$$file" -format all -output "$$output_dir" 2>&1 | head -5; \
 			failed=$$((failed + 1)); \
 		fi; \
-		rm -rf "$$output_dir"; \
 		echo ""; \
 	done; \
 	echo "=================================="; \
@@ -308,7 +311,7 @@ clean: ## Clean build artifacts
 	rm -rf generated/
 	rm -f typemux proto2typemux graphql2typemux openapi2typemux
 	rm -f coverage.out coverage.html
-	rm -rf examples/output/
+	find examples -type d -name "generated" -not -path "*/node_modules/*" -exec rm -rf {} + 2>/dev/null || true
 	rm -rf examples/proto-import-output/
 	@echo "✅ Cleaned"
 

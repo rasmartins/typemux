@@ -1,0 +1,148 @@
+# Generated GraphQL Schema
+# Namespace: example.go
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"Order status enumeration"
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+"Product represents an item in the inventory"
+input ProductInput {
+  id: String
+  name: String
+  description: String
+  price: Int
+  inStock: Boolean
+  tags: [String]
+  attributes: [StringStringEntryInput!]
+  discount: Float
+}
+
+"Product represents an item in the inventory"
+type Product {
+  id: String
+  name: String
+  description: String
+  price: Int
+  inStock: Boolean
+  tags: [String]
+  attributes: [StringStringEntry!]
+  discount: Float
+}
+
+"Order represents a customer purchase"
+input OrderInput {
+  id: String
+  customerId: String
+  productIds: [String]
+  status: OrderStatus
+  totalAmount: Int
+  createdAt: String
+  shippingAddress: String
+}
+
+"Order represents a customer purchase"
+type Order {
+  id: String
+  customerId: String
+  productIds: [String]
+  status: OrderStatus
+  totalAmount: Int
+  createdAt: String
+  shippingAddress: String
+}
+
+"Credit card payment details"
+input CreditCardInput {
+  cardNumber: String
+  expiryDate: String
+  cvv: String
+}
+
+"Credit card payment details"
+type CreditCard {
+  cardNumber: String
+  expiryDate: String
+  cvv: String
+}
+
+"PayPal payment details"
+input PayPalInput {
+  email: String
+}
+
+"PayPal payment details"
+type PayPal {
+  email: String
+}
+
+input GetProductRequest {
+  id: String
+}
+
+type GetProductResponse {
+  product: Product
+}
+
+input ListProductsRequest {
+  limit: Int
+  offset: Int
+}
+
+type ListProductsResponse {
+  products: [Product]
+  total: Int
+}
+
+type DeleteProductResponse {
+  success: Boolean
+}
+
+input GetOrderRequest {
+  id: String
+}
+
+type GetOrderResponse {
+  order: Order
+}
+
+"Payment method union type"
+union PaymentMethod = CreditCard | PayPal
+
+"Payment method union type (Input variant with @oneOf)"
+input PaymentMethodInput @oneOf {
+  creditCard: CreditCardInput
+  payPal: PayPalInput
+}
+
+type Query {
+  getProduct(input: GetProductRequest): GetProductResponse
+  listProducts(input: ListProductsRequest): ListProductsResponse
+  getOrder(input: GetOrderRequest): GetOrderResponse
+}
+
+type Mutation {
+  createProduct(input: ProductInput): Product
+  updateProduct(input: ProductInput): Product
+  deleteProduct(input: GetProductRequest): DeleteProductResponse
+  createOrder(input: OrderInput): Order
+}
+

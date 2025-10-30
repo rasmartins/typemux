@@ -1,0 +1,49 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+  URGENT = 10;
+}
+
+// Example demonstrating custom protobuf field numbers
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 5;
+  int32 age = 10;
+  // This field will auto-assign number 11 (next after 10)
+  google.protobuf.Timestamp createdAt = 11;
+}
+
+message Product {
+  // Custom sparse numbering (e.g., for backward compatibility)
+  string id = 1;
+  string name = 2;
+  // Reserved space for future fields (3-9)
+  double price = 10;
+  string description = 11;
+  // Auto-assigned fields continue from 12
+  string category = 12;
+  bool inStock = 13;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+

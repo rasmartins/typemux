@@ -11,8 +11,7 @@ bin/
 *.dylib
 
 # Generated files
-generated/
-examples/output/
+/generated/
 examples/proto-import-output/
 
 # Test directories

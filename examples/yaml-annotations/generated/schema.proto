@@ -1,0 +1,51 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.api;
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  DELETED = 3;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  Status status = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+  bool success = 2;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  double price = 2;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+}
+

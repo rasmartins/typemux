@@ -1,0 +1,50 @@
+openapi: 3.0.0
+info:
+    title: com.example.products API
+    version: 1.0.0
+paths:
+    /productservice/getproduct:
+        get:
+            summary: GetProduct operation
+            operationId: GetProduct
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetProductResponse'
+components:
+    schemas:
+        GetProductRequest:
+            type: object
+            properties:
+                productId:
+                    type: string
+        GetProductResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                user:
+                    $ref: '#/components/schemas/User'
+        Status:
+            type: string
+            enum:
+                - AVAILABLE
+                - OUT_OF_STOCK
+        User:
+            type: object
+            properties:
+                id:
+                    type: string
+                ownerId:
+                    type: string
+                productName:
+                    type: string
+        UserStatus:
+            type: string
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - SUSPENDED

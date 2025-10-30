@@ -1,0 +1,61 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package PetStoreAPI;
+
+import "google/protobuf/timestamp.proto";
+
+enum PetStatus {
+  AVAILABLE = 0;
+  PENDING = 1;
+  SOLD = 2;
+}
+
+message Error {
+  string code = 1;
+  string message = 2;
+  string details = 3;
+}
+
+message Pet {
+  string id = 1;
+  string name = 2;
+  string status = 3;
+  string species = 4;
+  string breed = 5;
+  int32 age = 6;
+  repeated string tags = 7;
+  google.protobuf.Timestamp createdAt = 8;
+}
+
+message NewPet {
+  string name = 1;
+  string status = 2;
+  string species = 3;
+  string breed = 4;
+  int32 age = 5;
+  repeated string tags = 6;
+}
+
+message UpdatePet {
+  int32 age = 1;
+  repeated string tags = 2;
+  string name = 3;
+  string status = 4;
+  string breed = 5;
+}
+
+message PetList {
+  int32 total = 1;
+  int32 nextOffset = 2;
+  repeated Pet pets = 3;
+}
+
+service PetStoreAPIService {
+  rpc ListPets(ListPetsRequest) returns (PetList);
+  rpc CreatePet(CreatePetRequest) returns (Pet);
+  rpc GetPetById(GetPetByIdRequest) returns (Pet);
+  rpc UpdatePet(UpdatePetRequest) returns (Pet);
+  rpc DeletePet(DeletePetRequest) returns (Empty);
+}
+

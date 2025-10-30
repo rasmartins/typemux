@@ -1,0 +1,42 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+directive @oneOf on INPUT_OBJECT
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+"Example demonstrating custom protobuf field numbers"
+type User {
+  id: String!
+  name: String!
+  email: String!
+  age: Int
+  createdAt: String
+}
+
+type Product {
+  id: String!
+  name: String
+  price: Float
+  description: String
+  category: String
+  inStock: Boolean
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: User
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+

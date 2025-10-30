@@ -1,0 +1,61 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.orders;
+
+import "com/example/users.proto";
+import "google/protobuf/timestamp.proto";
+
+enum OrderStatus {
+  ORDERSTATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  CONFIRMED = 2;
+  SHIPPED = 3;
+  DELIVERED = 4;
+  CANCELLED = 5;
+}
+
+// User entity in orders namespace (different from com.example.users.User)
+// This represents a minimal user info stored with the order
+message User {
+  string id = 1;
+  string displayName = 2;
+}
+
+// Order entity that references User from another namespace
+message Order {
+  string id = 1;
+  string orderNumber = 2;
+  com.example.users.User customer = 3;
+  User processedBy = 4;
+  OrderStatus status = 5;
+  double totalAmount = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}
+
+message CreateOrderRequest {
+  string userId = 1;
+  repeated string items = 2;
+}
+
+message CreateOrderResponse {
+  Order order = 1;
+  bool success = 2;
+}
+
+message GetOrderRequest {
+  string orderId = 1;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+// Order management service
+service OrderService {
+  // Create a new order
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  // Get an order by ID
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+}
+

@@ -1,0 +1,41 @@
+# Generated GraphQL Schema
+# Namespace: chat
+
+directive @oneOf on INPUT_OBJECT
+
+type Message {
+  id: String
+  content: String
+  sender: String
+  timestamp: String
+}
+
+input MessageRequest {
+  content: String
+  sender: String
+}
+
+input MessageQuery {
+  messageId: String
+}
+
+input EmptyInput {
+}
+
+type Empty {
+}
+
+type Query {
+  getMessage(input: MessageQuery): Message
+  listMessages(input: EmptyInput): Message
+}
+
+type Mutation {
+  sendMessage(input: MessageRequest): Message
+  deleteMessage(input: MessageQuery): Empty
+}
+
+type Subscription {
+  watchMessages(input: EmptyInput): Message
+  watchMessagesBySender(input: MessageQuery): Message
+}

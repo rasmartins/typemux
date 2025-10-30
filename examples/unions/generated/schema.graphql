@@ -1,0 +1,79 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+directive @oneOf on INPUT_OBJECT
+
+"Example demonstrating union/oneOf types"
+input TextMessageInput {
+  content: String!
+  timestamp: String!
+}
+
+"Example demonstrating union/oneOf types"
+type TextMessage {
+  content: String!
+  timestamp: String!
+}
+
+input ImageMessageInput {
+  imageUrl: String!
+  thumbnail: String
+  timestamp: String!
+}
+
+type ImageMessage {
+  imageUrl: String!
+  thumbnail: String
+  timestamp: String!
+}
+
+input VideoMessageInput {
+  videoUrl: String!
+  duration: Int!
+  thumbnail: String
+  timestamp: String!
+}
+
+type VideoMessage {
+  videoUrl: String!
+  duration: Int!
+  thumbnail: String
+  timestamp: String!
+}
+
+input SendMessageRequest {
+  chatId: String!
+  message: MessageInput!
+}
+
+type SendMessageResponse {
+  messageId: String!
+  success: Boolean!
+}
+
+input GetMessageRequest {
+  messageId: String!
+}
+
+type GetMessageResponse {
+  message: Message!
+}
+
+"A message can be text, image, or video"
+union Message = TextMessage | ImageMessage | VideoMessage
+
+"A message can be text, image, or video (Input variant with @oneOf)"
+input MessageInput @oneOf {
+  textMessage: TextMessageInput
+  imageMessage: ImageMessageInput
+  videoMessage: VideoMessageInput
+}
+
+type Query {
+  getMessage(input: GetMessageRequest): GetMessageResponse
+}
+
+type Mutation {
+  sendMessage(input: SendMessageRequest): SendMessageResponse
+}
+

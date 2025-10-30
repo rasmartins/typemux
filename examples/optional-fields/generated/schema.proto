@@ -1,0 +1,70 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.optionals;
+
+import "google/protobuf/timestamp.proto";
+
+// Example demonstrating optional field syntax
+// Fields marked with ? are explicitly optional
+// Fields marked with @required are required
+// Fields without either are treated as optional by default
+// User profile with a mix of required and optional fields
+message UserProfile {
+  // Unique identifier (always required)
+  string id = 1;
+  // Username (always required)
+  string username = 2;
+  // Email address (explicitly optional)
+  optional string email = 3;
+  // Display name (optional, has default behavior)
+  string displayName = 4;
+  // Bio text (explicitly optional)
+  optional string bio = 5;
+  // Age in years (explicitly optional)
+  optional int32 age = 6;
+  // Profile picture URL (optional)
+  optional string avatarUrl = 7;
+  // User preferences (optional map)
+  map<string, string> preferences = 8;
+  // List of tags (explicitly optional array)
+  repeated string tags = 9;
+  // Created timestamp (required)
+  google.protobuf.Timestamp createdAt = 10;
+  // Last login (explicitly optional)
+  optional google.protobuf.Timestamp lastLoginAt = 11;
+}
+
+// Product with pricing information
+message Product {
+  string id = 1;
+  string name = 2;
+  // Optional description
+  optional string description = 3;
+  // Price is required
+  double price = 4;
+  // Optional discount percentage
+  optional float discountPercent = 5;
+  // Optional stock quantity
+  optional int32 stockQuantity = 6;
+}
+
+message GetProfileRequest {
+  string userId = 1;
+}
+
+message UpdateProfileRequest {
+  string userId = 1;
+  optional string email = 2;
+  optional string displayName = 3;
+  optional string bio = 4;
+  optional string avatarUrl = 5;
+}
+
+service UserService {
+  // Get user profile by ID
+  rpc GetProfile(GetProfileRequest) returns (UserProfile);
+  // Update user profile
+  rpc UpdateProfile(UpdateProfileRequest) returns (UserProfile);
+}
+

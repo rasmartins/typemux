@@ -1,0 +1,250 @@
+openapi: 3.0.0
+info:
+    title: example.go API
+    version: 1.0.0
+paths:
+    /orderservice/createorder:
+        post:
+            summary: CreateOrder operation
+            operationId: CreateOrder
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Order'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Order'
+    /orderservice/getorder:
+        get:
+            summary: GetOrder operation
+            operationId: GetOrder
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetOrderResponse'
+    /productservice/createproduct:
+        post:
+            summary: CreateProduct operation
+            operationId: CreateProduct
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Product'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Product'
+    /productservice/deleteproduct:
+        post:
+            summary: DeleteProduct operation
+            operationId: DeleteProduct
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/GetProductRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteProductResponse'
+    /productservice/getproduct:
+        get:
+            summary: GetProduct operation
+            operationId: GetProduct
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetProductResponse'
+    /productservice/listproducts:
+        get:
+            summary: ListProducts operation
+            operationId: ListProducts
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListProductsResponse'
+    /productservice/updateproduct:
+        post:
+            summary: UpdateProduct operation
+            operationId: UpdateProduct
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Product'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Product'
+components:
+    schemas:
+        CreditCard:
+            type: object
+            description: Credit card payment details
+            properties:
+                cardNumber:
+                    type: string
+                cvv:
+                    type: string
+                expiryDate:
+                    type: string
+        DeleteProductResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+        GetOrderRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        GetOrderResponse:
+            type: object
+            properties:
+                order:
+                    $ref: '#/components/schemas/Order'
+        GetProductRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        GetProductResponse:
+            type: object
+            properties:
+                product:
+                    $ref: '#/components/schemas/Product'
+        ListProductsRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+                offset:
+                    type: integer
+                    format: int32
+        ListProductsResponse:
+            type: object
+            properties:
+                products:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Product'
+                total:
+                    type: integer
+                    format: int32
+        Order:
+            type: object
+            description: Order represents a customer purchase
+            properties:
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: Order creation timestamp
+                customerId:
+                    type: string
+                    description: Customer ID who placed the order
+                id:
+                    type: string
+                    description: Unique order identifier
+                productIds:
+                    type: array
+                    description: List of products in the order
+                    items:
+                        type: string
+                shippingAddress:
+                    type: string
+                    description: Delivery address
+                status:
+                    description: Current order status
+                    $ref: '#/components/schemas/OrderStatus'
+                totalAmount:
+                    type: integer
+                    format: int64
+                    description: Total order amount in cents
+        OrderStatus:
+            type: string
+            description: Order status enumeration
+            enum:
+                - PENDING
+                - PROCESSING
+                - SHIPPED
+                - DELIVERED
+                - CANCELLED
+        PayPal:
+            type: object
+            description: PayPal payment details
+            properties:
+                email:
+                    type: string
+        PaymentMethod:
+            description: Payment method union type
+            oneOf:
+                - $ref: '#/components/schemas/CreditCard'
+                - $ref: '#/components/schemas/PayPal'
+            discriminator:
+                propertyName: type
+                mapping:
+                    CreditCard: '#/components/schemas/CreditCard'
+                    PayPal: '#/components/schemas/PayPal'
+        Product:
+            type: object
+            description: Product represents an item in the inventory
+            properties:
+                attributes:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                description:
+                    type: string
+                    description: Product description
+                discount:
+                    type: number
+                    format: float
+                    description: Discount percentage (0-100)
+                id:
+                    type: string
+                    description: Unique product identifier
+                inStock:
+                    type: boolean
+                    description: Whether the product is in stock
+                name:
+                    type: string
+                    description: Product name
+                price:
+                    type: integer
+                    format: int64
+                    description: Price in cents
+                tags:
+                    type: array
+                    description: Product categories
+                    items:
+                        type: string

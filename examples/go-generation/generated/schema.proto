@@ -1,0 +1,132 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package example.go;
+
+import "google/protobuf/timestamp.proto";
+
+// Order status enumeration
+enum OrderStatus {
+  ORDERSTATUS_UNSPECIFIED = 0;
+  // Order is pending processing
+  PENDING = 1;
+  // Order is being processed
+  PROCESSING = 2;
+  // Order has been shipped
+  SHIPPED = 3;
+  // Order has been delivered
+  DELIVERED = 4;
+  // Order was cancelled
+  CANCELLED = 5;
+}
+
+// Product represents an item in the inventory
+message Product {
+  // Unique product identifier
+  string id = 1;
+  // Product name
+  string name = 2;
+  // Product description
+  string description = 3;
+  // Price in cents
+  int64 price = 4;
+  // Whether the product is in stock
+  bool inStock = 5;
+  // Product categories
+  repeated string tags = 6;
+  // Product metadata
+  map<string, string> attributes = 7;
+  // Discount percentage (0-100)
+  float discount = 8;
+}
+
+// Order represents a customer purchase
+message Order {
+  // Unique order identifier
+  string id = 1;
+  // Customer ID who placed the order
+  string customerId = 2;
+  // List of products in the order
+  repeated string productIds = 3;
+  // Current order status
+  OrderStatus status = 4;
+  // Total order amount in cents
+  int64 totalAmount = 5;
+  // Order creation timestamp
+  google.protobuf.Timestamp createdAt = 6;
+  // Delivery address
+  string shippingAddress = 7;
+}
+
+// Credit card payment details
+message CreditCard {
+  string cardNumber = 1;
+  string expiryDate = 2;
+  string cvv = 3;
+}
+
+// PayPal payment details
+message PayPal {
+  string email = 1;
+}
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message GetProductResponse {
+  Product product = 1;
+}
+
+message ListProductsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  int32 total = 2;
+}
+
+message DeleteProductResponse {
+  bool success = 1;
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+// Payment method union type
+message PaymentMethod {
+  oneof value {
+    CreditCard creditCard = 1;
+    PayPal payPal = 2;
+  }
+}
+
+// Product service for managing inventory
+service ProductService {
+  // Get a product by ID
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  // List all products with pagination
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  // Create a new product
+  rpc CreateProduct(Product) returns (Product);
+  // Update an existing product
+  rpc UpdateProduct(Product) returns (Product);
+  // Delete a product
+  rpc DeleteProduct(GetProductRequest) returns (DeleteProductResponse);
+}
+
+// Order service for managing customer orders
+service OrderService {
+  // Create a new order
+  rpc CreateOrder(Order) returns (Order);
+  // Get an order by ID
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+}
+

@@ -1,0 +1,240 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/users:
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                "201":
+                    description: Created - Resource created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+                "400":
+                    description: Bad Request - Invalid input parameters
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "409":
+                    description: Conflict - Resource already exists or conflict
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+    /api/v1/users/{id}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+                "404":
+                    description: Not Found - Resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+        put:
+            summary: UpdateUser operation
+            operationId: UpdateUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateUserResponse'
+                "204":
+                    description: No Content - Successful request with no response body
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateUserResponse'
+                "400":
+                    description: Bad Request - Invalid input parameters
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "404":
+                    description: Not Found - Resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+components:
+    schemas:
+        CreateUserRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                name:
+                    type: string
+            required:
+                - name
+                - email
+        CreateUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+        GetUserRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        UpdateUserRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                name:
+                    type: string
+                userId:
+                    type: string
+            required:
+                - userId
+        UpdateUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+        User:
+            type: object
+            description: Example demonstrating @success and @errors annotations
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+            required:
+                - id
+                - name
+                - email

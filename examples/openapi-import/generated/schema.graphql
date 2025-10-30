@@ -1,0 +1,62 @@
+# Generated GraphQL Schema
+# Namespace: PetStoreAPI
+
+directive @oneOf on INPUT_OBJECT
+
+enum PetStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+}
+
+type Error {
+  code: String
+  message: String
+  details: String
+}
+
+type Pet {
+  id: String
+  name: String
+  status: String
+  species: String
+  breed: String
+  age: Int
+  tags: [String]
+  createdAt: String
+}
+
+type NewPet {
+  name: String
+  status: String
+  species: String
+  breed: String
+  age: Int
+  tags: [String]
+}
+
+type UpdatePet {
+  age: Int
+  tags: [String]
+  name: String
+  status: String
+  breed: String
+}
+
+type PetList {
+  total: Int
+  nextOffset: Int
+  pets: [Pet]
+}
+
+type Query {
+  listPets(input: ListPetsRequest): PetList
+  getPetById(input: GetPetByIdRequest): Pet
+}
+
+type Mutation {
+  createPet(input: CreatePetRequest): Pet
+  updatePet(input: UpdatePetRequest): Pet
+  deletePet(input: DeletePetRequest): Empty
+}
+

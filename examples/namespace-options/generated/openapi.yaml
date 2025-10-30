@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+    title: com.example.users API
+    version: 1.0.0
+paths:
+    /userservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+components:
+    schemas:
+        GetUserRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+        User:
+            type: object
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                username:
+                    type: string

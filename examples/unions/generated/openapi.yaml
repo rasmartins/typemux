@@ -1,0 +1,187 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/messages:
+        post:
+            summary: SendMessage operation
+            operationId: SendMessage
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SendMessageRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SendMessageResponse'
+                "201":
+                    description: Created - Resource created successfully
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SendMessageResponse'
+                "400":
+                    description: Bad Request - Invalid input parameters
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+    /api/v1/messages/{id}:
+        get:
+            summary: GetMessage operation
+            operationId: GetMessage
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetMessageResponse'
+                "404":
+                    description: Not Found - Resource not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+                "500":
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    code:
+                                        type: string
+                                        description: Error code
+                                    error:
+                                        type: string
+                                        description: Error message
+components:
+    schemas:
+        GetMessageRequest:
+            type: object
+            properties:
+                messageId:
+                    type: string
+            required:
+                - messageId
+        GetMessageResponse:
+            type: object
+            properties:
+                message:
+                    $ref: '#/components/schemas/Message'
+            required:
+                - message
+        ImageMessage:
+            type: object
+            properties:
+                imageUrl:
+                    type: string
+                thumbnail:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+            required:
+                - imageUrl
+                - timestamp
+        Message:
+            description: A message can be text, image, or video
+            oneOf:
+                - $ref: '#/components/schemas/TextMessage'
+                - $ref: '#/components/schemas/ImageMessage'
+                - $ref: '#/components/schemas/VideoMessage'
+            discriminator:
+                propertyName: type
+                mapping:
+                    ImageMessage: '#/components/schemas/ImageMessage'
+                    TextMessage: '#/components/schemas/TextMessage'
+                    VideoMessage: '#/components/schemas/VideoMessage'
+        SendMessageRequest:
+            type: object
+            properties:
+                chatId:
+                    type: string
+                message:
+                    $ref: '#/components/schemas/Message'
+            required:
+                - chatId
+                - message
+        SendMessageResponse:
+            type: object
+            properties:
+                messageId:
+                    type: string
+                success:
+                    type: boolean
+            required:
+                - messageId
+                - success
+        TextMessage:
+            type: object
+            description: Example demonstrating union/oneOf types
+            properties:
+                content:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+            required:
+                - content
+                - timestamp
+        VideoMessage:
+            type: object
+            properties:
+                duration:
+                    type: integer
+                    format: int32
+                thumbnail:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+                videoUrl:
+                    type: string
+            required:
+                - videoUrl
+                - duration
+                - timestamp

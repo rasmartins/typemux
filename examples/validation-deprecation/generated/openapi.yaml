@@ -1,0 +1,174 @@
+openapi: 3.0.0
+info:
+    title: com.example.userservice API
+    version: 1.0.0
+paths:
+    /userservice/createuser:
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/User'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /userservice/deleteuser:
+        post:
+            summary: DeleteUser operation
+            operationId: DeleteUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserIdRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+    /userservice/getuser:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /userservice/listusers:
+        get:
+            summary: ListUsers operation
+            operationId: ListUsers
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersResponse'
+    /userservice/updateuser:
+        post:
+            summary: UpdateUser operation
+            operationId: UpdateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/User'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+components:
+    schemas:
+        EmptyResponse:
+            type: object
+        ListUsersRequest:
+            type: object
+            properties:
+                pageSize:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    maximum: 100
+                pageToken:
+                    type: string
+        ListUsersResponse:
+            type: object
+            properties:
+                nextPageToken:
+                    type: string
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/User'
+        User:
+            type: object
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 150
+                balance:
+                    type: integer
+                    format: int64
+                    minimum: 0
+                createdAt:
+                    type: string
+                    format: date-time
+                displayName:
+                    type: string
+                    description: '**DEPRECATED** (since 2.0.0) - will be removed in 3.0.0: Use fullName instead'
+                    deprecated: true
+                email:
+                    type: string
+                    format: email
+                    maxLength: 255
+                fullName:
+                    type: string
+                    minLength: 1
+                    maxLength: 100
+                id:
+                    type: string
+                    format: uuid
+                isActive:
+                    type: boolean
+                lastLogin:
+                    type: string
+                    format: date-time
+                legacyEmail:
+                    type: string
+                    description: '**DEPRECATED** (since 1.8.0) - will be removed in 2.5.0: Use email field instead'
+                    deprecated: true
+                tags:
+                    type: array
+                    items:
+                        type: string
+                    minItems: 0
+                    maxItems: 10
+                    uniqueItems: true
+                username:
+                    type: string
+                    minLength: 3
+                    maxLength: 30
+                website:
+                    type: string
+                    format: url
+        UserIdRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                    format: uuid
+        UserPreferences:
+            type: object
+            properties:
+                language:
+                    type: string
+                    minLength: 2
+                    maxLength: 5
+                notificationsEnabled:
+                    type: boolean
+                theme:
+                    type: string
+                userId:
+                    type: string
+                    format: uuid

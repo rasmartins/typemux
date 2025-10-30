@@ -1,0 +1,61 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+directive @oneOf on INPUT_OBJECT
+
+"Common types shared across services"
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+"User service types"
+type User {
+  id: String!
+  name: String!
+  email: String!
+  address: Address
+  status: Status!
+}
+
+input CreateUserRequest {
+  name: String!
+  email: String!
+  address: AddressInput!
+}
+
+type CreateUserResponse {
+  user: User!
+}
+
+input GetUserRequest {
+  userId: String!
+}
+
+type GetUserResponse {
+  user: User
+}
+
+input AddressInput {
+  street: String!
+  city: String!
+  country: String!
+  zipCode: String
+}
+
+type Address {
+  street: String!
+  city: String!
+  country: String!
+  zipCode: String
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+}
+
+type Mutation {
+  createUser(input: CreateUserRequest): CreateUserResponse
+}
+

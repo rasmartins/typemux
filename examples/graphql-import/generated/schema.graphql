@@ -1,0 +1,39 @@
+# Generated GraphQL Schema
+# Namespace: graphql
+
+directive @oneOf on INPUT_OBJECT
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+type User {
+  id: String
+  name: String
+  status: UserStatus
+}
+
+type UserUpdate {
+  user: User
+  updateType: String
+  timestamp: String
+}
+
+type ChatMessage {
+  id: String
+  userId: String
+  text: String
+  timestamp: String
+}
+
+type Query {
+  getUser(input: GetUserRequest): User
+}
+
+type Subscription {
+  userUpdates(input: UserUpdatesRequest): UserUpdate
+  newMessages(input: NewMessagesRequest): ChatMessage
+  userStatusChanged(input: Empty): User
+}

@@ -1,0 +1,59 @@
+# Generated GraphQL Schema
+# Namespace: user
+
+directive @oneOf on INPUT_OBJECT
+
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+
+type User {
+  id: String
+  username: String
+  email: String
+  role: UserRole
+  createdAt: String
+}
+
+input GetUserRequest {
+  id: String
+}
+
+input CreateUserRequest {
+  username: String
+  email: String
+  role: UserRole
+}
+
+input UpdateUserRequest {
+  id: String
+  username: String
+  email: String
+}
+
+input ListUsersRequest {
+  limit: Int
+  offset: Int
+}
+
+type UserListResponse {
+  users: [User]
+  total: Int
+}
+
+type Empty {
+}
+
+type Query {
+  getUser(input: GetUserRequest): User
+  listUsers(input: ListUsersRequest): UserListResponse
+}
+
+type Mutation {
+  createUser(input: CreateUserRequest): User
+  updateUser(input: UpdateUserRequest): User
+  deleteUser(input: GetUserRequest): Empty
+}
+

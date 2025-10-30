@@ -1,0 +1,62 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package com.example.api;
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  DELETED = 3;
+}
+
+// User type with different names in each format:
+// - Protobuf: UserV2
+// - GraphQL: UserAccount
+// - OpenAPI: UserProfile
+// 
+// This example uses LEADING annotations (before the type keyword)
+message UserV2 {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  Status status = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+// Product type with custom Protobuf name for versioning
+// This example uses TRAILING annotation (after the type name)
+message ProductV3 {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  UserV2 user = 1;
+  bool success = 2;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  double price = 2;
+}
+
+message CreateProductResponse {
+  ProductV3 product = 1;
+}
+
+// User service demonstrating name annotations
+service UserService {
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Create a new product
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+}
+
