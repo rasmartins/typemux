@@ -126,10 +126,26 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('typemux.openVisualEditor', () => {
             const editor = vscode.window.activeTextEditor;
-            if (editor && editor.document.languageId === 'typemux-schema') {
-                VisualEditorPanel.createOrShow(context.extensionUri, editor.document);
+            outputChannel.appendLine('Opening visual editor...');
+
+            if (editor) {
+                const doc = editor.document;
+                outputChannel.appendLine(`Current file: ${doc.fileName}`);
+                outputChannel.appendLine(`Language ID: ${doc.languageId}`);
+
+                // Check both languageId and file extension
+                if (doc.languageId === 'typemux-schema' || doc.fileName.endsWith('.typemux')) {
+                    outputChannel.appendLine('Opening visual editor for typemux file');
+                    VisualEditorPanel.createOrShow(context.extensionUri, doc);
+                } else {
+                    const msg = `Please open a .typemux file first (current: ${doc.fileName}, languageId: ${doc.languageId})`;
+                    outputChannel.appendLine(`ERROR: ${msg}`);
+                    vscode.window.showErrorMessage(msg);
+                }
             } else {
-                vscode.window.showErrorMessage('Please open a .typemux file first');
+                const msg = 'No file is currently open. Please open a .typemux file first.';
+                outputChannel.appendLine(`ERROR: ${msg}`);
+                vscode.window.showErrorMessage(msg);
             }
         })
     );

@@ -126,9 +126,24 @@ export class VisualEditorPanel {
     }
 
     private _update() {
-        const webview = this._panel.webview;
-        this._panel.title = `Visual Editor: ${this._document.fileName.split('/').pop()}`;
-        this._panel.webview.html = this._getHtmlForWebview(webview);
+        try {
+            const webview = this._panel.webview;
+            this._panel.title = `Visual Editor: ${this._document.fileName.split('/').pop()}`;
+            this._panel.webview.html = this._getHtmlForWebview(webview);
+        } catch (error) {
+            console.error('Error updating visual editor:', error);
+            this._panel.webview.html = `
+                <!DOCTYPE html>
+                <html>
+                <body style="padding: 20px; font-family: sans-serif;">
+                    <h2>Error Loading Visual Editor</h2>
+                    <p>Failed to parse the schema file. Error: ${error}</p>
+                    <p>File: ${this._document.fileName}</p>
+                    <p>Please check the TypeMux output channel for more details.</p>
+                </body>
+                </html>
+            `;
+        }
     }
 
     private async updateTextDocument(schema: ParsedSchema) {
@@ -386,7 +401,31 @@ export class VisualEditorPanel {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
-        const schema = this._parser.parse(this._document.getText());
+        let schema: ParsedSchema;
+        try {
+            schema = this._parser.parse(this._document.getText());
+        } catch (error) {
+            console.error('Error parsing schema:', error);
+            return `
+                <!DOCTYPE html>
+                <html>
+                <body style="padding: 20px; font-family: sans-serif; color: #cccccc; background-color: #1e1e1e;">
+                    <h2>❌ Parse Error</h2>
+                    <p>Failed to parse the TypeMux schema file.</p>
+                    <p><strong>Error:</strong> ${error}</p>
+                    <p><strong>File:</strong> ${this._document.fileName}</p>
+                    <hr>
+                    <p>This usually happens when:</p>
+                    <ul>
+                        <li>The file has syntax errors</li>
+                        <li>The file is empty or not yet saved</li>
+                        <li>The schema parser encountered an unexpected format</li>
+                    </ul>
+                    <p>Try saving the file and checking for syntax errors.</p>
+                </body>
+                </html>
+            `;
+        }
 
         return `<!DOCTYPE html>
 <html lang="en">
