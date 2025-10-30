@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel.appendLine('Formatting provider registered');
 
     // Register go-to-definition provider for imports and types
-    const definitionProvider = new TypeMuxDefinitionProvider();
+    const definitionProvider = new TypeMuxDefinitionProvider(outputChannel);
     context.subscriptions.push(
         vscode.languages.registerDefinitionProvider(
             selector,
@@ -53,9 +53,6 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (error) {
         outputChannel.appendLine(`ERROR creating hover provider: ${error}`);
     }
-
-    // Show confirmation message
-    vscode.window.showInformationMessage('TypeMux extension is now active!');
 }
 
 export function deactivate() {}
