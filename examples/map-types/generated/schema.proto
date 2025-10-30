@@ -1,0 +1,96 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package examples.maps;
+
+import "google/protobuf/timestamp.proto";
+
+// Product information
+message Product {
+  string id = 1;
+  string name = 2;
+  double price = 3;
+  string description = 4;
+}
+
+// User profile
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+// Configuration settings
+message Settings {
+  string theme = 1;
+  string language = 2;
+  bool notifications = 3;
+}
+
+// Inventory tracking with maps of custom types
+message Inventory {
+  // Map of warehouse ID to Product
+  // Proto: map<string, Product>
+  // GraphQL: [InventoryProductsEntry!]! with key/value fields
+  // OpenAPI: object with Product values
+  map<string, Product> productsByWarehouse = 1;
+  // Map of product ID to quantity (primitive value)
+  // Proto: map<string, int32>
+  // GraphQL: JSON scalar or [QuantityEntry!]!
+  // OpenAPI: object with integer values
+  map<string, int32> quantities = 2;
+  // Map of supplier ID to list of products
+  // Proto: map<string, ProductList> (requires wrapper)
+  // GraphQL: [SupplierProductsEntry!]!
+  // OpenAPI: object with array values
+  map<string, Product> supplierProducts = 3;
+}
+
+// User preferences with various map types
+message UserPreferences {
+  string userId = 1;
+  // Map of feature name to Settings
+  map<string, Settings> featureSettings = 2;
+  // Map of friend ID to User profile
+  map<string, User> friends = 3;
+  // Simple key-value pairs (string to string)
+  map<string, string> metadata = 4;
+}
+
+// Shopping cart with product maps
+message ShoppingCart {
+  string cartId = 1;
+  string userId = 2;
+  // Map of product ID to Product details
+  map<string, Product> items = 3;
+  // Map of product ID to quantity
+  map<string, int32> itemQuantities = 4;
+  // Total price
+  double totalPrice = 5;
+}
+
+// Request to get inventory
+message GetInventoryRequest {
+  string warehouseId = 1;
+}
+
+// Request to update cart
+message UpdateCartRequest {
+  string cartId = 1;
+  string productId = 2;
+  int32 quantity = 3;
+}
+
+// Response with cart details
+message CartResponse {
+  ShoppingCart cart = 1;
+}
+
+// Service demonstrating map operations
+service InventoryService {
+  // Get inventory for a warehouse
+  rpc GetInventory(GetInventoryRequest) returns (Inventory);
+  // Update shopping cart
+  rpc UpdateCart(UpdateCartRequest) returns (CartResponse);
+}
+

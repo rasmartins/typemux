@@ -1,0 +1,113 @@
+@typemux("1.0.0")
+
+/// Example demonstrating map types with custom values
+/// Shows how map<K, V> is handled across different output formats:
+/// - Protobuf: map<string, CustomType>
+/// - GraphQL: Map scalar or custom resolver
+/// - OpenAPI: object with additionalProperties
+
+namespace examples.maps
+
+/// Product information
+type Product {
+    id: string = 1 @required
+    name: string = 2 @required
+    price: float64 = 3 @required
+    description: string = 4
+}
+
+/// User profile
+type User {
+    id: string = 1 @required
+    username: string = 2 @required
+    email: string = 3 @required
+}
+
+/// Configuration settings
+type Settings {
+    theme: string = 1
+    language: string = 2
+    notifications: bool = 3
+}
+
+/// Inventory tracking with maps of custom types
+type Inventory {
+    /// Map of warehouse ID to Product
+    /// Proto: map<string, Product>
+    /// GraphQL: [InventoryProductsEntry!]! with key/value fields
+    /// OpenAPI: object with Product values
+    productsByWarehouse: map<string, Product> = 1 @required
+
+    /// Map of product ID to quantity (primitive value)
+    /// Proto: map<string, int32>
+    /// GraphQL: JSON scalar or [QuantityEntry!]!
+    /// OpenAPI: object with integer values
+    quantities: map<string, int32> = 2 @required
+
+    /// Map of supplier ID to list of products
+    /// Proto: map<string, ProductList> (requires wrapper)
+    /// GraphQL: [SupplierProductsEntry!]!
+    /// OpenAPI: object with array values
+    supplierProducts: map<string, []Product> = 3
+}
+
+/// User preferences with various map types
+type UserPreferences {
+    userId: string = 1 @required
+
+    /// Map of feature name to Settings
+    featureSettings: map<string, Settings> = 2
+
+    /// Map of friend ID to User profile
+    friends: map<string, User> = 3
+
+    /// Simple key-value pairs (string to string)
+    metadata: map<string, string> = 4
+}
+
+/// Shopping cart with product maps
+type ShoppingCart {
+    cartId: string = 1 @required
+    userId: string = 2 @required
+
+    /// Map of product ID to Product details
+    items: map<string, Product> = 3 @required
+
+    /// Map of product ID to quantity
+    itemQuantities: map<string, int32> = 4 @required
+
+    /// Total price
+    totalPrice: float64 = 5
+}
+
+/// Request to get inventory
+type GetInventoryRequest {
+    warehouseId: string @required
+}
+
+/// Request to update cart
+type UpdateCartRequest {
+    cartId: string @required
+    productId: string @required
+    quantity: int32 @required
+}
+
+/// Response with cart details
+type CartResponse {
+    cart: ShoppingCart @required
+}
+
+/// Service demonstrating map operations
+service InventoryService {
+    /// Get inventory for a warehouse
+    rpc GetInventory(GetInventoryRequest) returns (Inventory)
+        @http(GET)
+        @path("/api/v1/inventory/{warehouseId}")
+        @graphql(query)
+
+    /// Update shopping cart
+    rpc UpdateCart(UpdateCartRequest) returns (CartResponse)
+        @http(PUT)
+        @path("/api/v1/cart/{cartId}")
+        @graphql(mutation)
+}

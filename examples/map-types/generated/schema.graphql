@@ -1,0 +1,136 @@
+# Generated GraphQL Schema
+# Namespace: examples.maps
+
+"StringProductEntry represents a key-value pair for map<string, Product>"
+type StringProductEntry {
+  key: String!
+  value: Product!
+}
+
+"StringProductEntryInput represents a key-value pair for map<string, Product>"
+input StringProductEntryInput {
+  key: String!
+  value: Product!
+}
+
+"StringIntEntry represents a key-value pair for map<string, int32>"
+type StringIntEntry {
+  key: String!
+  value: Int!
+}
+
+"StringIntEntryInput represents a key-value pair for map<string, int32>"
+input StringIntEntryInput {
+  key: String!
+  value: Int!
+}
+
+"StringSettingsEntry represents a key-value pair for map<string, Settings>"
+type StringSettingsEntry {
+  key: String!
+  value: Settings!
+}
+
+"StringSettingsEntryInput represents a key-value pair for map<string, Settings>"
+input StringSettingsEntryInput {
+  key: String!
+  value: Settings!
+}
+
+"StringUserEntry represents a key-value pair for map<string, User>"
+type StringUserEntry {
+  key: String!
+  value: User!
+}
+
+"StringUserEntryInput represents a key-value pair for map<string, User>"
+input StringUserEntryInput {
+  key: String!
+  value: User!
+}
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"Product information"
+type Product {
+  id: String!
+  name: String!
+  price: Float!
+  description: String
+}
+
+"User profile"
+type User {
+  id: String!
+  username: String!
+  email: String!
+}
+
+"Configuration settings"
+type Settings {
+  theme: String
+  language: String
+  notifications: Boolean
+}
+
+"Inventory tracking with maps of custom types"
+type Inventory {
+  productsByWarehouse: [StringProductEntry!]!
+  quantities: [StringIntEntry!]!
+  supplierProducts: [StringProductEntry!]
+}
+
+"User preferences with various map types"
+type UserPreferences {
+  userId: String!
+  featureSettings: [StringSettingsEntry!]
+  friends: [StringUserEntry!]
+  metadata: [StringStringEntry!]
+}
+
+"Shopping cart with product maps"
+type ShoppingCart {
+  cartId: String!
+  userId: String!
+  items: [StringProductEntry!]!
+  itemQuantities: [StringIntEntry!]!
+  totalPrice: Float
+}
+
+"Request to get inventory"
+input GetInventoryRequest {
+  warehouseId: String!
+}
+
+"Request to update cart"
+input UpdateCartRequest {
+  cartId: String!
+  productId: String!
+  quantity: Int!
+}
+
+"Response with cart details"
+type CartResponse {
+  cart: ShoppingCart!
+}
+
+type Query {
+  getInventory(input: GetInventoryRequest): Inventory
+}
+
+type Mutation {
+  updateCart(input: UpdateCartRequest): CartResponse
+}
+

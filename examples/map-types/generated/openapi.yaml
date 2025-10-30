@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+    title: examples.maps API
+    version: 1.0.0
+paths:
+    /api/v1/cart/{cartId}:
+        put:
+            summary: UpdateCart operation
+            operationId: UpdateCart
+            parameters:
+                - name: cartId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateCartRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CartResponse'
+    /api/v1/inventory/{warehouseId}:
+        get:
+            summary: GetInventory operation
+            operationId: GetInventory
+            parameters:
+                - name: warehouseId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Inventory'
+components:
+    schemas:
+        CartResponse:
+            type: object
+            description: Response with cart details
+            properties:
+                cart:
+                    $ref: '#/components/schemas/ShoppingCart'
+            required:
+                - cart
+        GetInventoryRequest:
+            type: object
+            description: Request to get inventory
+            properties:
+                warehouseId:
+                    type: string
+            required:
+                - warehouseId
+        Inventory:
+            type: object
+            description: Inventory tracking with maps of custom types
+            properties:
+                productsByWarehouse:
+                    type: object
+                    description: Map of string to Product
+                    additionalProperties:
+                        $ref: '#/components/schemas/Product'
+                quantities:
+                    type: object
+                    description: Map of string to int32
+                    additionalProperties:
+                        type: integer
+                        format: int32
+                supplierProducts:
+                    type: object
+                    description: Map of string to Product
+                    additionalProperties:
+                        $ref: '#/components/schemas/Product'
+            required:
+                - productsByWarehouse
+                - quantities
+        Product:
+            type: object
+            description: Product information
+            properties:
+                description:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                price:
+                    type: number
+                    format: double
+            required:
+                - id
+                - name
+                - price
+        Settings:
+            type: object
+            description: Configuration settings
+            properties:
+                language:
+                    type: string
+                notifications:
+                    type: boolean
+                theme:
+                    type: string
+        ShoppingCart:
+            type: object
+            description: Shopping cart with product maps
+            properties:
+                cartId:
+                    type: string
+                itemQuantities:
+                    type: object
+                    description: Map of string to int32
+                    additionalProperties:
+                        type: integer
+                        format: int32
+                items:
+                    type: object
+                    description: Map of string to Product
+                    additionalProperties:
+                        $ref: '#/components/schemas/Product'
+                totalPrice:
+                    type: number
+                    format: double
+                    description: Total price
+                userId:
+                    type: string
+            required:
+                - cartId
+                - userId
+                - items
+                - itemQuantities
+        UpdateCartRequest:
+            type: object
+            description: Request to update cart
+            properties:
+                cartId:
+                    type: string
+                productId:
+                    type: string
+                quantity:
+                    type: integer
+                    format: int32
+            required:
+                - cartId
+                - productId
+                - quantity
+        User:
+            type: object
+            description: User profile
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                username:
+                    type: string
+            required:
+                - id
+                - username
+                - email
+        UserPreferences:
+            type: object
+            description: User preferences with various map types
+            properties:
+                featureSettings:
+                    type: object
+                    description: Map of string to Settings
+                    additionalProperties:
+                        $ref: '#/components/schemas/Settings'
+                friends:
+                    type: object
+                    description: Map of string to User
+                    additionalProperties:
+                        $ref: '#/components/schemas/User'
+                metadata:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                userId:
+                    type: string
+            required:
+                - userId
