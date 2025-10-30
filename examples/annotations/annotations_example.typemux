@@ -38,3 +38,4 @@ service UserService {
         @path("/api/v1/users/{userId}")
         @errors(404,500)
 }
+

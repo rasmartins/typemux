@@ -2,7 +2,7 @@
   "name": "typemux-schema",
   "displayName": "TypeMux Schema Language",
   "description": "Language support for TypeMux IDL schema files",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "rasmartins",
   "engines": {
     "vscode": "^1.70.0"
@@ -51,7 +51,33 @@
         "language": "typemux-schema",
         "path": "./snippets/typemux.json"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "typemuxSchemaTree",
+          "name": "TypeMux Schema",
+          "when": "resourceLangId == typemux-schema"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "typemux.refreshSchemaTree",
+        "title": "Refresh Schema Tree",
+        "category": "TypeMux",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "typemux.refreshSchemaTree",
+          "when": "view == typemuxSchemaTree",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

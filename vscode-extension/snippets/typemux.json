@@ -252,5 +252,123 @@
       "${1:name}: ${2:string}"
     ],
     "description": "Create a field with leading @required annotation"
+  },
+  "REST API Service": {
+    "prefix": "restservice",
+    "body": [
+      "service ${1:EntityService} {",
+      "\t/// Create a new ${2:entity}",
+      "\trpc Create(${3:CreateRequest}) returns (${4:CreateResponse})",
+      "\t\t@http(POST)",
+      "\t\t@path(\"/api/v1/${5:entities}\")",
+      "\t\t@graphql(mutation)",
+      "\t\t@success(201)",
+      "\t\t@errors(400,409,500)",
+      "",
+      "\t/// Get ${2:entity} by ID",
+      "\trpc Get(${6:GetRequest}) returns (${7:GetResponse})",
+      "\t\t@http(GET)",
+      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@graphql(query)",
+      "\t\t@errors(404,500)",
+      "",
+      "\t/// Update ${2:entity}",
+      "\trpc Update(${8:UpdateRequest}) returns (${9:UpdateResponse})",
+      "\t\t@http(PUT)",
+      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@graphql(mutation)",
+      "\t\t@errors(400,404,500)",
+      "",
+      "\t/// Delete ${2:entity}",
+      "\trpc Delete(${10:DeleteRequest}) returns (${11:DeleteResponse})",
+      "\t\t@http(DELETE)",
+      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@graphql(mutation)",
+      "\t\t@success(204)",
+      "\t\t@errors(404,500)",
+      "}"
+    ],
+    "description": "Create a complete REST API service with CRUD operations"
+  },
+  "GraphQL Service": {
+    "prefix": "gqlservice",
+    "body": [
+      "service ${1:EntityService} {",
+      "\t/// Query: Get ${2:entity} by ID",
+      "\trpc Get${3:Entity}(${4:GetRequest}) returns (${5:GetResponse})",
+      "\t\t@graphql(query)",
+      "",
+      "\t/// Query: List all ${2:entities}",
+      "\trpc List${3:Entity}s(${6:ListRequest}) returns (${7:ListResponse})",
+      "\t\t@graphql(query)",
+      "",
+      "\t/// Mutation: Create ${2:entity}",
+      "\trpc Create${3:Entity}(${8:CreateRequest}) returns (${9:CreateResponse})",
+      "\t\t@graphql(mutation)",
+      "",
+      "\t/// Subscription: Watch ${2:entity} updates",
+      "\trpc Watch${3:Entity}(${10:WatchRequest}) returns (${11:WatchResponse})",
+      "\t\t@graphql(subscription)",
+      "}"
+    ],
+    "description": "Create a GraphQL service with queries, mutations, and subscriptions"
+  },
+  "Cross-Namespace Type Reference": {
+    "prefix": "nsref",
+    "body": [
+      "${1:field}: ${2:com.example.namespace}.${3:Type}"
+    ],
+    "description": "Reference a type from another namespace"
+  },
+  "Complete File with Header": {
+    "prefix": "file",
+    "body": [
+      "@typemux(\"1.0.0\")",
+      "",
+      "/// ${1:Description of this schema}",
+      "namespace ${2:com.example.api}",
+      "",
+      "$0"
+    ],
+    "description": "Create a new TypeMux file with header and namespace"
+  },
+  "Entity with Timestamp Fields": {
+    "prefix": "entity",
+    "body": [
+      "type ${1:Entity} {",
+      "\tid: string = 1 @required",
+      "\t${2:name}: ${3:string} = 2 @required",
+      "\tcreatedAt: timestamp = 3 @required",
+      "\tupdatedAt: timestamp = 4 @required",
+      "}"
+    ],
+    "description": "Create an entity type with common timestamp fields"
+  },
+  "Request/Response Pair": {
+    "prefix": "reqres",
+    "body": [
+      "type ${1:Operation}Request {",
+      "\t${2:field}: ${3:string} @required",
+      "}",
+      "",
+      "type ${1:Operation}Response {",
+      "\t${4:result}: ${5:string} @required",
+      "\tsuccess: bool @required",
+      "}"
+    ],
+    "description": "Create a request/response type pair"
+  },
+  "Paginated List Response": {
+    "prefix": "pagelist",
+    "body": [
+      "type ${1:Entity}ListResponse {",
+      "\titems: []${1:Entity} @required",
+      "\ttotal: int32 @required",
+      "\tpage: int32 @required",
+      "\tpageSize: int32 @required",
+      "\thasMore: bool @required",
+      "}"
+    ],
+    "description": "Create a paginated list response type"
   }
 }
