@@ -78,6 +78,27 @@ export class VisualEditorPanel {
                     case 'deleteField':
                         this.deleteField(message.typeName, message.fieldName);
                         return;
+                    case 'addImport':
+                        this.addImport(message.path);
+                        return;
+                    case 'deleteImport':
+                        this.deleteImport(message.path);
+                        return;
+                    case 'addTypeAnnotation':
+                        this.addTypeAnnotation(message.typeName, message.annotation);
+                        return;
+                    case 'deleteTypeAnnotation':
+                        this.deleteTypeAnnotation(message.typeName, message.annotationName);
+                        return;
+                    case 'addFieldAnnotation':
+                        this.addFieldAnnotation(message.typeName, message.fieldName, message.annotation);
+                        return;
+                    case 'addMethodAnnotation':
+                        this.addMethodAnnotation(message.serviceName, message.methodName, message.annotation);
+                        return;
+                    case 'deleteMethodAnnotation':
+                        this.deleteMethodAnnotation(message.serviceName, message.methodName, message.annotationName);
+                        return;
                 }
             },
             null,
@@ -145,6 +166,14 @@ export class VisualEditorPanel {
             if (type.documentation) {
                 text += `/// ${type.documentation}\n`;
             }
+            // Output type-level annotations
+            type.annotations.forEach(ann => {
+                text += `${ann.name}`;
+                if (ann.value) {
+                    text += `(${ann.value})`;
+                }
+                text += '\n';
+            });
             text += `type ${type.name} {\n`;
             type.fields.forEach(field => {
                 if (field.documentation) {
@@ -154,10 +183,18 @@ export class VisualEditorPanel {
                 if (field.fieldNumber !== undefined) {
                     text += ` = ${field.fieldNumber}`;
                 }
-                if (field.required) {
+                // Output all field annotations
+                field.annotations.forEach(ann => {
+                    text += ` ${ann.name}`;
+                    if (ann.value) {
+                        text += `(${ann.value})`;
+                    }
+                });
+                // Handle @required and @default specially if not in annotations already
+                if (field.required && !field.annotations.some(a => a.name === '@required')) {
                     text += ' @required';
                 }
-                if (field.defaultValue) {
+                if (field.defaultValue && !field.annotations.some(a => a.name.startsWith('@default'))) {
                     text += ` @default(${field.defaultValue})`;
                 }
                 text += '\n';
@@ -242,6 +279,74 @@ export class VisualEditorPanel {
         if (type) {
             type.fields = type.fields.filter(f => f.name !== fieldName);
             await this.updateTextDocument(schema);
+        }
+    }
+
+    private async addImport(path: string) {
+        const schema = this._parser.parse(this._document.getText());
+        if (!schema.imports.includes(path)) {
+            schema.imports.push(path);
+            await this.updateTextDocument(schema);
+        }
+    }
+
+    private async deleteImport(path: string) {
+        const schema = this._parser.parse(this._document.getText());
+        schema.imports = schema.imports.filter(imp => imp !== path);
+        await this.updateTextDocument(schema);
+    }
+
+    private async addTypeAnnotation(typeName: string, annotation: { name: string, value?: string }) {
+        const schema = this._parser.parse(this._document.getText());
+        const type = schema.types.find(t => t.name === typeName);
+        if (type) {
+            type.annotations.push(annotation);
+            await this.updateTextDocument(schema);
+        }
+    }
+
+    private async deleteTypeAnnotation(typeName: string, annotationName: string) {
+        const schema = this._parser.parse(this._document.getText());
+        const type = schema.types.find(t => t.name === typeName);
+        if (type) {
+            type.annotations = type.annotations.filter(a => a.name !== annotationName);
+            await this.updateTextDocument(schema);
+        }
+    }
+
+    private async addFieldAnnotation(typeName: string, fieldName: string, annotation: { name: string, value?: string }) {
+        const schema = this._parser.parse(this._document.getText());
+        const type = schema.types.find(t => t.name === typeName);
+        if (type) {
+            const field = type.fields.find(f => f.name === fieldName);
+            if (field) {
+                field.annotations.push(annotation);
+                await this.updateTextDocument(schema);
+            }
+        }
+    }
+
+    private async addMethodAnnotation(serviceName: string, methodName: string, annotation: { name: string, value?: string }) {
+        const schema = this._parser.parse(this._document.getText());
+        const service = schema.services.find(s => s.name === serviceName);
+        if (service) {
+            const method = service.methods.find(m => m.name === methodName);
+            if (method) {
+                method.annotations.push(annotation);
+                await this.updateTextDocument(schema);
+            }
+        }
+    }
+
+    private async deleteMethodAnnotation(serviceName: string, methodName: string, annotationName: string) {
+        const schema = this._parser.parse(this._document.getText());
+        const service = schema.services.find(s => s.name === serviceName);
+        if (service) {
+            const method = service.methods.find(m => m.name === methodName);
+            if (method) {
+                method.annotations = method.annotations.filter(a => a.name !== annotationName);
+                await this.updateTextDocument(schema);
+            }
         }
     }
 
@@ -424,6 +529,49 @@ export class VisualEditorPanel {
         .inline-form button {
             padding: 6px 12px;
         }
+
+        .annotations {
+            margin: 8px 0;
+            padding: 8px;
+            background-color: var(--vscode-editor-background);
+            border-radius: 3px;
+        }
+
+        .annotation-tag {
+            display: inline-block;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            padding: 2px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .annotation-tag button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0 0 0 4px;
+            font-size: 10px;
+        }
+
+        .add-annotation-btn {
+            background: transparent;
+            border: 1px dashed var(--vscode-panel-border);
+            color: var(--vscode-descriptionForeground);
+            padding: 2px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .add-annotation-btn:hover {
+            border-color: var(--vscode-focusBorder);
+            color: var(--vscode-foreground);
+        }
     </style>
 </head>
 <body>
@@ -431,8 +579,31 @@ export class VisualEditorPanel {
         <h1>📝 Visual Schema Editor</h1>
         <div class="namespace-info">
             <strong>Namespace:</strong> ${schema.namespace || '(none)'}
-            ${schema.imports.length > 0 ? `<br><strong>Imports:</strong> ${schema.imports.join(', ')}` : ''}
+            <br><strong>Version:</strong> ${schema.version}
         </div>
+    </div>
+
+    <!-- Imports Section -->
+    <div class="section">
+        <div class="section-title">
+            <h2>Imports</h2>
+            <button class="add-button" onclick="showAddImport()">+ Add Import</button>
+        </div>
+        <div id="addImportForm" style="display: none;" class="inline-form">
+            <input type="text" id="newImportPath" placeholder="path/to/file.typemux" />
+            <button class="add-button" onclick="addImport()">Add</button>
+            <button class="add-button" onclick="cancelAddImport()">Cancel</button>
+        </div>
+        ${schema.imports.length === 0 ? '<div class="empty-state">No imports defined.</div>' : ''}
+        ${schema.imports.map(imp => `
+            <div class="field-item">
+                <div class="field-info">
+                    <span class="field-name">import</span>
+                    <span class="field-type">"${imp}"</span>
+                </div>
+                <button onclick="deleteImport('${imp}')" title="Delete Import">🗑️</button>
+            </div>
+        `).join('')}
     </div>
 
     <!-- Types Section -->
@@ -457,6 +628,22 @@ export class VisualEditorPanel {
                     </div>
                 </div>
                 ${type.documentation ? `<div style="color: var(--vscode-descriptionForeground); margin-bottom: 10px;">${type.documentation}</div>` : ''}
+                ${type.annotations.length > 0 ? `
+                    <div class="annotations">
+                        <strong style="font-size: 11px; color: var(--vscode-descriptionForeground);">Annotations:</strong>
+                        ${type.annotations.map(ann => `
+                            <span class="annotation-tag">
+                                ${ann.name}${ann.value ? `(${ann.value})` : ''}
+                                <button onclick="deleteTypeAnnotation('${type.name}', '${ann.name}')" title="Remove">×</button>
+                            </span>
+                        `).join('')}
+                        <button class="add-annotation-btn" onclick="addTypeAnnotation('${type.name}')">+ annotation</button>
+                    </div>
+                ` : `
+                    <div class="annotations">
+                        <button class="add-annotation-btn" onclick="addTypeAnnotation('${type.name}')">+ Add annotation</button>
+                    </div>
+                `}
                 <div class="field-list">
                     ${type.fields.length === 0 ? '<div style="color: var(--vscode-descriptionForeground); padding: 10px;">No fields</div>' : ''}
                     ${type.fields.map(field => `
@@ -467,8 +654,14 @@ export class VisualEditorPanel {
                                 ${field.fieldNumber !== undefined ? `<span class="field-meta">= ${field.fieldNumber}</span>` : ''}
                                 ${field.required ? '<span class="field-meta">@required</span>' : ''}
                                 ${field.defaultValue ? `<span class="field-meta">@default(${field.defaultValue})</span>` : ''}
+                                ${field.annotations.filter(a => a.name !== '@required' && !a.name.startsWith('@default')).map(ann => `
+                                    <span class="field-meta">${ann.name}${ann.value ? `(${ann.value})` : ''}</span>
+                                `).join('')}
                             </div>
-                            <button onclick="deleteField('${type.name}', '${field.name}')" title="Delete Field">🗑️</button>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="addFieldAnnotation('${type.name}', '${field.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
+                                <button onclick="deleteField('${type.name}', '${field.name}')" title="Delete Field">🗑️</button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -533,12 +726,24 @@ export class VisualEditorPanel {
                 </div>
                 ${service.documentation ? `<div style="color: var(--vscode-descriptionForeground); margin-bottom: 10px;">${service.documentation}</div>` : ''}
                 ${service.methods.map(method => `
-                    <div class="field-item">
-                        <div class="field-info">
-                            <span class="field-name">${method.name}</span>
-                            <span class="field-type">(${method.request}) → ${method.response}</span>
-                            ${method.annotations.map(ann => `<span class="field-meta">${ann.name}</span>`).join(' ')}
+                    <div class="field-item" style="flex-direction: column; align-items: flex-start;">
+                        <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+                            <div class="field-info">
+                                <span class="field-name">${method.name}</span>
+                                <span class="field-type">(${method.request}) → ${method.response}</span>
+                            </div>
+                            <button onclick="addMethodAnnotation('${service.name}', '${method.name}')" title="Add Annotation" style="font-size: 11px;">@+</button>
                         </div>
+                        ${method.annotations.length > 0 ? `
+                            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                ${method.annotations.map(ann => `
+                                    <span class="annotation-tag">
+                                        ${ann.name}${ann.value ? `(${ann.value})` : ''}
+                                        <button onclick="deleteMethodAnnotation('${service.name}', '${method.name}', '${ann.name}')" title="Remove">×</button>
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
                     </div>
                 `).join('')}
             </div>
@@ -604,6 +809,95 @@ export class VisualEditorPanel {
             if (confirm(\`Delete field "\${fieldName}"?\`)) {
                 vscode.postMessage({ type: 'deleteField', typeName, fieldName });
             }
+        }
+
+        // Import functions
+        function showAddImport() {
+            document.getElementById('addImportForm').style.display = 'flex';
+            document.getElementById('newImportPath').focus();
+        }
+
+        function cancelAddImport() {
+            document.getElementById('addImportForm').style.display = 'none';
+            document.getElementById('newImportPath').value = '';
+        }
+
+        function addImport() {
+            const path = document.getElementById('newImportPath').value.trim();
+            if (path) {
+                vscode.postMessage({ type: 'addImport', path });
+                cancelAddImport();
+            }
+        }
+
+        function deleteImport(path) {
+            if (confirm(\`Delete import "\${path}"?\`)) {
+                vscode.postMessage({ type: 'deleteImport', path });
+            }
+        }
+
+        // Type annotation functions
+        function addTypeAnnotation(typeName) {
+            const annotation = prompt('Enter annotation (e.g., @proto.name("CustomName") or @graphql.directive(@key(fields: "id")))');
+            if (annotation) {
+                const parsed = parseAnnotation(annotation);
+                if (parsed) {
+                    vscode.postMessage({ type: 'addTypeAnnotation', typeName, annotation: parsed });
+                }
+            }
+        }
+
+        function deleteTypeAnnotation(typeName, annotationName) {
+            vscode.postMessage({ type: 'deleteTypeAnnotation', typeName, annotationName });
+        }
+
+        // Field annotation functions
+        function addFieldAnnotation(typeName, fieldName) {
+            const annotation = prompt('Enter annotation (e.g., @required, @proto.option([packed = false]), @graphql.directive(@external))');
+            if (annotation) {
+                const parsed = parseAnnotation(annotation);
+                if (parsed) {
+                    vscode.postMessage({ type: 'addFieldAnnotation', typeName, fieldName, annotation: parsed });
+                }
+            }
+        }
+
+        // Method annotation functions
+        function addMethodAnnotation(serviceName, methodName) {
+            const annotation = prompt('Enter annotation (e.g., @http(GET), @path("/api/v1/users"), @errors(404,500))');
+            if (annotation) {
+                const parsed = parseAnnotation(annotation);
+                if (parsed) {
+                    vscode.postMessage({ type: 'addMethodAnnotation', serviceName, methodName, annotation: parsed });
+                }
+            }
+        }
+
+        function deleteMethodAnnotation(serviceName, methodName, annotationName) {
+            vscode.postMessage({ type: 'deleteMethodAnnotation', serviceName, methodName, annotationName });
+        }
+
+        // Helper function to parse annotation string
+        function parseAnnotation(str) {
+            str = str.trim();
+            if (!str.startsWith('@')) {
+                str = '@' + str;
+            }
+
+            // Match @name or @name(value)
+            const match = str.match(/^(@[\\w.]+)(?:\\((.*)\\))?$/);
+            if (match) {
+                return {
+                    name: match[1],
+                    value: match[2] || undefined
+                };
+            }
+
+            // If no match, treat the whole thing as name
+            return {
+                name: str,
+                value: undefined
+            };
         }
     </script>
 </body>
