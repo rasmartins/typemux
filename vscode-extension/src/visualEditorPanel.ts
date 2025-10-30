@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { SchemaParser, ParsedSchema } from './schemaParser';
 
 export class VisualEditorPanel {
@@ -98,6 +99,9 @@ export class VisualEditorPanel {
                         return;
                     case 'deleteMethodAnnotation':
                         this.deleteMethodAnnotation(message.serviceName, message.methodName, message.annotationName);
+                        return;
+                    case 'pickImportFile':
+                        this.pickImportFile();
                         return;
                 }
             },
@@ -282,10 +286,41 @@ export class VisualEditorPanel {
         }
     }
 
-    private async addImport(path: string) {
+    private async pickImportFile() {
+        const fileUris = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            filters: {
+                'TypeMux Schema': ['typemux']
+            },
+            openLabel: 'Import'
+        });
+
+        if (fileUris && fileUris.length > 0) {
+            const selectedFilePath = fileUris[0].fsPath;
+            const currentFilePath = this._document.uri.fsPath;
+
+            // Relativize the path
+            const relativePath = this.relativizePath(currentFilePath, selectedFilePath);
+
+            // Add the import
+            await this.addImport(relativePath);
+        }
+    }
+
+    private relativizePath(fromPath: string, toPath: string): string {
+        const fromDir = path.dirname(fromPath);
+        const relativePath = path.relative(fromDir, toPath);
+
+        // Convert Windows paths to Unix-style for consistency
+        return relativePath.split(path.sep).join('/');
+    }
+
+    private async addImport(importPath: string) {
         const schema = this._parser.parse(this._document.getText());
-        if (!schema.imports.includes(path)) {
-            schema.imports.push(path);
+        if (!schema.imports.includes(importPath)) {
+            schema.imports.push(importPath);
             await this.updateTextDocument(schema);
         }
     }
@@ -589,11 +624,6 @@ export class VisualEditorPanel {
             <h2>Imports</h2>
             <button class="add-button" onclick="showAddImport()">+ Add Import</button>
         </div>
-        <div id="addImportForm" style="display: none;" class="inline-form">
-            <input type="text" id="newImportPath" placeholder="path/to/file.typemux" />
-            <button class="add-button" onclick="addImport()">Add</button>
-            <button class="add-button" onclick="cancelAddImport()">Cancel</button>
-        </div>
         ${schema.imports.length === 0 ? '<div class="empty-state">No imports defined.</div>' : ''}
         ${schema.imports.map(imp => `
             <div class="field-item">
@@ -813,21 +843,7 @@ export class VisualEditorPanel {
 
         // Import functions
         function showAddImport() {
-            document.getElementById('addImportForm').style.display = 'flex';
-            document.getElementById('newImportPath').focus();
-        }
-
-        function cancelAddImport() {
-            document.getElementById('addImportForm').style.display = 'none';
-            document.getElementById('newImportPath').value = '';
-        }
-
-        function addImport() {
-            const path = document.getElementById('newImportPath').value.trim();
-            if (path) {
-                vscode.postMessage({ type: 'addImport', path });
-                cancelAddImport();
-            }
+            vscode.postMessage({ type: 'pickImportFile' });
         }
 
         function deleteImport(path) {
