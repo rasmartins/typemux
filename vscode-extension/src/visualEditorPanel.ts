@@ -847,11 +847,11 @@ export class VisualEditorPanel {
                         <div id="addMethodAnnotationForm_${service.name}_${method.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
                             <input type="text" id="methodAnnotationName_${service.name}_${method.name}" list="methodAnnotations" placeholder="@annotation" style="width: 180px;" />
                             <datalist id="methodAnnotations">
-                                <option value="@http">@http(GET|POST|PUT|DELETE|PATCH) - HTTP method</option>
-                                <option value="@path">@path("/api/v1/...") - URL path</option>
+                                <option value="@http">@http.method(GET|POST|PUT|DELETE|PATCH) - HTTP method</option>
+                                <option value="@path">@http.path("/api/v1/...") - URL path</option>
                                 <option value="@graphql">@graphql(query|mutation|subscription) - GraphQL operation</option>
-                                <option value="@success">@success(201|204) - Success status code</option>
-                                <option value="@errors">@errors(400,404,500) - Error status codes</option>
+                                <option value="@success">@http.success(201|204) - Success status code</option>
+                                <option value="@errors">@http.errors(400,404,500) - Error status codes</option>
                                 <option value="@deprecated">@deprecated - Mark as deprecated</option>
                             </datalist>
                             <input type="text" id="methodAnnotationValue_${service.name}_${method.name}" placeholder='value: GET, "/path", etc.' style="width: 180px;" />

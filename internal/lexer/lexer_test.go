@@ -561,12 +561,14 @@ func TestNextToken_Strings(t *testing.T) {
 		},
 		{
 			name:  "string in annotation",
-			input: `@path("/api/v1/users")`,
+			input: `@http.path("/api/v1/users")`,
 			expected: []struct {
 				typ     TokenType
 				literal string
 			}{
 				{TOKEN_AT, "@"},
+				{TOKEN_IDENT, "http"},
+				{TOKEN_DOT, "."},
 				{TOKEN_IDENT, "path"},
 				{TOKEN_LPAREN, "("},
 				{TOKEN_STRING, "/api/v1/users"},

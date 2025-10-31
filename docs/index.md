@@ -26,8 +26,8 @@ enum UserRole {
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
     @graphql(query)
 }
 ```

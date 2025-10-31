@@ -242,33 +242,33 @@ export async function newServiceWizard() {
 
         serviceDefinition += `\t/// Create a new ${entityLower}\n`;
         serviceDefinition += `\trpc Create(Create${entityName}Request) returns (Create${entityName}Response)\n`;
-        serviceDefinition += `\t\t@http(POST)\n`;
-        serviceDefinition += `\t\t@path("/api/v1/${entityPlural}")\n`;
+        serviceDefinition += `\t\t@http.method(POST)\n`;
+        serviceDefinition += `\t\t@http.path("/api/v1/${entityPlural}")\n`;
         serviceDefinition += `\t\t@graphql(mutation)\n`;
-        serviceDefinition += `\t\t@success(201)\n`;
-        serviceDefinition += `\t\t@errors(400,409,500)\n\n`;
+        serviceDefinition += `\t\t@http.success(201)\n`;
+        serviceDefinition += `\t\t@http.errors(400,409,500)\n\n`;
 
         serviceDefinition += `\t/// Get ${entityLower} by ID\n`;
         serviceDefinition += `\trpc Get(Get${entityName}Request) returns (Get${entityName}Response)\n`;
-        serviceDefinition += `\t\t@http(GET)\n`;
-        serviceDefinition += `\t\t@path("/api/v1/${entityPlural}/{id}")\n`;
+        serviceDefinition += `\t\t@http.method(GET)\n`;
+        serviceDefinition += `\t\t@http.path("/api/v1/${entityPlural}/{id}")\n`;
         serviceDefinition += `\t\t@graphql(query)\n`;
-        serviceDefinition += `\t\t@errors(404,500)\n\n`;
+        serviceDefinition += `\t\t@http.errors(404,500)\n\n`;
 
         serviceDefinition += `\t/// Update ${entityLower}\n`;
         serviceDefinition += `\trpc Update(Update${entityName}Request) returns (Update${entityName}Response)\n`;
-        serviceDefinition += `\t\t@http(PUT)\n`;
-        serviceDefinition += `\t\t@path("/api/v1/${entityPlural}/{id}")\n`;
+        serviceDefinition += `\t\t@http.method(PUT)\n`;
+        serviceDefinition += `\t\t@http.path("/api/v1/${entityPlural}/{id}")\n`;
         serviceDefinition += `\t\t@graphql(mutation)\n`;
-        serviceDefinition += `\t\t@errors(400,404,500)\n\n`;
+        serviceDefinition += `\t\t@http.errors(400,404,500)\n\n`;
 
         serviceDefinition += `\t/// Delete ${entityLower}\n`;
         serviceDefinition += `\trpc Delete(Delete${entityName}Request) returns (Delete${entityName}Response)\n`;
-        serviceDefinition += `\t\t@http(DELETE)\n`;
-        serviceDefinition += `\t\t@path("/api/v1/${entityPlural}/{id}")\n`;
+        serviceDefinition += `\t\t@http.method(DELETE)\n`;
+        serviceDefinition += `\t\t@http.path("/api/v1/${entityPlural}/{id}")\n`;
         serviceDefinition += `\t\t@graphql(mutation)\n`;
-        serviceDefinition += `\t\t@success(204)\n`;
-        serviceDefinition += `\t\t@errors(404,500)\n`;
+        serviceDefinition += `\t\t@http.success(204)\n`;
+        serviceDefinition += `\t\t@http.errors(404,500)\n`;
 
     } else if (serviceType.startsWith('GraphQL')) {
         const entityLower = entityName.toLowerCase();

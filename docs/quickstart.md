@@ -60,14 +60,14 @@ type CreatePostRequest {
 service BlogService {
   /// Get a post by its ID
   rpc GetPost(GetPostRequest) returns (Post)
-    @http(GET)
-    @path("/api/v1/posts/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/posts/{id}")
     @graphql(query)
 
   /// Create a new blog post
   rpc CreatePost(CreatePostRequest) returns (Post)
-    @http(POST)
-    @path("/api/v1/posts")
+    @http.method(POST)
+    @http.path("/api/v1/posts")
     @graphql(mutation)
 }
 ```

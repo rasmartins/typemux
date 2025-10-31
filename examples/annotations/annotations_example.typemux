@@ -34,8 +34,8 @@ type GetUserResponse {
 
 service UserService {
     rpc GetUser(GetUserRequest) returns (GetUserResponse)
-        @http(GET)
-        @path("/api/v1/users/{userId}")
-        @errors(404,500)
+        @http.method(GET)
+        @http.path("/api/v1/users/{userId}")
+        @http.errors(404,500)
 }
 

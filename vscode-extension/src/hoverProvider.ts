@@ -82,12 +82,12 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
             ['@http', {
                 description: 'Specifies the HTTP method for an RPC endpoint',
                 usage: 'Use on service methods to define REST API behavior',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http(GET)\n        @path("/api/users/{id}")\n    \n    rpc CreateUser(Request) returns (Response)\n        @http(POST)\n        @path("/api/users")\n}\n```'
+                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n}\n```'
             }],
             ['@path', {
                 description: 'Specifies the URL path template for a REST endpoint',
                 usage: 'Use path parameters in curly braces like {id}',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http(GET)\n        @path("/api/v1/users/{id}")\n    \n    rpc UpdateUser(Request) returns (Response)\n        @http(PUT)\n        @path("/api/v1/users/{userId}")\n}\n```'
+                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/v1/users/{id}")\n    \n    rpc UpdateUser(Request) returns (Response)\n        @http.method(PUT)\n        @http.path("/api/v1/users/{userId}")\n}\n```'
             }],
             ['@graphql', {
                 description: 'Specifies the GraphQL operation type',
@@ -127,12 +127,12 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
             ['@success', {
                 description: 'Specifies additional HTTP success status codes',
                 usage: 'Use comma-separated status codes (201, 202, 204, etc.)',
-                example: '```typemux\nservice UserService {\n    rpc CreateUser(Request) returns (Response)\n        @http(POST)\n        @path("/api/users")\n        @success(201)\n        @errors(400,409,500)\n    \n    rpc DeleteUser(Request) returns (Response)\n        @http(DELETE)\n        @path("/api/users/{id}")\n        @success(204)\n        @errors(404,500)\n}\n```'
+                example: '```typemux\nservice UserService {\n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,500)\n    \n    rpc DeleteUser(Request) returns (Response)\n        @http.method(DELETE)\n        @http.path("/api/users/{id}")\n        @http.success(204)\n        @http.errors(404,500)\n}\n```'
             }],
             ['@errors', {
                 description: 'Specifies expected HTTP error status codes',
                 usage: 'Use comma-separated status codes (400, 404, 500, etc.)',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http(GET)\n        @path("/api/users/{id}")\n        @errors(404,500)\n    \n    rpc CreateUser(Request) returns (Response)\n        @http(POST)\n        @path("/api/users")\n        @success(201)\n        @errors(400,409,422,500)\n}\n```'
+                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n        @http.errors(404,500)\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,422,500)\n}\n```'
             }]
         ]);
     }

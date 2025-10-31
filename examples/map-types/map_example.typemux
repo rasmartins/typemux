@@ -101,13 +101,13 @@ type CartResponse {
 service InventoryService {
     /// Get inventory for a warehouse
     rpc GetInventory(GetInventoryRequest) returns (Inventory)
-        @http(GET)
-        @path("/api/v1/inventory/{warehouseId}")
+        @http.method(GET)
+        @http.path("/api/v1/inventory/{warehouseId}")
         @graphql(query)
 
     /// Update shopping cart
     rpc UpdateCart(UpdateCartRequest) returns (CartResponse)
-        @http(PUT)
-        @path("/api/v1/cart/{cartId}")
+        @http.method(PUT)
+        @http.path("/api/v1/cart/{cartId}")
         @graphql(mutation)
 }

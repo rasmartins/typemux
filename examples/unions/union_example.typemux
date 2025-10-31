@@ -48,14 +48,14 @@ type GetMessageResponse {
 service MessageService {
     /// Send a message (text, image, or video)
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse)
-        @http(POST)
-        @path("/api/v1/messages")
-        @success(201)
-        @errors(400,500)
+        @http.method(POST)
+        @http.path("/api/v1/messages")
+        @http.success(201)
+        @http.errors(400,500)
 
     /// Get a message by ID
     rpc GetMessage(GetMessageRequest) returns (GetMessageResponse)
-        @http(GET)
-        @path("/api/v1/messages/{id}")
-        @errors(404,500)
+        @http.method(GET)
+        @http.path("/api/v1/messages/{id}")
+        @http.errors(404,500)
 }

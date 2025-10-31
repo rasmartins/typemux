@@ -140,7 +140,7 @@
   "HTTP Annotation": {
     "prefix": "http",
     "body": [
-      "@http(${1|GET,POST,PUT,DELETE,PATCH|}) @path(\"${2:/api/v1/resource}\")"
+      "@http.method(${1|GET,POST,PUT,DELETE,PATCH|}) @http.path(\"${2:/api/v1/resource}\")"
     ],
     "description": "Add HTTP method and path annotations"
   },
@@ -168,14 +168,14 @@
   "Success Codes": {
     "prefix": "success",
     "body": [
-      "@success(${1|201,202,204|})"
+      "@http.success(${1|201,202,204|})"
     ],
     "description": "Specify additional HTTP success codes for RPC method"
   },
   "Error Codes": {
     "prefix": "errors",
     "body": [
-      "@errors(${1:400},${2:404},${3:500})"
+      "@http.errors(${1:400},${2:404},${3:500})"
     ],
     "description": "Specify expected HTTP error codes for RPC method"
   },
@@ -259,33 +259,33 @@
       "service ${1:EntityService} {",
       "\t/// Create a new ${2:entity}",
       "\trpc Create(${3:CreateRequest}) returns (${4:CreateResponse})",
-      "\t\t@http(POST)",
-      "\t\t@path(\"/api/v1/${5:entities}\")",
+      "\t\t@http.method(POST)",
+      "\t\t@http.path(\"/api/v1/${5:entities}\")",
       "\t\t@graphql(mutation)",
-      "\t\t@success(201)",
-      "\t\t@errors(400,409,500)",
+      "\t\t@http.success(201)",
+      "\t\t@http.errors(400,409,500)",
       "",
       "\t/// Get ${2:entity} by ID",
       "\trpc Get(${6:GetRequest}) returns (${7:GetResponse})",
-      "\t\t@http(GET)",
-      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@http.method(GET)",
+      "\t\t@http.path(\"/api/v1/${5:entities}/{id}\")",
       "\t\t@graphql(query)",
-      "\t\t@errors(404,500)",
+      "\t\t@http.errors(404,500)",
       "",
       "\t/// Update ${2:entity}",
       "\trpc Update(${8:UpdateRequest}) returns (${9:UpdateResponse})",
-      "\t\t@http(PUT)",
-      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@http.method(PUT)",
+      "\t\t@http.path(\"/api/v1/${5:entities}/{id}\")",
       "\t\t@graphql(mutation)",
-      "\t\t@errors(400,404,500)",
+      "\t\t@http.errors(400,404,500)",
       "",
       "\t/// Delete ${2:entity}",
       "\trpc Delete(${10:DeleteRequest}) returns (${11:DeleteResponse})",
-      "\t\t@http(DELETE)",
-      "\t\t@path(\"/api/v1/${5:entities}/{id}\")",
+      "\t\t@http.method(DELETE)",
+      "\t\t@http.path(\"/api/v1/${5:entities}/{id}\")",
       "\t\t@graphql(mutation)",
-      "\t\t@success(204)",
-      "\t\t@errors(404,500)",
+      "\t\t@http.success(204)",
+      "\t\t@http.errors(404,500)",
       "}"
     ],
     "description": "Create a complete REST API service with CRUD operations"

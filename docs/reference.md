@@ -465,7 +465,7 @@ Annotations provide metadata for service methods.
 
 Specifies the HTTP method for REST endpoints.
 
-**Syntax:** `@http(METHOD)`
+**Syntax:** `@http.method(METHOD)`
 
 **Methods:** `GET`, `POST`, `PUT`, `PATCH`, `DELETE`
 
@@ -473,16 +473,16 @@ Specifies the HTTP method for REST endpoints.
 ```typemux
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
+    @http.method(GET)
 
   rpc CreateUser(CreateUserRequest) returns (User)
-    @http(POST)
+    @http.method(POST)
 
   rpc UpdateUser(UpdateUserRequest) returns (User)
-    @http(PUT)
+    @http.method(PUT)
 
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse)
-    @http(DELETE)
+    @http.method(DELETE)
 }
 ```
 
@@ -490,7 +490,7 @@ service UserService {
 
 Defines the URL path template.
 
-**Syntax:** `@path("URL_PATH")`
+**Syntax:** `@http.path("URL_PATH")`
 
 **Path parameters:** Use `{paramName}` for variables
 
@@ -498,16 +498,16 @@ Defines the URL path template.
 ```typemux
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
 
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse)
-    @http(GET)
-    @path("/api/v1/users")
+    @http.method(GET)
+    @http.path("/api/v1/users")
 
   rpc GetUserPosts(GetUserPostsRequest) returns (GetUserPostsResponse)
-    @http(GET)
-    @path("/api/v1/users/{userId}/posts")
+    @http.method(GET)
+    @http.path("/api/v1/users/{userId}/posts")
 }
 ```
 
@@ -545,20 +545,20 @@ service UserService {
 
 Lists HTTP success status codes.
 
-**Syntax:** `@success(CODE1,CODE2,...)`
+**Syntax:** `@http.success(CODE1,CODE2,...)`
 
 **Example:**
 ```typemux
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (User)
-    @http(POST)
-    @path("/api/v1/users")
-    @success(201)
+    @http.method(POST)
+    @http.path("/api/v1/users")
+    @http.success(201)
 
   rpc UpdateUser(UpdateUserRequest) returns (User)
-    @http(PUT)
-    @path("/api/v1/users/{id}")
-    @success(200,204)
+    @http.method(PUT)
+    @http.path("/api/v1/users/{id}")
+    @http.success(200,204)
 }
 ```
 
@@ -571,22 +571,22 @@ service UserService {
 
 Lists HTTP error status codes.
 
-**Syntax:** `@errors(CODE1,CODE2,...)`
+**Syntax:** `@http.errors(CODE1,CODE2,...)`
 
 **Example:**
 ```typemux
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
-    @success(200)
-    @errors(404,500)
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
+    @http.success(200)
+    @http.errors(404,500)
 
   rpc CreateUser(CreateUserRequest) returns (User)
-    @http(POST)
-    @path("/api/v1/users")
-    @success(201)
-    @errors(400,409,500)
+    @http.method(POST)
+    @http.path("/api/v1/users")
+    @http.success(201)
+    @http.errors(400,409,500)
 }
 ```
 
@@ -603,18 +603,18 @@ service UserService {
 ```typemux
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/api/v1/products/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/products/{id}")
     @graphql(query)
-    @success(200)
-    @errors(404,500)
+    @http.success(200)
+    @http.errors(404,500)
 
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
-    @path("/api/v1/products")
+    @http.method(POST)
+    @http.path("/api/v1/products")
     @graphql(mutation)
-    @success(201)
-    @errors(400,409,500)
+    @http.success(201)
+    @http.errors(400,409,500)
 }
 ```
 
@@ -625,14 +625,14 @@ Annotations can be in any order:
 ```typemux
 // Both are valid
 rpc GetUser(GetUserRequest) returns (User)
-  @http(GET)
-  @path("/users/{id}")
+  @http.method(GET)
+  @http.path("/users/{id}")
   @graphql(query)
 
 rpc GetUser(GetUserRequest) returns (User)
   @graphql(query)
-  @path("/users/{id}")
-  @http(GET)
+  @http.path("/users/{id}")
+  @http.method(GET)
 ```
 
 Best practice: Use consistent ordering (http, path, graphql, success, errors).
@@ -700,8 +700,8 @@ service UserService {
   ///
   /// Returns 404 if user is not found.
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
     @graphql(query)
 }
 ```
@@ -1208,7 +1208,7 @@ String literals use double quotes:
 
 ```typemux
 @default("hello world")
-@path("/api/v1/users/{id}")
+@http.path("/api/v1/users/{id}")
 ```
 
 **Escape sequences:**

@@ -109,26 +109,26 @@ type ListUsersResponse {
 service UserService {
   /// Create a new user
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
-    @http(POST)
-    @path("/api/v1/users")
+    @http.method(POST)
+    @http.path("/api/v1/users")
     @graphql(mutation)
 
   /// Get a user by ID
   rpc GetUser(GetUserRequest) returns (GetUserResponse)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
     @graphql(query)
 
   /// List all users with pagination
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse)
-    @http(GET)
-    @path("/api/v1/users")
+    @http.method(GET)
+    @http.path("/api/v1/users")
     @graphql(query)
 
   /// Delete a user
   rpc DeleteUser(GetUserRequest) returns (GetUserResponse)
-    @http(DELETE)
-    @path("/api/v1/users/{id}")
+    @http.method(DELETE)
+    @http.path("/api/v1/users/{id}")
     @graphql(mutation)
 }
 
@@ -136,14 +136,14 @@ service UserService {
 service PostService {
   /// Create a new post
   rpc CreatePost(Post) returns (Post)
-    @http(POST)
-    @path("/api/v1/posts")
+    @http.method(POST)
+    @http.path("/api/v1/posts")
     @graphql(mutation)
 
   /// Get a post by ID
   rpc GetPost(GetUserRequest) returns (Post)
-    @http(GET)
-    @path("/api/v1/posts/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/posts/{id}")
     @graphql(query)
 }
 ```
@@ -229,16 +229,16 @@ type GetMessageResponse {
 service MessageService {
     /// Send a message (text, image, or video)
     rpc SendMessage(SendMessageRequest) returns (SendMessageResponse)
-        @http(POST)
-        @path("/api/v1/messages")
-        @success(201)
-        @errors(400,500)
+        @http.method(POST)
+        @http.path("/api/v1/messages")
+        @http.success(201)
+        @http.errors(400,500)
 
     /// Get a message by ID
     rpc GetMessage(GetMessageRequest) returns (GetMessageResponse)
-        @http(GET)
-        @path("/api/v1/messages/{id}")
-        @errors(404,500)
+        @http.method(GET)
+        @http.path("/api/v1/messages/{id}")
+        @http.errors(404,500)
 }
 ```
 
@@ -624,34 +624,34 @@ Comprehensive HTTP status code handling.
 ```typemux
 service OrderService {
   rpc CreateOrder(CreateOrderRequest) returns (Order)
-    @http(POST)
-    @path("/api/v1/orders")
-    @success(201)
-    @errors(400,409,500)
+    @http.method(POST)
+    @http.path("/api/v1/orders")
+    @http.success(201)
+    @http.errors(400,409,500)
 
   rpc GetOrder(GetOrderRequest) returns (Order)
-    @http(GET)
-    @path("/api/v1/orders/{id}")
-    @success(200)
-    @errors(404,500)
+    @http.method(GET)
+    @http.path("/api/v1/orders/{id}")
+    @http.success(200)
+    @http.errors(404,500)
 
   rpc UpdateOrder(UpdateOrderRequest) returns (Order)
-    @http(PUT)
-    @path("/api/v1/orders/{id}")
-    @success(200,204)
-    @errors(400,404,409,500)
+    @http.method(PUT)
+    @http.path("/api/v1/orders/{id}")
+    @http.success(200,204)
+    @http.errors(400,404,409,500)
 
   rpc DeleteOrder(DeleteOrderRequest) returns (DeleteOrderResponse)
-    @http(DELETE)
-    @path("/api/v1/orders/{id}")
-    @success(204)
-    @errors(404,500)
+    @http.method(DELETE)
+    @http.path("/api/v1/orders/{id}")
+    @http.success(204)
+    @http.errors(404,500)
 
   rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse)
-    @http(GET)
-    @path("/api/v1/orders")
-    @success(200)
-    @errors(500)
+    @http.method(GET)
+    @http.path("/api/v1/orders")
+    @http.success(200)
+    @http.errors(500)
 }
 ```
 
@@ -752,8 +752,8 @@ import "types/user.typemux"
 
 service UserService {
   rpc CreateUser(CreateUserRequest) returns (User)
-    @http(POST)
-    @path("/api/v1/users")
+    @http.method(POST)
+    @http.path("/api/v1/users")
 }
 ```
 

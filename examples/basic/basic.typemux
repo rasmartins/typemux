@@ -94,19 +94,19 @@ type ListUsersResponse {
 /// User service for managing users
 service UserService {
   /// Create a new user
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) @http(POST) @path("/api/v1/users") @graphql(mutation)
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) @http.method(POST) @http.path("/api/v1/users") @graphql(mutation)
   /// Get a user by ID
-  rpc GetUser(GetUserRequest) returns (GetUserResponse) @http(GET) @path("/api/v1/users/{id}") @graphql(query)
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) @http.method(GET) @http.path("/api/v1/users/{id}") @graphql(query)
   /// List all users with pagination
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) @http(GET) @path("/api/v1/users") @graphql(query)
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) @http.method(GET) @http.path("/api/v1/users") @graphql(query)
   /// Delete a user
-  rpc DeleteUser(GetUserRequest) returns (GetUserResponse) @http(DELETE) @path("/api/v1/users/{id}") @graphql(mutation)
+  rpc DeleteUser(GetUserRequest) returns (GetUserResponse) @http.method(DELETE) @http.path("/api/v1/users/{id}") @graphql(mutation)
 }
 
 /// Post service for managing blog posts
 service PostService {
   /// Create a new post
-  rpc CreatePost(Post) returns (Post) @http(POST) @path("/api/v1/posts") @graphql(mutation)
+  rpc CreatePost(Post) returns (Post) @http.method(POST) @http.path("/api/v1/posts") @graphql(mutation)
   /// Get a post by ID
-  rpc GetPost(GetUserRequest) returns (Post) @http(GET) @path("/api/v1/posts/{id}") @graphql(query)
+  rpc GetPost(GetUserRequest) returns (Post) @http.method(GET) @http.path("/api/v1/posts/{id}") @graphql(query)
 }

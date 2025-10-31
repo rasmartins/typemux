@@ -38,21 +38,21 @@ type UpdateUserResponse {
 service UserService {
     /// Create a new user - returns 201 Created
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
-        @http(POST)
-        @path("/api/v1/users")
-        @success(201)
-        @errors(400,409,500)
+        @http.method(POST)
+        @http.path("/api/v1/users")
+        @http.success(201)
+        @http.errors(400,409,500)
 
     /// Get a user by ID - standard 200 response
     rpc GetUser(GetUserRequest) returns (GetUserResponse)
-        @http(GET)
-        @path("/api/v1/users/{id}")
-        @errors(404,500)
+        @http.method(GET)
+        @http.path("/api/v1/users/{id}")
+        @http.errors(404,500)
 
     /// Update a user - can return 200 or 204
     rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse)
-        @http(PUT)
-        @path("/api/v1/users/{id}")
-        @success(204)
-        @errors(400,404,500)
+        @http.method(PUT)
+        @http.path("/api/v1/users/{id}")
+        @http.success(204)
+        @http.errors(400,404,500)
 }

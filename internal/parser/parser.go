@@ -849,14 +849,53 @@ func (p *Parser) parseMethod() *ast.Method {
 		attrName := p.curTok.Literal
 		p.nextToken()
 
+		// Handle @http with dotted notation: @http.method, @http.path, @http.success, @http.errors
 		if attrName == "http" {
-			// Parse @http(GET) or @http(POST)
-			if p.curTok.Type == lexer.TOKEN_LPAREN {
+			// Check if this is dotted notation (@http.method, @http.path, etc.)
+			if p.curTok.Type == lexer.TOKEN_DOT {
 				p.nextToken()
 				if p.curTok.Type == lexer.TOKEN_IDENT {
-					method.HTTPMethod = strings.ToUpper(p.curTok.Literal)
+					subtype := p.curTok.Literal
 					p.nextToken()
-					p.expectToken(lexer.TOKEN_RPAREN)
+
+					if p.curTok.Type == lexer.TOKEN_LPAREN {
+						p.nextToken()
+
+						switch subtype {
+						case "method":
+							// Parse @http.method(GET)
+							if p.curTok.Type == lexer.TOKEN_IDENT {
+								method.HTTPMethod = strings.ToUpper(p.curTok.Literal)
+								p.nextToken()
+							}
+						case "path":
+							// Parse @http.path("/users/{id}")
+							if p.curTok.Type == lexer.TOKEN_STRING {
+								method.PathTemplate = p.curTok.Literal
+								p.nextToken()
+							}
+						case "success":
+							// Parse @http.success(201,204)
+							successCodes := p.parseStatusCodeList()
+							method.SuccessCodes = successCodes
+						case "errors":
+							// Parse @http.errors(400,404,500)
+							errorCodes := p.parseStatusCodeList()
+							method.ErrorCodes = errorCodes
+						}
+
+						p.expectToken(lexer.TOKEN_RPAREN)
+					}
+				}
+			} else {
+				// Backward compatibility: @http(GET) - old style
+				if p.curTok.Type == lexer.TOKEN_LPAREN {
+					p.nextToken()
+					if p.curTok.Type == lexer.TOKEN_IDENT {
+						method.HTTPMethod = strings.ToUpper(p.curTok.Literal)
+						p.nextToken()
+						p.expectToken(lexer.TOKEN_RPAREN)
+					}
 				}
 			}
 		} else if attrName == "graphql" {
@@ -870,7 +909,7 @@ func (p *Parser) parseMethod() *ast.Method {
 				}
 			}
 		} else if attrName == "path" {
-			// Parse @path("/users/{id}")
+			// Backward compatibility: @path("/users/{id}") - old style
 			if p.curTok.Type == lexer.TOKEN_LPAREN {
 				p.nextToken()
 				if p.curTok.Type == lexer.TOKEN_STRING {
@@ -880,7 +919,7 @@ func (p *Parser) parseMethod() *ast.Method {
 				}
 			}
 		} else if attrName == "success" {
-			// Parse @success(201,204)
+			// Backward compatibility: @success(201,204) - old style
 			if p.curTok.Type == lexer.TOKEN_LPAREN {
 				p.nextToken()
 				successCodes := p.parseStatusCodeList()
@@ -888,7 +927,7 @@ func (p *Parser) parseMethod() *ast.Method {
 				p.expectToken(lexer.TOKEN_RPAREN)
 			}
 		} else if attrName == "errors" {
-			// Parse @errors(400,404,500)
+			// Backward compatibility: @errors(400,404,500) - old style
 			if p.curTok.Type == lexer.TOKEN_LPAREN {
 				p.nextToken()
 				errorCodes := p.parseStatusCodeList()

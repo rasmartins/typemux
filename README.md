@@ -26,8 +26,8 @@ enum UserRole {
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
     @graphql(query)
 }
 ```
@@ -83,7 +83,7 @@ typemux -input schema.typemux -output ./generated
 
 ### Annotations
 - Field: `@required` · `@default("value")` · `@exclude(format)` · `@only(format)`
-- Method: `@http(METHOD)` · `@path("/api/path")` · `@graphql(type)` · `@success(code)` · `@errors(code)`
+- Method: `@http.method(METHOD)` · `@http.path("/api/path")` · `@graphql(type)` · `@http.success(code)` · `@http.errors(code)`
 
 ## Example Output
 

@@ -1059,7 +1059,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "explicit HTTP POST",
 			input: `service UserService {
-  rpc CreateUser(Req) returns (Res) @http(POST)
+  rpc CreateUser(Req) returns (Res) @http.method(POST)
 }`,
 			methodName:        "CreateUser",
 			expectedHTTP:      "POST",
@@ -1068,7 +1068,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "explicit HTTP GET",
 			input: `service UserService {
-  rpc GetUser(Req) returns (Res) @http(GET)
+  rpc GetUser(Req) returns (Res) @http.method(GET)
 }`,
 			methodName:        "GetUser",
 			expectedHTTP:      "GET",
@@ -1077,7 +1077,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "explicit HTTP DELETE",
 			input: `service UserService {
-  rpc DeleteUser(Req) returns (Res) @http(DELETE)
+  rpc DeleteUser(Req) returns (Res) @http.method(DELETE)
 }`,
 			methodName:        "DeleteUser",
 			expectedHTTP:      "DELETE",
@@ -1086,7 +1086,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "explicit HTTP PUT",
 			input: `service UserService {
-  rpc UpdateUser(Req) returns (Res) @http(PUT)
+  rpc UpdateUser(Req) returns (Res) @http.method(PUT)
 }`,
 			methodName:        "UpdateUser",
 			expectedHTTP:      "PUT",
@@ -1095,7 +1095,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "explicit HTTP PATCH",
 			input: `service UserService {
-  rpc PatchUser(Req) returns (Res) @http(PATCH)
+  rpc PatchUser(Req) returns (Res) @http.method(PATCH)
 }`,
 			methodName:        "PatchUser",
 			expectedHTTP:      "PATCH",
@@ -1122,7 +1122,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "both HTTP and GraphQL annotations",
 			input: `service UserService {
-  rpc CreateUser(Req) returns (Res) @http(POST) @graphql(mutation)
+  rpc CreateUser(Req) returns (Res) @http.method(POST) @graphql(mutation)
 }`,
 			methodName:          "CreateUser",
 			expectedHTTP:        "POST",
@@ -1160,7 +1160,7 @@ func TestParseMethodAnnotations(t *testing.T) {
 		{
 			name: "override heuristic with explicit annotation",
 			input: `service UserService {
-  rpc GetUser(Req) returns (Res) @http(POST) @graphql(mutation)
+  rpc GetUser(Req) returns (Res) @http.method(POST) @graphql(mutation)
 }`,
 			methodName:          "GetUser",
 			expectedHTTP:        "POST",
@@ -1225,7 +1225,7 @@ service UserService {
   /// Create a new user in the system
   /// @proto CreateUser RPC method
   /// @graphql Mutation to create user
-  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) @http(POST) @graphql(mutation)
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) @http.method(POST) @graphql(mutation)
 }`
 
 	l := lexer.New(input)
@@ -1281,35 +1281,35 @@ func TestParsePathTemplate(t *testing.T) {
 		{
 			name: "simple path template",
 			input: `service UserService {
-  rpc GetUser(Req) returns (Res) @path("/users/{id}")
+  rpc GetUser(Req) returns (Res) @http.path("/users/{id}")
 }`,
 			expectedPath: "/users/{id}",
 		},
 		{
 			name: "path template with multiple parameters",
 			input: `service API {
-  rpc GetPost(Req) returns (Res) @path("/users/{userId}/posts/{postId}")
+  rpc GetPost(Req) returns (Res) @http.path("/users/{userId}/posts/{postId}")
 }`,
 			expectedPath: "/users/{userId}/posts/{postId}",
 		},
 		{
 			name: "path template with HTTP method",
 			input: `service UserService {
-  rpc GetUser(Req) returns (Res) @http(GET) @path("/api/v1/users/{id}")
+  rpc GetUser(Req) returns (Res) @http.method(GET) @http.path("/api/v1/users/{id}")
 }`,
 			expectedPath: "/api/v1/users/{id}",
 		},
 		{
 			name: "path template with all annotations",
 			input: `service UserService {
-  rpc UpdateUser(Req) returns (Res) @http(PUT) @path("/users/{id}") @graphql(mutation)
+  rpc UpdateUser(Req) returns (Res) @http.method(PUT) @http.path("/users/{id}") @graphql(mutation)
 }`,
 			expectedPath: "/users/{id}",
 		},
 		{
 			name: "path template without parameters",
 			input: `service UserService {
-  rpc ListUsers(Req) returns (Res) @path("/api/users")
+  rpc ListUsers(Req) returns (Res) @http.path("/api/users")
 }`,
 			expectedPath: "/api/users",
 		},
@@ -1348,7 +1348,7 @@ func TestParseErrorCodes(t *testing.T) {
 			name: "single error code",
 			input: `
 service UserService {
-  rpc GetUser(Req) returns (Res) @errors(404)
+  rpc GetUser(Req) returns (Res) @http.errors(404)
 }`,
 			expectedCodes: []string{"404"},
 		},
@@ -1356,7 +1356,7 @@ service UserService {
 			name: "multiple error codes",
 			input: `
 service UserService {
-  rpc CreateUser(Req) returns (Res) @errors(400,404,409)
+  rpc CreateUser(Req) returns (Res) @http.errors(400,404,409)
 }`,
 			expectedCodes: []string{"400", "404", "409"},
 		},
@@ -1364,7 +1364,7 @@ service UserService {
 			name: "with other annotations",
 			input: `
 service UserService {
-  rpc GetUser(Req) returns (Res) @http(GET) @path("/users/{id}") @errors(404,500)
+  rpc GetUser(Req) returns (Res) @http.method(GET) @http.path("/users/{id}") @http.errors(404,500)
 }`,
 			expectedCodes: []string{"404", "500"},
 		},
@@ -1413,7 +1413,7 @@ func TestParseSuccessCodes(t *testing.T) {
 			name: "single success code",
 			input: `
 service UserService {
-  rpc CreateUser(Req) returns (Res) @success(201)
+  rpc CreateUser(Req) returns (Res) @http.success(201)
 }`,
 			expectedCodes: []string{"201"},
 		},
@@ -1421,7 +1421,7 @@ service UserService {
 			name: "multiple success codes",
 			input: `
 service UserService {
-  rpc CreateUser(Req) returns (Res) @success(201,202,204)
+  rpc CreateUser(Req) returns (Res) @http.success(201,202,204)
 }`,
 			expectedCodes: []string{"201", "202", "204"},
 		},
@@ -1429,7 +1429,7 @@ service UserService {
 			name: "with other annotations",
 			input: `
 service UserService {
-  rpc CreateUser(Req) returns (Res) @http(POST) @success(201) @errors(400,409)
+  rpc CreateUser(Req) returns (Res) @http.method(POST) @http.success(201) @http.errors(400,409)
 }`,
 			expectedCodes: []string{"201"},
 		},
@@ -2728,7 +2728,7 @@ type User {
 func TestParseMethodWithStatusCodes(t *testing.T) {
 	input := `
 service API {
-	rpc CreateUser(Req) returns (Res) @success(201) @errors(400,409,500)
+	rpc CreateUser(Req) returns (Res) @http.success(201) @http.errors(400,409,500)
 }
 `
 
@@ -2824,10 +2824,10 @@ enum Status {
 func TestParseServiceWithMultipleHTTPMethods(t *testing.T) {
 	input := `
 service UserService {
-	rpc GetUser(GetReq) returns (GetRes) @http(GET) @path("/users/{id}")
-	rpc CreateUser(CreateReq) returns (CreateRes) @http(POST) @path("/users")
-	rpc UpdateUser(UpdateReq) returns (UpdateRes) @http(PUT) @path("/users/{id}")
-	rpc DeleteUser(DeleteReq) returns (DeleteRes) @http(DELETE) @path("/users/{id}")
+	rpc GetUser(GetReq) returns (GetRes) @http.method(GET) @http.path("/users/{id}")
+	rpc CreateUser(CreateReq) returns (CreateRes) @http.method(POST) @http.path("/users")
+	rpc UpdateUser(UpdateReq) returns (UpdateRes) @http.method(PUT) @http.path("/users/{id}")
+	rpc DeleteUser(DeleteReq) returns (DeleteRes) @http.method(DELETE) @http.path("/users/{id}")
 }
 `
 

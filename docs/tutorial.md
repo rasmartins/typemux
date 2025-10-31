@@ -275,16 +275,16 @@ Specify HTTP method:
 ```typemux
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
+    @http.method(GET)
 
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
+    @http.method(POST)
 
   rpc UpdateProduct(UpdateProductRequest) returns (Product)
-    @http(PUT)
+    @http.method(PUT)
 
   rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse)
-    @http(DELETE)
+    @http.method(DELETE)
 }
 ```
 
@@ -295,20 +295,20 @@ Define URL path templates:
 ```typemux
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/api/v1/products/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/products/{id}")
 
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
-    @path("/api/v1/products")
+    @http.method(POST)
+    @http.path("/api/v1/products")
 
   rpc UpdateProduct(UpdateProductRequest) returns (Product)
-    @http(PUT)
-    @path("/api/v1/products/{id}")
+    @http.method(PUT)
+    @http.path("/api/v1/products/{id}")
 
   rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse)
-    @http(DELETE)
-    @path("/api/v1/products/{id}")
+    @http.method(DELETE)
+    @http.path("/api/v1/products/{id}")
 }
 ```
 
@@ -319,23 +319,23 @@ Specify GraphQL operation type:
 ```typemux
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/api/v1/products/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/products/{id}")
     @graphql(query)
 
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
-    @path("/api/v1/products")
+    @http.method(POST)
+    @http.path("/api/v1/products")
     @graphql(mutation)
 
   rpc UpdateProduct(UpdateProductRequest) returns (Product)
-    @http(PUT)
-    @path("/api/v1/products/{id}")
+    @http.method(PUT)
+    @http.path("/api/v1/products/{id}")
     @graphql(mutation)
 
   rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse)
-    @http(DELETE)
-    @path("/api/v1/products/{id}")
+    @http.method(DELETE)
+    @http.path("/api/v1/products/{id}")
     @graphql(mutation)
 }
 ```
@@ -347,18 +347,18 @@ Define HTTP status codes:
 ```typemux
 service ProductService {
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
-    @path("/api/v1/products")
+    @http.method(POST)
+    @http.path("/api/v1/products")
     @graphql(mutation)
-    @success(201)
-    @errors(400,409,500)
+    @http.success(201)
+    @http.errors(400,409,500)
 
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/api/v1/products/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/products/{id}")
     @graphql(query)
-    @success(200)
-    @errors(404,500)
+    @http.success(200)
+    @http.errors(404,500)
 }
 ```
 
@@ -397,8 +397,8 @@ type GetMessageRequest {
 
 service MessageService {
   rpc GetMessage(GetMessageRequest) returns (Message)
-    @http(GET)
-    @path("/api/v1/messages/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/messages/{id}")
     @graphql(query)
 }
 ```
@@ -523,14 +523,14 @@ type GetProductRequest {
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/users/{id}")
+    @http.method(GET)
+    @http.path("/users/{id}")
 }
 
 service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/products/{id}")
+    @http.method(GET)
+    @http.path("/products/{id}")
 }
 ```
 
@@ -692,8 +692,8 @@ type User {
 service UserService {
   /// Retrieves a user by their unique ID
   rpc GetUser(GetUserRequest) returns (User)
-    @http(GET)
-    @path("/api/v1/users/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/users/{id}")
     @graphql(query)
 }
 ```
@@ -881,27 +881,27 @@ type ListProductsResponse {
 service ProductService {
   /// Get a product by its ID
   rpc GetProduct(GetProductRequest) returns (Product)
-    @http(GET)
-    @path("/api/v1/products/{id}")
+    @http.method(GET)
+    @http.path("/api/v1/products/{id}")
     @graphql(query)
-    @success(200)
-    @errors(404,500)
+    @http.success(200)
+    @http.errors(404,500)
 
   /// Create a new product
   rpc CreateProduct(CreateProductRequest) returns (Product)
-    @http(POST)
-    @path("/api/v1/products")
+    @http.method(POST)
+    @http.path("/api/v1/products")
     @graphql(mutation)
-    @success(201)
-    @errors(400,500)
+    @http.success(201)
+    @http.errors(400,500)
 
   /// List products with optional filtering
   rpc ListProducts(ListProductsRequest) returns (ListProductsResponse)
-    @http(GET)
-    @path("/api/v1/products")
+    @http.method(GET)
+    @http.path("/api/v1/products")
     @graphql(query)
-    @success(200)
-    @errors(500)
+    @http.success(200)
+    @http.errors(500)
 }
 ```
 
