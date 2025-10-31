@@ -143,6 +143,16 @@ func LoadYAMLAnnotations(filepath string) (*YAMLAnnotations, error) {
 	return &annotations, nil
 }
 
+// ParseYAMLAnnotations parses YAML annotations from a string content.
+func ParseYAMLAnnotations(content string) (*YAMLAnnotations, error) {
+	var annotations YAMLAnnotations
+	if err := yaml.Unmarshal([]byte(content), &annotations); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML annotations: %w", err)
+	}
+
+	return &annotations, nil
+}
+
 // MergeYAMLAnnotations merges multiple YAML annotation files
 // Later files override earlier ones
 func MergeYAMLAnnotations(files []string) (*YAMLAnnotations, error) {
@@ -197,6 +207,97 @@ func MergeYAMLAnnotations(files []string) (*YAMLAnnotations, error) {
 						// Merge lists
 						existingField.Exclude = mergeStringLists(existingField.Exclude, fieldAnnotations.Exclude)
 						existingField.Only = mergeStringLists(existingField.Only, fieldAnnotations.Only)
+					}
+				}
+			}
+		}
+
+		// Merge enums
+		for enumName, enumAnnotations := range annotations.Enums {
+			result.Enums[enumName] = enumAnnotations
+		}
+
+		// Merge unions
+		for unionName, unionAnnotations := range annotations.Unions {
+			result.Unions[unionName] = unionAnnotations
+		}
+
+		// Merge services
+		for serviceName, serviceAnnotations := range annotations.Services {
+			if result.Services[serviceName] == nil {
+				result.Services[serviceName] = serviceAnnotations
+			} else {
+				// Merge service-level annotations
+				result.Services[serviceName].Proto = mergeFormatAnnotations(result.Services[serviceName].Proto, serviceAnnotations.Proto)
+				result.Services[serviceName].GraphQL = mergeFormatAnnotations(result.Services[serviceName].GraphQL, serviceAnnotations.GraphQL)
+				result.Services[serviceName].OpenAPI = mergeFormatAnnotations(result.Services[serviceName].OpenAPI, serviceAnnotations.OpenAPI)
+
+				// Merge methods
+				if result.Services[serviceName].Methods == nil {
+					result.Services[serviceName].Methods = make(map[string]*MethodAnnotations)
+				}
+				for methodName, methodAnnotations := range serviceAnnotations.Methods {
+					result.Services[serviceName].Methods[methodName] = methodAnnotations
+				}
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// MergeYAMLAnnotationsFromContent merges multiple YAML annotation strings.
+// Later annotations override earlier ones. This is similar to MergeYAMLAnnotations
+// but takes content strings instead of file paths.
+func MergeYAMLAnnotationsFromContent(contents []string) (*YAMLAnnotations, error) {
+	result := &YAMLAnnotations{
+		Namespaces: make(map[string]*NamespaceAnnotations),
+		Types:      make(map[string]*TypeAnnotations),
+		Enums:      make(map[string]*EnumAnnotations),
+		Unions:     make(map[string]*UnionAnnotations),
+		Services:   make(map[string]*ServiceAnnotations),
+	}
+
+	for _, content := range contents {
+		annotations, err := ParseYAMLAnnotations(content)
+		if err != nil {
+			return nil, err
+		}
+
+		// Merge namespaces
+		for namespaceName, namespaceAnnotations := range annotations.Namespaces {
+			result.Namespaces[namespaceName] = namespaceAnnotations
+		}
+
+		// Merge types
+		for typeName, typeAnnotations := range annotations.Types {
+			if result.Types[typeName] == nil {
+				result.Types[typeName] = typeAnnotations
+			} else {
+				// Merge type-level annotations (later overrides)
+				result.Types[typeName].Proto = mergeFormatAnnotations(result.Types[typeName].Proto, typeAnnotations.Proto)
+				result.Types[typeName].GraphQL = mergeFormatAnnotations(result.Types[typeName].GraphQL, typeAnnotations.GraphQL)
+				result.Types[typeName].OpenAPI = mergeFormatAnnotations(result.Types[typeName].OpenAPI, typeAnnotations.OpenAPI)
+
+				// Merge fields
+				if result.Types[typeName].Fields == nil {
+					result.Types[typeName].Fields = make(map[string]*FieldAnnotations)
+				}
+				for fieldName, fieldAnnotations := range typeAnnotations.Fields {
+					if result.Types[typeName].Fields[fieldName] == nil {
+						result.Types[typeName].Fields[fieldName] = fieldAnnotations
+					} else {
+						// Merge field-level annotations
+						existingField := result.Types[typeName].Fields[fieldName]
+						if fieldAnnotations.Required {
+							existingField.Required = true
+						}
+						if fieldAnnotations.Default != "" {
+							existingField.Default = fieldAnnotations.Default
+						}
+						existingField.Proto = mergeFormatAnnotations(existingField.Proto, fieldAnnotations.Proto)
+						existingField.GraphQL = mergeFormatAnnotations(existingField.GraphQL, fieldAnnotations.GraphQL)
+						existingField.OpenAPI = mergeFormatAnnotations(existingField.OpenAPI, fieldAnnotations.OpenAPI)
 					}
 				}
 			}
