@@ -3,13 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rasmartins/typemux)](https://goreportcard.com/report/github.com/rasmartins/typemux)
 
-**One Schema, Three Protocols**
+**One Schema, Many Output Formats**
 
-TypeMUX is an Interface Definition Language (IDL) and code generator that converts a single schema definition into multiple output formats: GraphQL schemas, Protocol Buffers (proto3), and OpenAPI 3.0 specifications.
+TypeMUX is an Interface Definition Language (IDL) and code generator that converts a single schema definition into multiple output formats: GraphQL schemas, Protocol Buffers (proto3), OpenAPI 3.0 specifications, and Go code.
 
 ## Why TypeMUX?
 
-Stop maintaining separate schema definitions. Write your API schema once in TypeMUX and generate GraphQL, Protobuf, and OpenAPI automatically.
+Stop maintaining separate schema definitions. Write your API schema once in TypeMUX and generate GraphQL, Protobuf, OpenAPI, and Go code automatically.
 
 ```typescript
 type User {
@@ -36,6 +36,7 @@ service UserService {
 - ✅ GraphQL schema with queries and mutations
 - ✅ Protocol Buffers (proto3) with services
 - ✅ OpenAPI 3.0 specification with paths
+- ✅ Go code with type-safe structs and interfaces
 
 ## Quick Start
 

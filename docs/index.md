@@ -1,12 +1,12 @@
 # TypeMUX
 
-**One Schema, Three Protocols**
+**One Schema, Many Output Formats**
 
-TypeMUX is a powerful Interface Definition Language (IDL) that generates GraphQL schemas, Protocol Buffers, and OpenAPI specifications from a single source of truth.
+TypeMUX is a powerful Interface Definition Language (IDL) that generates GraphQL schemas, Protocol Buffers, OpenAPI specifications, and Go code from a single source of truth.
 
 ## Why TypeMUX?
 
-Maintaining separate schema definitions for GraphQL, Protocol Buffers, and OpenAPI is tedious and error-prone. TypeMUX solves this by letting you write one `.typemux` schema file and automatically generating all three formats, ensuring consistency across your API specifications.
+Maintaining separate schema definitions for GraphQL, Protocol Buffers, OpenAPI, and Go is tedious and error-prone. TypeMUX solves this by letting you write one `.typemux` schema file and automatically generating all formats, ensuring consistency across your API specifications and code.
 
 ```typemux
 /// User entity with authentication roles
@@ -36,6 +36,7 @@ From this single schema, TypeMUX generates:
 - GraphQL schema with types, queries, and mutations
 - Protocol Buffers (proto3) with services and messages
 - OpenAPI 3.0 specification with paths and schemas
+- Go code with type-safe structs and interfaces
 
 ## Key Features
 
