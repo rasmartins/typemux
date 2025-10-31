@@ -372,10 +372,30 @@ jobs:
           exit 1
         fi
 
+  validate-annotations:
+    name: Validate Annotations
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+        cache: true
+
+    - name: Build typemux
+      run: go build -v ./cmd/typemux
+
+    - name: Check annotations.json is up to date
+      run: ./scripts/check-annotations.sh
+
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [test, coverage, lint, build, validate-examples, validate-importers, security, format]
+    needs: [test, coverage, lint, build, validate-examples, validate-importers, security, format, validate-annotations]
     if: always()
 
     steps:
@@ -391,6 +411,7 @@ jobs:
         echo "Validate Importers: ${{ needs.validate-importers.result }}"
         echo "Security: ${{ needs.security.result }}"
         echo "Format: ${{ needs.format.result }}"
+        echo "Validate Annotations: ${{ needs.validate-annotations.result }}"
 
         if [ "${{ needs.test.result }}" != "success" ] || \
            [ "${{ needs.coverage.result }}" != "success" ] || \
@@ -399,7 +420,8 @@ jobs:
            [ "${{ needs.validate-examples.result }}" != "success" ] || \
            [ "${{ needs.validate-importers.result }}" != "success" ] || \
            [ "${{ needs.security.result }}" != "success" ] || \
-           [ "${{ needs.format.result }}" != "success" ]; then
+           [ "${{ needs.format.result }}" != "success" ] || \
+           [ "${{ needs.validate-annotations.result }}" != "success" ]; then
           echo ""
           echo "❌ CI Pipeline FAILED"
           exit 1

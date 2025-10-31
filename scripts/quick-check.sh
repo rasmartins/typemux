@@ -10,7 +10,7 @@ echo "=========================================="
 echo ""
 
 # 1. Format check
-echo "1/6 Checking code formatting..."
+echo "1/7 Checking code formatting..."
 if [ -n "$(gofmt -l .)" ]; then
     echo "❌ The following files are not formatted:"
     gofmt -l .
@@ -22,7 +22,7 @@ echo "✅ Code formatting OK"
 echo ""
 
 # 2. go mod tidy check
-echo "2/6 Checking go.mod and go.sum..."
+echo "2/7 Checking go.mod and go.sum..."
 cp go.mod go.mod.bak
 cp go.sum go.sum.bak
 go mod tidy
@@ -38,7 +38,7 @@ echo "✅ go.mod and go.sum are tidy"
 echo ""
 
 # 3. Build check
-echo "3/6 Building binaries..."
+echo "3/7 Building binaries..."
 go build -v ./cmd/typemux > /dev/null
 go build -v ./cmd/proto2typemux > /dev/null
 go build -v ./cmd/graphql2typemux > /dev/null
@@ -47,7 +47,7 @@ echo "✅ All binaries build successfully"
 echo ""
 
 # 4. Run tests
-echo "4/6 Running tests..."
+echo "4/7 Running tests..."
 if ! go test ./... > /dev/null 2>&1; then
     echo "❌ Tests failed"
     go test ./...
@@ -57,7 +57,7 @@ echo "✅ All tests passed"
 echo ""
 
 # 5. Coverage check
-echo "5/6 Checking test coverage..."
+echo "5/7 Checking test coverage..."
 go test -coverprofile=coverage.out ./... > /dev/null 2>&1
 total_coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
 if (( $(echo "$total_coverage < 65" | bc -l) )); then
@@ -70,13 +70,23 @@ rm coverage.out
 echo ""
 
 # 6. Linting
-echo "6/6 Running linter..."
+echo "6/7 Running linter..."
 if ! golangci-lint run --timeout=5m > /dev/null 2>&1; then
     echo "❌ Linting failed"
     golangci-lint run --timeout=5m
     exit 1
 fi
 echo "✅ Linting passed"
+echo ""
+
+# 7. Annotations check
+echo "7/7 Checking annotations.json is up to date..."
+if ! ./scripts/check-annotations.sh > /dev/null 2>&1; then
+    echo "❌ annotations.json is out of date"
+    ./scripts/check-annotations.sh
+    exit 1
+fi
+echo "✅ annotations.json is up to date"
 echo ""
 
 echo "=========================================="
