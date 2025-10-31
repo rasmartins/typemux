@@ -603,3 +603,170 @@ func TestParseResponses(t *testing.T) {
 		t.Fatal("expected response content")
 	}
 }
+
+func TestParseContact(t *testing.T) {
+	input := `{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com",
+      "url": "https://example.com/support"
+    }
+  },
+  "paths": {}
+}`
+
+	parser := NewParser([]byte(input))
+	spec, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if spec.Info.Contact == nil {
+		t.Fatal("expected contact to be set")
+	}
+
+	if spec.Info.Contact.Name != "API Support" {
+		t.Errorf("expected contact name %q, got %q", "API Support", spec.Info.Contact.Name)
+	}
+
+	if spec.Info.Contact.Email != "support@example.com" {
+		t.Errorf("expected contact email %q, got %q", "support@example.com", spec.Info.Contact.Email)
+	}
+
+	if spec.Info.Contact.URL != "https://example.com/support" {
+		t.Errorf("expected contact URL %q, got %q", "https://example.com/support", spec.Info.Contact.URL)
+	}
+}
+
+func TestParseServers(t *testing.T) {
+	input := `{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.example.com/v1",
+      "description": "Staging server"
+    }
+  ],
+  "paths": {}
+}`
+
+	parser := NewParser([]byte(input))
+	spec, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(spec.Servers) != 2 {
+		t.Fatalf("expected 2 servers, got %d", len(spec.Servers))
+	}
+
+	// Check first server
+	if spec.Servers[0].URL != "https://api.example.com/v1" {
+		t.Errorf("expected server URL %q, got %q", "https://api.example.com/v1", spec.Servers[0].URL)
+	}
+
+	if spec.Servers[0].Description != "Production server" {
+		t.Errorf("expected server description %q, got %q", "Production server", spec.Servers[0].Description)
+	}
+
+	// Check second server
+	if spec.Servers[1].URL != "https://staging-api.example.com/v1" {
+		t.Errorf("expected server URL %q, got %q", "https://staging-api.example.com/v1", spec.Servers[1].URL)
+	}
+
+	if spec.Servers[1].Description != "Staging server" {
+		t.Errorf("expected server description %q, got %q", "Staging server", spec.Servers[1].Description)
+	}
+}
+
+func TestParseTags(t *testing.T) {
+	input := `{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "users",
+      "description": "User management operations"
+    },
+    {
+      "name": "products",
+      "description": "Product management operations"
+    }
+  ],
+  "paths": {}
+}`
+
+	parser := NewParser([]byte(input))
+	spec, err := parser.Parse()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(spec.Tags) != 2 {
+		t.Fatalf("expected 2 tags, got %d", len(spec.Tags))
+	}
+
+	// Check first tag
+	if spec.Tags[0].Name != "users" {
+		t.Errorf("expected tag name %q, got %q", "users", spec.Tags[0].Name)
+	}
+
+	if spec.Tags[0].Description != "User management operations" {
+		t.Errorf("expected tag description %q, got %q", "User management operations", spec.Tags[0].Description)
+	}
+
+	// Check second tag
+	if spec.Tags[1].Name != "products" {
+		t.Errorf("expected tag name %q, got %q", "products", spec.Tags[1].Name)
+	}
+
+	if spec.Tags[1].Description != "Product management operations" {
+		t.Errorf("expected tag description %q, got %q", "Product management operations", spec.Tags[1].Description)
+	}
+}
+
+func TestIsRequired(t *testing.T) {
+	schema := &Schema{
+		Type: "object",
+		Properties: map[string]*Schema{
+			"id":   {Type: "string"},
+			"name": {Type: "string"},
+			"age":  {Type: "integer"},
+		},
+		Required: []string{"id", "name"},
+	}
+
+	// Test required fields
+	if !schema.IsRequired("id") {
+		t.Error("expected id to be required")
+	}
+
+	if !schema.IsRequired("name") {
+		t.Error("expected name to be required")
+	}
+
+	// Test non-required field
+	if schema.IsRequired("age") {
+		t.Error("expected age to be optional")
+	}
+
+	// Test non-existent field
+	if schema.IsRequired("email") {
+		t.Error("expected email to be optional (doesn't exist)")
+	}
+}

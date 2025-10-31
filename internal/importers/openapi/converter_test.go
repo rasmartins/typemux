@@ -411,3 +411,295 @@ func TestConvertComplexOneOf(t *testing.T) {
 		t.Error("expected union description as comment")
 	}
 }
+
+func TestConvertEnum(t *testing.T) {
+	spec := &OpenAPISpec{
+		OpenAPI: "3.0.0",
+		Info: &Info{
+			Title:   "Test API",
+			Version: "1.0.0",
+		},
+		Components: &Components{
+			Schemas: map[string]*Schema{
+				"Status": {
+					Type:        "string",
+					Description: "Status enum",
+					Enum:        []interface{}{"active", "inactive", "pending"},
+				},
+			},
+		},
+	}
+
+	converter := NewConverter()
+	result := converter.Convert(spec)
+
+	// Should generate enum type
+	if !strings.Contains(result, "enum Status {") {
+		t.Errorf("expected Status enum declaration, got:\n%s", result)
+	}
+
+	// Should have all enum values
+	if !strings.Contains(result, "ACTIVE = 0") {
+		t.Error("expected ACTIVE enum value")
+	}
+
+	if !strings.Contains(result, "INACTIVE = 1") {
+		t.Error("expected INACTIVE enum value")
+	}
+
+	if !strings.Contains(result, "PENDING = 2") {
+		t.Error("expected PENDING enum value")
+	}
+
+	// Description should be converted to comment
+	if !strings.Contains(result, "// Status enum") {
+		t.Error("expected enum description as comment")
+	}
+}
+
+func TestConvertService(t *testing.T) {
+	spec := &OpenAPISpec{
+		OpenAPI: "3.0.0",
+		Info: &Info{
+			Title:   "User API",
+			Version: "1.0.0",
+		},
+		Paths: map[string]*PathItem{
+			"/users": {
+				Get: &Operation{
+					OperationID: "listUsers",
+					Summary:     "List all users",
+					Responses: map[string]*Response{
+						"200": {
+							Description: "Success",
+						},
+					},
+				},
+				Post: &Operation{
+					OperationID: "createUser",
+					Summary:     "Create a new user",
+					Responses: map[string]*Response{
+						"201": {
+							Description: "Created",
+						},
+					},
+				},
+			},
+			"/users/{id}": {
+				Get: &Operation{
+					OperationID: "getUser",
+					Summary:     "Get user by ID",
+					Responses: map[string]*Response{
+						"200": {
+							Description: "Success",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	converter := NewConverter()
+	result := converter.Convert(spec)
+
+	// Should generate service
+	if !strings.Contains(result, "service UserAPIService {") {
+		t.Errorf("expected service declaration, got:\n%s", result)
+	}
+
+	// Should have all RPC methods
+	if !strings.Contains(result, "rpc ListUsers") {
+		t.Error("expected ListUsers method")
+	}
+
+	if !strings.Contains(result, "rpc CreateUser") {
+		t.Error("expected CreateUser method")
+	}
+
+	if !strings.Contains(result, "rpc GetUser") {
+		t.Error("expected GetUser method")
+	}
+
+	// Should have HTTP method and path comments
+	if !strings.Contains(result, "// GET /users") {
+		t.Error("expected GET /users comment")
+	}
+
+	if !strings.Contains(result, "// POST /users") {
+		t.Error("expected POST /users comment")
+	}
+}
+
+func TestConvertMethodWithRequestBody(t *testing.T) {
+	spec := &OpenAPISpec{
+		OpenAPI: "3.0.0",
+		Info: &Info{
+			Title:   "API",
+			Version: "1.0.0",
+		},
+		Components: &Components{
+			Schemas: map[string]*Schema{
+				"User": {
+					Type: "object",
+					Properties: map[string]*Schema{
+						"name": {Type: "string"},
+					},
+				},
+			},
+		},
+		Paths: map[string]*PathItem{
+			"/users": {
+				Post: &Operation{
+					OperationID: "createUser",
+					Description: "Creates a new user in the system",
+					RequestBody: &RequestBody{
+						Required: true,
+						Content: map[string]*MediaType{
+							"application/json": {
+								Schema: &Schema{
+									Ref: "#/components/schemas/User",
+								},
+							},
+						},
+					},
+					Responses: map[string]*Response{
+						"201": {
+							Description: "Created",
+							Content: map[string]*MediaType{
+								"application/json": {
+									Schema: &Schema{
+										Ref: "#/components/schemas/User",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	converter := NewConverter()
+	result := converter.Convert(spec)
+
+	// Should use request/response types
+	if !strings.Contains(result, "rpc CreateUser(CreateUserRequest) returns (User)") {
+		t.Errorf("expected CreateUser method with request body, got:\n%s", result)
+	}
+
+	// Should have description comment
+	if !strings.Contains(result, "// Creates a new user in the system") {
+		t.Error("expected method description comment")
+	}
+}
+
+func TestGenerateMethodName(t *testing.T) {
+	tests := []struct {
+		path     string
+		method   string
+		expected string
+	}{
+		{"/users", "GET", "getUsers"},
+		{"/users", "POST", "postUsers"},
+		{"/users/{id}", "GET", "getUsers"},
+		{"/users/{id}", "DELETE", "deleteUsers"},
+		{"/api/v1/products", "GET", "getApiV1Products"},
+		{"/orders/{orderId}/items", "POST", "postOrdersItems"},
+	}
+
+	for _, tt := range tests {
+		result := generateMethodName(tt.path, tt.method)
+		if result != tt.expected {
+			t.Errorf("generateMethodName(%q, %q) = %q, expected %q", tt.path, tt.method, result, tt.expected)
+		}
+	}
+}
+
+func TestEscapeFieldName(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected string
+	}{
+		{"id", "id"},
+		{"name", "name"},
+		{"namespace", "namespace_"},
+		{"import", "import_"},
+		{"type", "type_"},
+		{"enum", "enum_"},
+		{"service", "service_"},
+		{"rpc", "rpc_"},
+	}
+
+	for _, tt := range tests {
+		result := escapeFieldName(tt.name)
+		if result != tt.expected {
+			t.Errorf("escapeFieldName(%q) = %q, expected %q", tt.name, result, tt.expected)
+		}
+	}
+}
+
+func TestConvertSchemaTypeEdgeCases(t *testing.T) {
+	converter := NewConverter()
+	converter.spec = &OpenAPISpec{}
+
+	tests := []struct {
+		name     string
+		schema   *Schema
+		expected string
+	}{
+		{
+			name:     "array without items",
+			schema:   &Schema{Type: "array"},
+			expected: "[]string",
+		},
+		{
+			name:     "generic object without properties",
+			schema:   &Schema{Type: "object"},
+			expected: "map<string, string>",
+		},
+		{
+			name:     "string with date-time format",
+			schema:   &Schema{Type: "string", Format: "date-time"},
+			expected: "timestamp",
+		},
+		{
+			name:     "string with date format",
+			schema:   &Schema{Type: "string", Format: "date"},
+			expected: "timestamp",
+		},
+		{
+			name:     "integer with int64 format",
+			schema:   &Schema{Type: "integer", Format: "int64"},
+			expected: "int64",
+		},
+		{
+			name:     "number with double format",
+			schema:   &Schema{Type: "number", Format: "double"},
+			expected: "double",
+		},
+		{
+			name:     "number with float format",
+			schema:   &Schema{Type: "number"},
+			expected: "float",
+		},
+		{
+			name:     "boolean type",
+			schema:   &Schema{Type: "boolean"},
+			expected: "bool",
+		},
+		{
+			name:     "unknown type defaults to string",
+			schema:   &Schema{Type: "unknown"},
+			expected: "string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := converter.convertSchemaType(tt.schema)
+			if result != tt.expected {
+				t.Errorf("convertSchemaType() = %q, expected %q", result, tt.expected)
+			}
+		})
+	}
+}
