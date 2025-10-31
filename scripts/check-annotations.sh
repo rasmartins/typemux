@@ -34,4 +34,17 @@ if ! diff -q annotations.json annotations.json.tmp > /dev/null 2>&1; then
 fi
 
 rm -f annotations.json.tmp
+
+# Also check VS Code extension copy
+if ! diff -q annotations.json vscode-extension/annotations.json > /dev/null 2>&1; then
+    echo ""
+    echo "❌ ERROR: vscode-extension/annotations.json is out of sync!"
+    echo ""
+    echo "Please sync it with:"
+    echo ""
+    echo "  cp annotations.json vscode-extension/annotations.json"
+    echo ""
+    exit 1
+fi
+
 echo "✅ annotations.json is up to date"

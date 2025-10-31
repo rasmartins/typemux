@@ -1,0 +1,582 @@
+[
+  {
+    "name": "@typemux",
+    "scope": [
+      "schema"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true,
+        "description": "Version string (e.g., '1.0.0')"
+      }
+    ],
+    "description": "Specifies the TypeMUX IDL format version",
+    "examples": [
+      "@typemux(\"1.0.0\")"
+    ]
+  },
+  {
+    "name": "@version",
+    "scope": [
+      "schema"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true,
+        "description": "Version string (e.g., '2.1.0')"
+      }
+    ],
+    "description": "Specifies the schema/API version",
+    "examples": [
+      "@version(\"2.1.0\")"
+    ]
+  },
+  {
+    "name": "@proto.option",
+    "scope": [
+      "namespace",
+      "type",
+      "enum",
+      "union"
+    ],
+    "formats": [
+      "proto"
+    ],
+    "parameters": [
+      {
+        "name": "option",
+        "type": "string",
+        "required": true,
+        "description": "Protobuf option declaration"
+      }
+    ],
+    "description": "Adds Protobuf file-level or message-level options",
+    "examples": [
+      "@proto.option(go_package=\"github.com/example/api\")",
+      "@proto.option([packed = false])"
+    ]
+  },
+  {
+    "name": "@graphql.directive",
+    "scope": [
+      "namespace",
+      "type",
+      "enum",
+      "union",
+      "field"
+    ],
+    "formats": [
+      "graphql"
+    ],
+    "parameters": [
+      {
+        "name": "directive",
+        "type": "string",
+        "required": true,
+        "description": "GraphQL directive (e.g., @key, @external)"
+      }
+    ],
+    "description": "Adds GraphQL directives to schema elements",
+    "examples": [
+      "@graphql.directive(@key(fields: \"id\"))",
+      "@graphql.directive(@external)"
+    ]
+  },
+  {
+    "name": "@go.package",
+    "scope": [
+      "namespace"
+    ],
+    "formats": [
+      "go"
+    ],
+    "parameters": [
+      {
+        "name": "package",
+        "type": "string",
+        "required": true,
+        "description": "Go package name"
+      }
+    ],
+    "description": "Overrides the Go package name for generated code",
+    "examples": [
+      "@go.package(\"mypackage\")"
+    ]
+  },
+  {
+    "name": "@proto.name",
+    "scope": [
+      "type",
+      "enum",
+      "union",
+      "field"
+    ],
+    "formats": [
+      "proto"
+    ],
+    "parameters": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "Protobuf name"
+      }
+    ],
+    "description": "Overrides the Protobuf name for the element",
+    "examples": [
+      "@proto.name(\"UserV2\")",
+      "@proto.name(\"user_id\")"
+    ]
+  },
+  {
+    "name": "@graphql.name",
+    "scope": [
+      "type",
+      "enum",
+      "union",
+      "field"
+    ],
+    "formats": [
+      "graphql"
+    ],
+    "parameters": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "GraphQL name"
+      }
+    ],
+    "description": "Overrides the GraphQL name for the element",
+    "examples": [
+      "@graphql.name(\"UserAccount\")",
+      "@graphql.name(\"userId\")"
+    ]
+  },
+  {
+    "name": "@openapi.name",
+    "scope": [
+      "type",
+      "enum",
+      "union",
+      "field"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "OpenAPI name"
+      }
+    ],
+    "description": "Overrides the OpenAPI schema or property name",
+    "examples": [
+      "@openapi.name(\"UserProfile\")",
+      "@openapi.name(\"user_id\")"
+    ]
+  },
+  {
+    "name": "@openapi.extension",
+    "scope": [
+      "type",
+      "enum",
+      "union",
+      "field"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "extension",
+        "type": "object",
+        "required": true,
+        "description": "JSON object with vendor extensions"
+      }
+    ],
+    "description": "Adds OpenAPI vendor extensions (x-* fields)",
+    "examples": [
+      "@openapi.extension({\"x-internal\": true, \"x-format\": \"currency\"})"
+    ]
+  },
+  {
+    "name": "@required",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "description": "Marks a field as required/non-nullable",
+    "examples": [
+      "id: string @required"
+    ]
+  },
+  {
+    "name": "@default",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "value",
+        "type": "any",
+        "required": true,
+        "description": "Default value (string, number, or boolean)"
+      }
+    ],
+    "description": "Sets a default value for the field",
+    "examples": [
+      "age: int32 @default(0)",
+      "active: bool @default(true)",
+      "status: string @default(\"pending\")"
+    ]
+  },
+  {
+    "name": "@exclude",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "formats",
+        "type": "list",
+        "required": true,
+        "description": "Comma-separated list of formats to exclude from"
+      }
+    ],
+    "description": "Excludes field from specific output formats",
+    "examples": [
+      "internal: string @exclude(graphql,openapi)",
+      "debug: string @exclude(proto)"
+    ]
+  },
+  {
+    "name": "@only",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "formats",
+        "type": "list",
+        "required": true,
+        "description": "Comma-separated list of formats to include in"
+      }
+    ],
+    "description": "Includes field only in specific output formats",
+    "examples": [
+      "protoField: string @only(proto)",
+      "graphqlField: string @only(graphql)"
+    ]
+  },
+  {
+    "name": "@deprecated",
+    "scope": [
+      "field",
+      "type",
+      "enum",
+      "method"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "reason",
+        "type": "string",
+        "required": true,
+        "description": "Reason for deprecation"
+      },
+      {
+        "name": "since",
+        "type": "string",
+        "required": false,
+        "description": "Version when deprecated"
+      },
+      {
+        "name": "removed",
+        "type": "string",
+        "required": false,
+        "description": "Version when it will be removed"
+      }
+    ],
+    "description": "Marks element as deprecated with version information",
+    "examples": [
+      "@deprecated(\"Use fullName instead\")",
+      "@deprecated(\"Use email field\", since=\"2.0.0\", removed=\"3.0.0\")"
+    ]
+  },
+  {
+    "name": "@since",
+    "scope": [
+      "field",
+      "type",
+      "enum",
+      "method"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true,
+        "description": "Version when element was added"
+      }
+    ],
+    "description": "Marks when an element was added to the schema",
+    "examples": [
+      "@since(\"2.0.0\")"
+    ]
+  },
+  {
+    "name": "@validate",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "format",
+        "type": "string",
+        "required": false,
+        "description": "String format (email, uuid, uri, etc.)",
+        "validValues": [
+          "email",
+          "uuid",
+          "uri",
+          "date",
+          "time",
+          "datetime"
+        ]
+      },
+      {
+        "name": "pattern",
+        "type": "string",
+        "required": false,
+        "description": "Regular expression pattern"
+      },
+      {
+        "name": "minLength",
+        "type": "number",
+        "required": false,
+        "description": "Minimum string length"
+      },
+      {
+        "name": "maxLength",
+        "type": "number",
+        "required": false,
+        "description": "Maximum string length"
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": false,
+        "description": "Minimum numeric value"
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": false,
+        "description": "Maximum numeric value"
+      },
+      {
+        "name": "exclusiveMin",
+        "type": "boolean",
+        "required": false,
+        "description": "Whether min is exclusive"
+      },
+      {
+        "name": "exclusiveMax",
+        "type": "boolean",
+        "required": false,
+        "description": "Whether max is exclusive"
+      },
+      {
+        "name": "multipleOf",
+        "type": "number",
+        "required": false,
+        "description": "Number must be multiple of this value"
+      },
+      {
+        "name": "minItems",
+        "type": "number",
+        "required": false,
+        "description": "Minimum array length"
+      },
+      {
+        "name": "maxItems",
+        "type": "number",
+        "required": false,
+        "description": "Maximum array length"
+      },
+      {
+        "name": "uniqueItems",
+        "type": "boolean",
+        "required": false,
+        "description": "Whether array items must be unique"
+      },
+      {
+        "name": "enum",
+        "type": "list",
+        "required": false,
+        "description": "List of allowed values"
+      }
+    ],
+    "description": "Defines validation rules for the field",
+    "examples": [
+      "@validate(format=\"email\", maxLength=100)",
+      "@validate(min=0, max=150)",
+      "@validate(pattern=\"^[A-Z]{3}$\")"
+    ]
+  },
+  {
+    "name": "@http.method",
+    "scope": [
+      "method"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "method",
+        "type": "string",
+        "required": true,
+        "description": "HTTP method",
+        "validValues": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      }
+    ],
+    "description": "Specifies the HTTP method for REST API mapping",
+    "examples": [
+      "@http.method(GET)",
+      "@http.method(POST)"
+    ]
+  },
+  {
+    "name": "@http.path",
+    "scope": [
+      "method"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true,
+        "description": "URL path template with parameters in {braces}"
+      }
+    ],
+    "description": "Specifies the URL path template for REST API mapping",
+    "examples": [
+      "@http.path(\"/api/v1/users\")",
+      "@http.path(\"/api/v1/users/{id}\")"
+    ]
+  },
+  {
+    "name": "@http.success",
+    "scope": [
+      "method"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "codes",
+        "type": "list",
+        "required": true,
+        "description": "Comma-separated list of HTTP status codes"
+      }
+    ],
+    "description": "Specifies additional success HTTP status codes beyond 200",
+    "examples": [
+      "@http.success(201)",
+      "@http.success(201,204)"
+    ]
+  },
+  {
+    "name": "@http.errors",
+    "scope": [
+      "method"
+    ],
+    "formats": [
+      "openapi"
+    ],
+    "parameters": [
+      {
+        "name": "codes",
+        "type": "list",
+        "required": true,
+        "description": "Comma-separated list of HTTP status codes"
+      }
+    ],
+    "description": "Specifies expected error HTTP status codes",
+    "examples": [
+      "@http.errors(404,500)",
+      "@http.errors(400,404,409,500)"
+    ]
+  },
+  {
+    "name": "@graphql",
+    "scope": [
+      "method"
+    ],
+    "formats": [
+      "graphql"
+    ],
+    "parameters": [
+      {
+        "name": "operation",
+        "type": "string",
+        "required": true,
+        "description": "GraphQL operation type",
+        "validValues": [
+          "query",
+          "mutation",
+          "subscription"
+        ]
+      }
+    ],
+    "description": "Specifies the GraphQL operation type",
+    "examples": [
+      "@graphql(query)",
+      "@graphql(mutation)",
+      "@graphql(subscription)"
+    ]
+  }
+]

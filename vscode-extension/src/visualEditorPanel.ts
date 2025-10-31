@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { SchemaParser, ParsedSchema } from './schemaParser';
+import { annotationRegistry } from './annotationData';
 
 export class VisualEditorPanel {
     public static currentPanel: VisualEditorPanel | undefined;
@@ -716,11 +717,12 @@ export class VisualEditorPanel {
                 <div id="addTypeAnnotationForm_${type.name}" style="display: none;" class="inline-form">
                     <input type="text" id="typeAnnotationName_${type.name}" list="typeAnnotations" placeholder="@annotation" style="width: 220px;" />
                     <datalist id="typeAnnotations">
-                        <option value="@proto.name">@proto.name(name) - Custom Protobuf name</option>
-                        <option value="@graphql.name">@graphql.name(name) - Custom GraphQL name</option>
-                        <option value="@openapi.name">@openapi.name(name) - Custom OpenAPI name</option>
-                        <option value="@graphql.directive">@graphql.directive(@key(...)) - GraphQL directive</option>
-                        <option value="@openapi.extension">@openapi.extension({...}) - OpenAPI extension</option>
+                        ${annotationRegistry.getAnnotationsByScope('type').map(ann => {
+                            const paramHint = ann.parameters && ann.parameters.length > 0
+                                ? `(${ann.parameters.map(p => p.validValues && p.validValues.length > 0 ? p.validValues.join('|') : p.name).join(', ')})`
+                                : '';
+                            return `<option value="${ann.name}">${ann.name}${paramHint} - ${ann.description}</option>`;
+                        }).join('\n                        ')}
                     </datalist>
                     <input type="text" id="typeAnnotationValue_${type.name}" placeholder='value: "Name" or {key:"val"}' style="width: 220px;" />
                     <button class="add-button" onclick="confirmAddTypeAnnotation('${type.name}')">Add</button>
@@ -749,12 +751,12 @@ export class VisualEditorPanel {
                             <div id="addFieldAnnotationForm_${type.name}_${field.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
                                 <input type="text" id="fieldAnnotationName_${type.name}_${field.name}" list="fieldAnnotations" placeholder="@annotation" style="width: 180px;" />
                                 <datalist id="fieldAnnotations">
-                                    <option value="@required">@required - Field is required</option>
-                                    <option value="@default">@default(value) - Default value</option>
-                                    <option value="@proto.option">@proto.option([...]) - Protobuf field option</option>
-                                    <option value="@graphql.directive">@graphql.directive(@...) - GraphQL directive</option>
-                                    <option value="@openapi.extension">@openapi.extension({...}) - OpenAPI extension</option>
-                                    <option value="@deprecated">@deprecated - Mark as deprecated</option>
+                                    ${annotationRegistry.getAnnotationsByScope('field').map(ann => {
+                                        const paramHint = ann.parameters && ann.parameters.length > 0
+                                            ? `(${ann.parameters.map(p => p.validValues && p.validValues.length > 0 ? p.validValues.join('|') : p.name).join(', ')})`
+                                            : '';
+                                        return `<option value="${ann.name}">${ann.name}${paramHint} - ${ann.description}</option>`;
+                                    }).join('\n                                    ')}
                                 </datalist>
                                 <input type="text" id="fieldAnnotationValue_${type.name}_${field.name}" placeholder='value (optional)' style="width: 180px;" />
                                 <button class="add-button" onclick="confirmAddFieldAnnotation('${type.name}', '${field.name}')">Add</button>
@@ -847,12 +849,12 @@ export class VisualEditorPanel {
                         <div id="addMethodAnnotationForm_${service.name}_${method.name}" style="display: none; margin-left: 20px; margin-top: 5px; margin-bottom: 5px;" class="inline-form">
                             <input type="text" id="methodAnnotationName_${service.name}_${method.name}" list="methodAnnotations" placeholder="@annotation" style="width: 180px;" />
                             <datalist id="methodAnnotations">
-                                <option value="@http.method">@http.method(GET|POST|PUT|DELETE|PATCH) - HTTP method</option>
-                                <option value="@http.path">@http.path("/api/v1/...") - URL path</option>
-                                <option value="@graphql">@graphql(query|mutation|subscription) - GraphQL operation</option>
-                                <option value="@http.success">@http.success(201|204) - Success status code</option>
-                                <option value="@http.errors">@http.errors(400,404,500) - Error status codes</option>
-                                <option value="@deprecated">@deprecated - Mark as deprecated</option>
+                                ${annotationRegistry.getAnnotationsByScope('method').map(ann => {
+                                    const paramHint = ann.parameters && ann.parameters.length > 0
+                                        ? `(${ann.parameters.map(p => p.validValues && p.validValues.length > 0 ? p.validValues.join('|') : p.name).join(', ')})`
+                                        : '';
+                                    return `<option value="${ann.name}">${ann.name}${paramHint} - ${ann.description}</option>`;
+                                }).join('\n                                ')}
                             </datalist>
                             <input type="text" id="methodAnnotationValue_${service.name}_${method.name}" placeholder='value: GET, "/path", etc.' style="width: 180px;" />
                             <button class="add-button" onclick="confirmAddMethodAnnotation('${service.name}', '${method.name}')">Add</button>

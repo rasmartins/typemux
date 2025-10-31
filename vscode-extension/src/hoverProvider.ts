@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { annotationRegistry } from './annotationData';
 
 export class TypeMuxHoverProvider implements vscode.HoverProvider {
     private annotations: Map<string, { description: string; usage: string; example: string }>;
@@ -58,78 +59,32 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
             }]
         ]);
 
-        this.annotations = new Map([
-            ['@required', {
-                description: 'Marks a field as required/non-nullable',
-                usage: 'Use on type fields to indicate they must have a value',
-                example: '```typemux\ntype User {\n    id: string @required\n    name: string @required\n}\n```'
-            }],
-            ['@default', {
-                description: 'Specifies a default value for a field',
-                usage: 'Use with a value in parentheses to set a default',
-                example: '```typemux\ntype Config {\n    enabled: bool @default(true)\n    maxRetries: int32 @default(3)\n    message: string @default("Hello")\n}\n```'
-            }],
-            ['@exclude', {
-                description: 'Excludes a field from specific generators',
-                usage: 'Specify one or more generators to exclude this field from',
-                example: '```typemux\ntype User {\n    id: string @required\n    internalData: string @exclude(openapi)\n    debugInfo: string @exclude(proto, graphql)\n}\n```'
-            }],
-            ['@only', {
-                description: 'Includes a field only in specific generators',
-                usage: 'Specify which generators should include this field',
-                example: '```typemux\ntype User {\n    id: string @required\n    restOnlyField: string @only(openapi)\n    protoOnlyField: bytes @only(proto)\n}\n```'
-            }],
-            ['@http.method', {
-                description: 'Specifies the HTTP method for an RPC endpoint',
-                usage: 'Use on service methods to define REST API behavior',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n}\n```'
-            }],
-            ['@graphql', {
-                description: 'Specifies the GraphQL operation type',
-                usage: 'Use query, mutation, or subscription',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @graphql(query)\n    \n    rpc CreateUser(Request) returns (Response)\n        @graphql(mutation)\n    \n    rpc SubscribeToUpdates(Request) returns (Response)\n        @graphql(subscription)\n}\n```'
-            }],
-            ['@proto.option', {
-                description: 'Adds Protobuf-specific field options',
-                usage: 'Use with Protobuf options in brackets',
-                example: '```typemux\ntype User {\n    tags: []string @proto.option([packed = false])\n    metadata: bytes @proto.option([retention = RETENTION_SOURCE])\n}\n```'
-            }],
-            ['@graphql.directive', {
-                description: 'Adds GraphQL directives to types or fields',
-                usage: 'Use for GraphQL Federation, authorization, etc.',
-                example: '```typemux\ntype User @graphql.directive(@key(fields: "id")) {\n    id: string @required @graphql.directive(@external)\n    email: string @required\n}\n```'
-            }],
-            ['@openapi.extension', {
-                description: 'Adds OpenAPI extensions (x-* properties)',
-                usage: 'Use JSON object with extension properties',
-                example: '```typemux\ntype Product @openapi.extension({"x-internal-id": "prod-v1"}) {\n    price: float64 @openapi.extension({"x-format": "currency"})\n}\n\n// Nested extensions\ntype Config @openapi.extension({"x-metadata": {"version": "v2", "features": ["auth"]}}) {\n    timeout: int32 @openapi.extension({"x-validation": {"min": 1, "max": 3600}})\n}\n```'
-            }],
-            ['@proto.name', {
-                description: 'Specifies custom Protobuf message/type name',
-                usage: 'Use leading or trailing annotation to override the default name',
-                example: '```typemux\n// Leading annotation\n@proto.name("UserV2")\ntype User {\n    id: string @required\n}\n\n// Trailing annotation\ntype Product @proto.name("ProductV3") {\n    id: string @required\n}\n```'
-            }],
-            ['@graphql.name', {
-                description: 'Specifies custom GraphQL type name',
-                usage: 'Use leading or trailing annotation to override the default name',
-                example: '```typemux\n@graphql.name("UserAccount")\ntype User {\n    id: string @required\n}\n```'
-            }],
-            ['@openapi.name', {
-                description: 'Specifies custom OpenAPI schema name',
-                usage: 'Use leading or trailing annotation to override the default name',
-                example: '```typemux\n@openapi.name("UserProfile")\ntype User {\n    id: string @required\n}\n```'
-            }],
-            ['@http.success', {
-                description: 'Specifies additional HTTP success status codes',
-                usage: 'Use comma-separated status codes (201, 202, 204, etc.)',
-                example: '```typemux\nservice UserService {\n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,500)\n    \n    rpc DeleteUser(Request) returns (Response)\n        @http.method(DELETE)\n        @http.path("/api/users/{id}")\n        @http.success(204)\n        @http.errors(404,500)\n}\n```'
-            }],
-            ['@http.errors', {
-                description: 'Specifies expected HTTP error status codes',
-                usage: 'Use comma-separated status codes (400, 404, 500, etc.)',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n        @http.errors(404,500)\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,422,500)\n}\n```'
-            }]
-        ]);
+        // Load annotations from the annotation registry (sourced from annotations.json)
+        this.annotations = new Map();
+        for (const annotation of annotationRegistry.getAllAnnotations()) {
+            // Format examples as code blocks
+            const example = annotation.examples && annotation.examples.length > 0
+                ? '```typemux\n' + annotation.examples.join('\n\n') + '\n```'
+                : 'No example available';
+
+            // Create usage text from parameters
+            let usage = annotation.description;
+            if (annotation.parameters && annotation.parameters.length > 0) {
+                usage += '\n\nParameters:';
+                for (const param of annotation.parameters) {
+                    usage += `\n- ${param.name} (${param.type})${param.required ? ' *required*' : ''}: ${param.description}`;
+                    if (param.validValues && param.validValues.length > 0) {
+                        usage += ` [${param.validValues.join(', ')}]`;
+                    }
+                }
+            }
+
+            this.annotations.set(annotation.name, {
+                description: annotation.description,
+                usage: usage,
+                example: example
+            });
+        }
     }
 
     provideHover(
