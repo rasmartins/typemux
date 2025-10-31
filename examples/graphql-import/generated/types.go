@@ -13,29 +13,79 @@ const (
 	UserStatusSUSPENDED UserStatus = 2
 )
 
-type User struct {
-	Id string `json:"id"`
+type CreateUserInput struct {
 	Name string `json:"name"`
+	Email string `json:"email"`
+	Age int32 `json:"age"`
+	Tags []string `json:"tags"`
+}
+
+type UpdateUserInput struct {
+	Name string `json:"name"`
+	Email string `json:"email"`
+	Age int32 `json:"age"`
 	Status UserStatus `json:"status"`
 }
 
-type UserUpdate struct {
-	User User `json:"user"`
-	UpdateType string `json:"updateType"`
-	Timestamp time.Time `json:"timestamp"`
+type User struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Email string `json:"email"`
+	Age int32 `json:"age"`
+	Status UserStatus `json:"status"`
+	CreatedAt time.Time `json:"createdAt"`
+	Tags []string `json:"tags"`
+	IsVerified bool `json:"isVerified"`
 }
 
-type ChatMessage struct {
+type CreateUserResult struct {
+	User User `json:"user"`
+	Message string `json:"message"`
+}
+
+type Boolean struct {
+	Value bool `json:"value"`
+}
+
+type GetUserRequest struct {
 	Id string `json:"id"`
+}
+
+type ListUsersRequest struct {
+	Limit int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+	Status UserStatus `json:"status"`
+}
+
+type SearchUsersRequest struct {
+	Query string `json:"query"`
+}
+
+type CreateUserRequest struct {
+	Input CreateUserInput `json:"input"`
+}
+
+type UpdateUserRequest struct {
+	Id string `json:"id"`
+	Input UpdateUserInput `json:"input"`
+}
+
+type DeleteUserRequest struct {
+	Id string `json:"id"`
+}
+
+type VerifyUserEmailRequest struct {
 	UserId string `json:"userId"`
-	Text string `json:"text"`
-	Timestamp time.Time `json:"timestamp"`
+	Token string `json:"token"`
 }
 
 type GraphQLService interface {
 	GetUser(input *GetUserRequest) (*User, error)
-	UserUpdates(input *UserUpdatesRequest, stream chan *UserUpdate) error
-	NewMessages(input *NewMessagesRequest, stream chan *ChatMessage) error
-	UserStatusChanged(input *Empty, stream chan *User) error
+	ListUsers(input *ListUsersRequest) (*User, error)
+	SearchUsers(input *SearchUsersRequest) (*User, error)
+	CreateUser(input *CreateUserRequest) (*CreateUserResult, error)
+	UpdateUser(input *UpdateUserRequest) (*User, error)
+	DeleteUser(input *DeleteUserRequest) (*Boolean, error)
+	VerifyUserEmail(input *VerifyUserEmailRequest) (*Boolean, error)
 }
 

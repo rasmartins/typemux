@@ -53,6 +53,31 @@ type PetList struct {
 	Pets []Pet `json:"pets"`
 }
 
+type Empty struct {
+}
+
+type ListPetsRequest struct {
+	Limit int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type CreatePetRequest struct {
+	Pet NewPet `json:"pet"`
+}
+
+type GetPetByIdRequest struct {
+	PetId string `json:"petId"`
+}
+
+type UpdatePetRequest struct {
+	PetId string `json:"petId"`
+	Pet UpdatePet `json:"pet"`
+}
+
+type DeletePetRequest struct {
+	PetId string `json:"petId"`
+}
+
 type PetStoreAPIService interface {
 	ListPets(input *ListPetsRequest) (*PetList, error)
 	CreatePet(input *CreatePetRequest) (*Pet, error)

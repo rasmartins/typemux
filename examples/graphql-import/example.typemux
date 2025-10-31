@@ -65,6 +65,44 @@ type CreateUserResult {
   message: string = 2
 }
 
+// Boolean type for GraphQL
+type Boolean {
+  value: bool = 1
+}
+
+// Request types for service methods
+type GetUserRequest {
+  id: string = 1
+}
+
+type ListUsersRequest {
+  limit: int32 = 1
+  offset: int32 = 2
+  status: UserStatus = 3
+}
+
+type SearchUsersRequest {
+  query: string = 1
+}
+
+type CreateUserRequest {
+  input: CreateUserInput = 1
+}
+
+type UpdateUserRequest {
+  id: string = 1
+  input: UpdateUserInput = 2
+}
+
+type DeleteUserRequest {
+  id: string = 1
+}
+
+type VerifyUserEmailRequest {
+  userId: string = 1
+  token: string = 2
+}
+
 service GraphQLService {
   // Get a user by their ID
   // GraphQL query

@@ -26,20 +26,20 @@ type Settings struct {
 // Inventory tracking with maps of custom types
 type Inventory struct {
 	// Map of warehouse ID to Product
-Proto: map<string, Product>
-GraphQL: [InventoryProductsEntry!]! with key/value fields
-OpenAPI: object with Product values
+	// Proto: map<string, Product>
+	// GraphQL: [InventoryProductsEntry!]! with key/value fields
+	// OpenAPI: object with Product values
 	ProductsByWarehouse map[string]Product `json:"productsByWarehouse"`
 	// Map of product ID to quantity (primitive value)
-Proto: map<string, int32>
-GraphQL: JSON scalar or [QuantityEntry!]!
-OpenAPI: object with integer values
+	// Proto: map<string, int32>
+	// GraphQL: JSON scalar or [QuantityEntry!]!
+	// OpenAPI: object with integer values
 	Quantities map[string]int32 `json:"quantities"`
 	// Map of supplier ID to list of products
-Proto: map<string, ProductList> (requires wrapper)
-GraphQL: [SupplierProductsEntry!]!
-OpenAPI: object with array values
-	SupplierProducts map[string] `json:"supplierProducts"`
+	// Proto: map<string, ProductList> (requires wrapper)
+	// GraphQL: [SupplierProductsEntry!]!
+	// OpenAPI: object with array values
+	SupplierProducts map[string][]Product `json:"supplierProducts"`
 }
 
 // User preferences with various map types

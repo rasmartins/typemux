@@ -75,6 +75,33 @@ type PetList {
   pets: []Pet = 3
 }
 
+// Empty type for responses with no content
+type Empty {
+}
+
+// Request types for service methods
+type ListPetsRequest {
+  limit: int32 = 1
+  offset: int32 = 2
+}
+
+type CreatePetRequest {
+  pet: NewPet = 1
+}
+
+type GetPetByIdRequest {
+  petId: string = 1
+}
+
+type UpdatePetRequest {
+  petId: string = 1
+  pet: UpdatePet = 2
+}
+
+type DeletePetRequest {
+  petId: string = 1
+}
+
 service PetStoreAPIService {
   // Returns a list of all pets in the store
   // GET /pets

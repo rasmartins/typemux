@@ -171,7 +171,15 @@ func (g *GoGenerator) generateType(typ *ast.Type) string {
 	for _, field := range typ.Fields {
 		// Field documentation
 		if field.Doc != nil && field.Doc.General != "" {
-			sb.WriteString(fmt.Sprintf("\t// %s\n", strings.TrimSpace(field.Doc.General)))
+			doc := field.Doc.GetDoc("go")
+			if doc == "" {
+				doc = field.Doc.General
+			}
+			// Format multi-line comments properly
+			lines := strings.Split(strings.TrimSpace(doc), "\n")
+			for _, line := range lines {
+				sb.WriteString(fmt.Sprintf("\t// %s\n", strings.TrimSpace(line)))
+			}
 		}
 
 		// Field definition
@@ -289,7 +297,14 @@ func (g *GoGenerator) mapTypeToGo(fieldType *ast.FieldType) string {
 	// Handle map type
 	if fieldType.MapKey != "" {
 		keyType := g.mapScalarTypeToGo(fieldType.MapKey)
-		valueType := g.mapScalarTypeToGo(fieldType.MapValue)
+		var valueType string
+		if fieldType.MapValueType != nil {
+			// Complex map value (array, nested map, etc.)
+			valueType = g.mapTypeToGo(fieldType.MapValueType)
+		} else {
+			// Simple map value
+			valueType = g.mapScalarTypeToGo(fieldType.MapValue)
+		}
 		goType = fmt.Sprintf("map[%s]%s", keyType, valueType)
 	}
 
