@@ -49,6 +49,10 @@ TypeMUX supports these built-in types:
 | `string` | UTF-8 text | Variable length |
 | `int32` | Signed 32-bit integer | -2,147,483,648 to 2,147,483,647 |
 | `int64` | Signed 64-bit integer | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 |
+| `uint8` | Unsigned 8-bit integer | 0 to 255 |
+| `uint16` | Unsigned 16-bit integer | 0 to 65,535 |
+| `uint32` | Unsigned 32-bit integer | 0 to 4,294,967,295 |
+| `uint64` | Unsigned 64-bit integer | 0 to 18,446,744,073,709,551,615 |
 | `float32` | 32-bit floating point | IEEE 754 single precision |
 | `float64` | 64-bit floating point | IEEE 754 double precision |
 | `bool` | Boolean value | `true` or `false` |
@@ -918,6 +922,10 @@ How TypeMUX types map to output formats.
 | `string` | `String` | `string` | `type: string` |
 | `int32` | `Int` | `int32` | `type: integer, format: int32` |
 | `int64` | `Int` | `int64` | `type: integer, format: int64` |
+| `uint8` | `Int` | `uint32` | `type: integer, format: int32, minimum: 0` |
+| `uint16` | `Int` | `uint32` | `type: integer, format: int32, minimum: 0` |
+| `uint32` | `Int` | `uint32` | `type: integer, format: int32, minimum: 0` |
+| `uint64` | `Int` | `uint64` | `type: integer, format: int64, minimum: 0` |
 | `float32` | `Float` | `float` | `type: number, format: float` |
 | `float64` | `Float` | `double` | `type: number, format: double` |
 | `bool` | `Boolean` | `bool` | `type: boolean` |
