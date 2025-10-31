@@ -53,6 +53,7 @@ From this single schema, TypeMUX generates:
 ## Quick Links
 
 - [Quick Start](quickstart.md) - Get started in 5 minutes
+- [Library Usage](library.md) - Use TypeMUX as a Go library
 - [Tutorial](tutorial.md) - Learn TypeMUX step by step
 - [Language Reference](reference.md) - Complete language specification
 - [Configuration](configuration.md) - CLI flags and annotations

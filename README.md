@@ -40,6 +40,8 @@ service UserService {
 
 ## Quick Start
 
+### CLI Usage
+
 ```bash
 # Install
 go install github.com/rasmartins/typemux@latest
@@ -48,11 +50,38 @@ go install github.com/rasmartins/typemux@latest
 typemux -input schema.typemux -output ./generated
 ```
 
+### Library Usage
+
+Use TypeMUX as a Go library in your applications:
+
+```go
+import "github.com/rasmartins/typemux"
+
+// Parse a schema
+schema, err := typemux.ParseSchema(idlContent)
+
+// Generate code
+factory := typemux.NewGeneratorFactory()
+graphql, _ := factory.Generate("graphql", schema)
+proto, _ := factory.Generate("protobuf", schema)
+openapi, _ := factory.Generate("openapi", schema)
+goCode, _ := factory.Generate("go", schema)
+
+// Detect breaking changes
+result, _ := typemux.Diff(baseSchema, headSchema)
+if result.HasBreakingChanges() {
+    fmt.Println("⚠️ Breaking changes detected!")
+}
+```
+
+See [Library Documentation](https://rasmartins.github.io/typemux/library) for complete API reference.
+
 ## Documentation
 
 📚 **[Full Documentation](https://rasmartins.github.io/typemux)**
 
 - [Quick Start Guide](https://rasmartins.github.io/typemux/quickstart) - Get started in 5 minutes
+- [Library Usage](https://rasmartins.github.io/typemux/library) - Use TypeMUX as a Go library
 - [Tutorial](https://rasmartins.github.io/typemux/tutorial) - Learn TypeMUX step by step
 - [Language Reference](https://rasmartins.github.io/typemux/reference) - Complete syntax specification
 - [Examples](https://rasmartins.github.io/typemux/examples) - Real-world use cases
@@ -61,6 +90,7 @@ typemux -input schema.typemux -output ./generated
 ## Features
 
 - **Single Source of Truth** - Write once, generate multiple formats
+- **Go Library API** - Use TypeMUX programmatically in your Go applications
 - **Breaking Change Detection** - Analyze schema diffs and detect breaking changes across all protocols
 - **Type Safety** - Strongly typed with primitives, enums, arrays, maps, and unions
 - **Namespace Support** - Organize types across multiple namespaces
