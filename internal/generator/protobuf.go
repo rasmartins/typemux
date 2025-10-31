@@ -550,6 +550,10 @@ func (g *ProtobufGenerator) mapScalarType(typeName string) string {
 		"string":    "string",
 		"int32":     "int32",
 		"int64":     "int64",
+		"uint8":     "uint32", // Protobuf has no uint8, use uint32
+		"uint16":    "uint32", // Protobuf has no uint16, use uint32
+		"uint32":    "uint32",
+		"uint64":    "uint64",
 		"float32":   "float",
 		"float64":   "double",
 		"bool":      "bool",
@@ -591,6 +595,10 @@ func (g *ProtobufGenerator) mapScalarTypeWithMap(typeName string, typeNameMap ma
 		"string":    "string",
 		"int32":     "int32",
 		"int64":     "int64",
+		"uint8":     "uint32", // Protobuf has no uint8, use uint32
+		"uint16":    "uint32", // Protobuf has no uint16, use uint32
+		"uint32":    "uint32",
+		"uint64":    "uint64",
 		"float32":   "float",
 		"float64":   "double",
 		"bool":      "bool",
@@ -619,6 +627,10 @@ func (g *ProtobufGenerator) mapScalarTypeWithPackageAndMap(typeName string, curr
 		"string":    "string",
 		"int32":     "int32",
 		"int64":     "int64",
+		"uint8":     "uint32", // Protobuf has no uint8, use uint32
+		"uint16":    "uint32", // Protobuf has no uint16, use uint32
+		"uint32":    "uint32",
+		"uint64":    "uint64",
 		"float32":   "float",
 		"float64":   "double",
 		"bool":      "bool",

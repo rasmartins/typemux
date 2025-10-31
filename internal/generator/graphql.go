@@ -149,6 +149,10 @@ func (g *GraphQLGenerator) mapScalarToGraphQLType(typeName string) string {
 		"string":    "String",
 		"int32":     "Int",
 		"int64":     "Int",
+		"uint8":     "Int", // GraphQL has no unsigned types, use Int
+		"uint16":    "Int", // GraphQL has no unsigned types, use Int
+		"uint32":    "Int", // GraphQL has no unsigned types, use Int
+		"uint64":    "Int", // GraphQL has no unsigned types, use Int
 		"float32":   "Float",
 		"float64":   "Float",
 		"bool":      "Boolean",

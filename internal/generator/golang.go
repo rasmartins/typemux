@@ -279,6 +279,14 @@ func (g *GoGenerator) mapTypeToGo(fieldType *ast.FieldType) string {
 		goType = "int32"
 	case "int64":
 		goType = "int64"
+	case "uint8":
+		goType = "uint8"
+	case "uint16":
+		goType = "uint16"
+	case "uint32":
+		goType = "uint32"
+	case "uint64":
+		goType = "uint64"
 	case "float32":
 		goType = "float32"
 	case "float64":
@@ -333,6 +341,14 @@ func (g *GoGenerator) mapScalarTypeToGo(typeName string) string {
 		return "int32"
 	case "int64":
 		return "int64"
+	case "uint8":
+		return "uint8"
+	case "uint16":
+		return "uint16"
+	case "uint32":
+		return "uint32"
+	case "uint64":
+		return "uint64"
 	case "float32":
 		return "float32"
 	case "float64":
@@ -350,6 +366,10 @@ func (g *GoGenerator) isPrimitiveType(typeName string) bool {
 		"string":  true,
 		"int32":   true,
 		"int64":   true,
+		"uint8":   true,
+		"uint16":  true,
+		"uint32":  true,
+		"uint64":  true,
 		"float32": true,
 		"float64": true,
 		"bool":    true,

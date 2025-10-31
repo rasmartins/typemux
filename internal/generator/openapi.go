@@ -493,6 +493,10 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 			property.Items.Ref = fmt.Sprintf("#/components/schemas/%s", schemaName)
 		} else {
 			property.Items.Type = baseType
+			// Set format for built-in types
+			if format := g.getFormatForType(field.Type.Name); format != "" {
+				property.Items.Format = format
+			}
 		}
 		return property
 	}
@@ -503,6 +507,12 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 		property.Type = oaType
 		if format := g.getFormatForType(field.Type.Name); format != "" {
 			property.Format = format
+		}
+
+		// Set minimum: 0 for unsigned integer types
+		if field.Type.Name == "uint8" || field.Type.Name == "uint16" || field.Type.Name == "uint32" || field.Type.Name == "uint64" {
+			zero := float64(0)
+			property.Minimum = &zero
 		}
 
 		// Set properly typed default values
@@ -530,6 +540,10 @@ func (g *OpenAPIGenerator) mapTypeToOpenAPI(typeName string) string {
 		"string":    "string",
 		"int32":     "integer",
 		"int64":     "integer",
+		"uint8":     "integer",
+		"uint16":    "integer",
+		"uint32":    "integer",
+		"uint64":    "integer",
 		"float32":   "number",
 		"float64":   "number",
 		"bool":      "boolean",
@@ -548,6 +562,10 @@ func (g *OpenAPIGenerator) getFormatForType(typeName string) string {
 	formatMap := map[string]string{
 		"int32":     "int32",
 		"int64":     "int64",
+		"uint8":     "int32", // OpenAPI uses int32 format with minimum: 0
+		"uint16":    "int32", // OpenAPI uses int32 format with minimum: 0
+		"uint32":    "int64", // OpenAPI uses int64 format with minimum: 0
+		"uint64":    "int64", // OpenAPI uses int64 format with minimum: 0
 		"float32":   "float",
 		"float64":   "double",
 		"timestamp": "date-time",
@@ -560,7 +578,7 @@ func (g *OpenAPIGenerator) getFormatForType(typeName string) string {
 func (g *OpenAPIGenerator) convertDefaultValue(defaultStr string, typeName string) interface{} {
 	// Convert string default values to proper types for YAML/JSON
 	switch typeName {
-	case "int32", "int64":
+	case "int32", "int64", "uint8", "uint16", "uint32", "uint64":
 		// Parse as integer
 		var val int64
 		if _, err := fmt.Sscanf(defaultStr, "%d", &val); err == nil {

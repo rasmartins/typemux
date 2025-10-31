@@ -235,8 +235,8 @@ func TestMethod(t *testing.T) {
 
 func TestBuiltinTypes(t *testing.T) {
 	expectedTypes := []string{
-		"string", "int32", "int64", "float32", "float64",
-		"bool", "timestamp", "bytes",
+		"string", "int32", "int64", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64", "bool", "timestamp", "bytes",
 	}
 
 	for _, typeName := range expectedTypes {
