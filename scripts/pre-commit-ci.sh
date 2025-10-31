@@ -27,13 +27,14 @@ fi
 
 # Run the CI workflow
 # Note: act uses medium runners by default (ubuntu-latest)
-# Use --artifact-server-path if you want to save artifacts
+# --no-cache-actions disables GitHub Actions caching (not supported locally)
 echo "Running CI workflow..."
 echo ""
 
 act push \
     --workflows .github/workflows/ci.yml \
     --platform ubuntu-latest=catthehacker/ubuntu:act-latest \
+    --no-cache-actions \
     --verbose
 
 # Check exit code
