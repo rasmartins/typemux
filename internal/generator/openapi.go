@@ -108,6 +108,7 @@ type OpenAPIProperty struct {
 	Format               string                 `json:"format,omitempty" yaml:"format,omitempty"`
 	Description          string                 `json:"description,omitempty" yaml:"description,omitempty"`
 	Ref                  string                 `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Nullable             bool                   `json:"nullable,omitempty" yaml:"nullable,omitempty"`
 	Items                *OpenAPIPropertyItems  `json:"items,omitempty" yaml:"items,omitempty"`
 	AdditionalProperties *OpenAPIPropertyItems  `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 	Default              interface{}            `json:"default,omitempty" yaml:"default,omitempty"`
@@ -266,12 +267,19 @@ func (g *OpenAPIGenerator) generateSchema(typ *ast.Type, typeNameMap map[string]
 		}
 
 		property := g.convertFieldToProperty(field, typeNameMap)
-		schema.Properties[field.Name] = property
+
+		// Use JSONName if specified, otherwise use field name
+		propertyName := field.Name
+		if field.JSONName != "" {
+			propertyName = field.JSONName
+		}
+
+		schema.Properties[propertyName] = property
 
 		// Fields are required if explicitly marked with @required annotation
 		// Fields marked with ? are explicitly optional
 		if field.Required && !field.Type.Optional {
-			schema.Required = append(schema.Required, field.Name)
+			schema.Required = append(schema.Required, propertyName)
 		}
 	}
 
@@ -404,6 +412,11 @@ func (g *OpenAPIGenerator) convertFieldToProperty(field *ast.Field, typeNameMap 
 		if field.Deprecated.Reason != "" {
 			property.Description += fmt.Sprintf(": %s", field.Deprecated.Reason)
 		}
+	}
+
+	// Add nullable flag from @json.nullable annotation
+	if field.JSONNullable {
+		property.Nullable = true
 	}
 
 	// Add validation rules

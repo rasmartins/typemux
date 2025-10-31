@@ -473,5 +473,49 @@ func GetBuiltinAnnotations() *AnnotationRegistry {
 		},
 	})
 
+	// JSON serialization annotations
+	registry.Register(&AnnotationMetadata{
+		Name:        "@json.name",
+		Scope:       []string{"field"},
+		Formats:     []string{"all"},
+		Description: "Overrides the JSON field name for serialization",
+		Parameters: []ParameterMetadata{
+			{
+				Name:        "name",
+				Type:        "string",
+				Required:    true,
+				Description: "JSON field name override",
+			},
+		},
+		Examples: []string{
+			`userId: string @json.name("user_id")`,
+			`createdAt: timestamp @json.name("created_at")`,
+		},
+	})
+
+	registry.Register(&AnnotationMetadata{
+		Name:        "@json.nullable",
+		Scope:       []string{"field"},
+		Formats:     []string{"all"},
+		Description: "Marks a field as explicitly nullable (can be null in JSON)",
+		Parameters:  []ParameterMetadata{},
+		Examples: []string{
+			`middleName: string @json.nullable`,
+			`phoneNumber: string @json.nullable`,
+		},
+	})
+
+	registry.Register(&AnnotationMetadata{
+		Name:        "@json.omitempty",
+		Scope:       []string{"field"},
+		Formats:     []string{"all"},
+		Description: "Omits the field from JSON serialization if it has a zero/empty value",
+		Parameters:  []ParameterMetadata{},
+		Examples: []string{
+			`description: string @json.omitempty`,
+			`metadata: map<string, string> @json.omitempty`,
+		},
+	})
+
 	return registry
 }

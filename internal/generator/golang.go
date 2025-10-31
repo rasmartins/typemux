@@ -185,6 +185,12 @@ func (g *GoGenerator) generateType(typ *ast.Type) string {
 		// Field definition
 		fieldName := g.exportFieldName(field.Name)
 		fieldType := g.mapTypeToGo(field.Type)
+
+		// Handle @json.nullable - make the field a pointer type
+		if field.JSONNullable && !strings.HasPrefix(fieldType, "*") && !strings.HasPrefix(fieldType, "[]") && !strings.HasPrefix(fieldType, "map[") {
+			fieldType = "*" + fieldType
+		}
+
 		jsonTag := g.getJSONTag(field)
 
 		sb.WriteString(fmt.Sprintf("\t%s %s `json:\"%s\"`\n", fieldName, fieldType, jsonTag))
@@ -403,10 +409,17 @@ func (g *GoGenerator) exportFieldName(name string) string {
 
 // getJSONTag generates the JSON tag for a field
 func (g *GoGenerator) getJSONTag(field *ast.Field) string {
+	// Use JSONName if specified, otherwise use field name
 	tag := field.Name
-	if field.Type.Optional {
+	if field.JSONName != "" {
+		tag = field.JSONName
+	}
+
+	// Add omitempty if specified or if the field is optional
+	if field.JSONOmitEmpty || field.Type.Optional {
 		tag += ",omitempty"
 	}
+
 	return tag
 }
 

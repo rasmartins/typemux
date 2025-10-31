@@ -452,3 +452,143 @@ func TestGoGenerator_PackageAnnotationDefault(t *testing.T) {
 		t.Errorf("Expected package api, got:\n%s", output)
 	}
 }
+
+func TestGoGenerator_JSONNameAnnotation(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "api",
+		Types: []*ast.Type{
+			{
+				Name:      "User",
+				Namespace: "api",
+				Fields: []*ast.Field{
+					{
+						Name:     "userId",
+						JSONName: "user_id",
+						Type:     &ast.FieldType{Name: "string"},
+					},
+					{
+						Name:     "createdAt",
+						JSONName: "created_at",
+						Type:     &ast.FieldType{Name: "timestamp"},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	// Check that JSON tag uses JSONName
+	if !strings.Contains(output, "`json:\"user_id\"`") {
+		t.Errorf("Expected json:\"user_id\" tag, got: %s", output)
+	}
+	if !strings.Contains(output, "`json:\"created_at\"`") {
+		t.Errorf("Expected json:\"created_at\" tag, got: %s", output)
+	}
+}
+
+func TestGoGenerator_JSONNullableAnnotation(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "api",
+		Types: []*ast.Type{
+			{
+				Name:      "User",
+				Namespace: "api",
+				Fields: []*ast.Field{
+					{
+						Name:         "middleName",
+						JSONNullable: true,
+						Type:         &ast.FieldType{Name: "string"},
+					},
+					{
+						Name:         "age",
+						JSONNullable: true,
+						Type:         &ast.FieldType{Name: "int32"},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	// Check that nullable fields are pointer types
+	if !strings.Contains(output, "MiddleName *string") {
+		t.Errorf("Expected MiddleName *string for nullable field, got: %s", output)
+	}
+	if !strings.Contains(output, "Age *int32") {
+		t.Errorf("Expected Age *int32 for nullable field, got: %s", output)
+	}
+}
+
+func TestGoGenerator_JSONOmitEmptyAnnotation(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "api",
+		Types: []*ast.Type{
+			{
+				Name:      "User",
+				Namespace: "api",
+				Fields: []*ast.Field{
+					{
+						Name:          "description",
+						JSONOmitEmpty: true,
+						Type:          &ast.FieldType{Name: "string"},
+					},
+					{
+						Name:          "metadata",
+						JSONOmitEmpty: true,
+						Type: &ast.FieldType{
+							MapKey:   "string",
+							MapValue: "string",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	// Check that omitempty is added to JSON tags
+	if !strings.Contains(output, "`json:\"description,omitempty\"`") {
+		t.Errorf("Expected json:\"description,omitempty\" tag, got: %s", output)
+	}
+	if !strings.Contains(output, "`json:\"metadata,omitempty\"`") {
+		t.Errorf("Expected json:\"metadata,omitempty\" tag, got: %s", output)
+	}
+}
+
+func TestGoGenerator_CombinedJSONAnnotations(t *testing.T) {
+	schema := &ast.Schema{
+		Namespace: "api",
+		Types: []*ast.Type{
+			{
+				Name:      "Profile",
+				Namespace: "api",
+				Fields: []*ast.Field{
+					{
+						Name:          "phoneNumber",
+						JSONName:      "phone_number",
+						JSONNullable:  true,
+						JSONOmitEmpty: true,
+						Type:          &ast.FieldType{Name: "string"},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewGoGenerator()
+	output := gen.Generate(schema)
+
+	// Check that all annotations work together
+	if !strings.Contains(output, "PhoneNumber *string") {
+		t.Errorf("Expected PhoneNumber *string, got: %s", output)
+	}
+	if !strings.Contains(output, "`json:\"phone_number,omitempty\"`") {
+		t.Errorf("Expected json:\"phone_number,omitempty\" tag, got: %s", output)
+	}
+}

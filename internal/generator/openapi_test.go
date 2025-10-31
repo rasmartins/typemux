@@ -1621,3 +1621,152 @@ func TestOpenAPIGenerator_NestedMaps(t *testing.T) {
 		t.Errorf("Expected nestedMap description to contain 'Map of string to', got: %s", nestedMap.Description)
 	}
 }
+
+func TestOpenAPIGenerator_JSONNameAnnotation(t *testing.T) {
+	gen := NewOpenAPIGenerator()
+	typ := &ast.Type{
+		Name: "User",
+		Fields: []*ast.Field{
+			{
+				Name:     "userId",
+				JSONName: "user_id",
+				Type: &ast.FieldType{
+					Name:      "string",
+					IsBuiltin: true,
+				},
+				Required: true,
+			},
+			{
+				Name:     "createdAt",
+				JSONName: "created_at",
+				Type: &ast.FieldType{
+					Name:      "timestamp",
+					IsBuiltin: true,
+				},
+				Required: false,
+			},
+		},
+	}
+
+	schema := gen.generateSchema(typ, make(map[string]string))
+
+	// Check that properties use JSONName instead of Name
+	if _, ok := schema.Properties["user_id"]; !ok {
+		t.Error("Expected 'user_id' property from @json.name annotation")
+	}
+	if _, ok := schema.Properties["created_at"]; !ok {
+		t.Error("Expected 'created_at' property from @json.name annotation")
+	}
+
+	// Check that required field uses JSONName
+	foundUserId := false
+	for _, req := range schema.Required {
+		if req == "user_id" {
+			foundUserId = true
+		}
+	}
+	if !foundUserId {
+		t.Error("Expected 'user_id' in required fields")
+	}
+
+	// Make sure original names are not present
+	if _, ok := schema.Properties["userId"]; ok {
+		t.Error("Expected original name 'userId' to not be present when @json.name is used")
+	}
+}
+
+func TestOpenAPIGenerator_JSONNullableAnnotation(t *testing.T) {
+	gen := NewOpenAPIGenerator()
+	typ := &ast.Type{
+		Name: "User",
+		Fields: []*ast.Field{
+			{
+				Name:         "middleName",
+				JSONNullable: true,
+				Type: &ast.FieldType{
+					Name:      "string",
+					IsBuiltin: true,
+				},
+			},
+			{
+				Name:         "age",
+				JSONNullable: true,
+				Type: &ast.FieldType{
+					Name:      "int32",
+					IsBuiltin: true,
+				},
+			},
+			{
+				Name:         "notNullable",
+				JSONNullable: false,
+				Type: &ast.FieldType{
+					Name:      "string",
+					IsBuiltin: true,
+				},
+			},
+		},
+	}
+
+	schema := gen.generateSchema(typ, make(map[string]string))
+
+	// Check that nullable fields have nullable: true
+	if prop, ok := schema.Properties["middleName"]; ok {
+		if !prop.Nullable {
+			t.Error("Expected 'middleName' to have nullable: true")
+		}
+	} else {
+		t.Error("Expected 'middleName' property to exist")
+	}
+
+	if prop, ok := schema.Properties["age"]; ok {
+		if !prop.Nullable {
+			t.Error("Expected 'age' to have nullable: true")
+		}
+	} else {
+		t.Error("Expected 'age' property to exist")
+	}
+
+	// Check that non-nullable field doesn't have nullable: true
+	if prop, ok := schema.Properties["notNullable"]; ok {
+		if prop.Nullable {
+			t.Error("Expected 'notNullable' to not have nullable: true")
+		}
+	} else {
+		t.Error("Expected 'notNullable' property to exist")
+	}
+}
+
+func TestOpenAPIGenerator_CombinedJSONAnnotations(t *testing.T) {
+	gen := NewOpenAPIGenerator()
+	typ := &ast.Type{
+		Name: "Profile",
+		Fields: []*ast.Field{
+			{
+				Name:         "phoneNumber",
+				JSONName:     "phone_number",
+				JSONNullable: true,
+				Type: &ast.FieldType{
+					Name:      "string",
+					IsBuiltin: true,
+				},
+			},
+		},
+	}
+
+	schema := gen.generateSchema(typ, make(map[string]string))
+
+	// Check that property uses JSONName
+	if prop, ok := schema.Properties["phone_number"]; ok {
+		// Check that it's also nullable
+		if !prop.Nullable {
+			t.Error("Expected 'phone_number' to have nullable: true")
+		}
+	} else {
+		t.Error("Expected 'phone_number' property from @json.name annotation")
+	}
+
+	// Make sure original name is not present
+	if _, ok := schema.Properties["phoneNumber"]; ok {
+		t.Error("Expected original name 'phoneNumber' to not be present when @json.name is used")
+	}
+}

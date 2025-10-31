@@ -53,20 +53,23 @@ type Union struct {
 
 // Field represents a field in a type
 type Field struct {
-	Name        string
-	Type        *FieldType
-	Required    bool
-	Default     string
-	Attributes  map[string]string
-	Doc         *Documentation
-	ExcludeFrom []string           // List of generators to exclude this field from
-	OnlyFor     []string           // If set, only include in these generators
-	Number      int                // Protobuf field number
-	HasNumber   bool               // Whether a custom number was specified
-	Annotations *FormatAnnotations // Format-specific annotations
-	Deprecated  *DeprecationInfo   // Deprecation information
-	Validation  *ValidationRules   // Validation rules
-	Since       string             // Version when this field was added (e.g., "2.0.0")
+	Name          string
+	Type          *FieldType
+	Required      bool
+	Default       string
+	Attributes    map[string]string
+	Doc           *Documentation
+	ExcludeFrom   []string           // List of generators to exclude this field from
+	OnlyFor       []string           // If set, only include in these generators
+	Number        int                // Protobuf field number
+	HasNumber     bool               // Whether a custom number was specified
+	Annotations   *FormatAnnotations // Format-specific annotations
+	Deprecated    *DeprecationInfo   // Deprecation information
+	Validation    *ValidationRules   // Validation rules
+	Since         string             // Version when this field was added (e.g., "2.0.0")
+	JSONName      string             // JSON field name override (from @json.name annotation)
+	JSONNullable  bool               // Whether field is explicitly nullable in JSON (from @json.nullable annotation)
+	JSONOmitEmpty bool               // Whether to omit field if empty in JSON (from @json.omitempty annotation)
 }
 
 // ShouldIncludeInGenerator checks if a field should be included in a specific generator

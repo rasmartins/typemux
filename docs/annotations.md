@@ -585,6 +585,62 @@ Defines validation rules for the field
 @validate(pattern="^[A-Z]{3}$")
 ```
 
+### @json.name
+
+Overrides the JSON field name for serialization
+
+**Applies to:** `all`
+
+
+**Parameters:**
+
+- **name** (string) *required*: JSON field name override
+
+
+**Examples:**
+
+```typemux
+userId: string @json.name("user_id")
+```
+
+```typemux
+createdAt: timestamp @json.name("created_at")
+```
+
+### @json.nullable
+
+Marks a field as explicitly nullable (can be null in JSON)
+
+**Applies to:** `all`
+
+
+**Examples:**
+
+```typemux
+middleName: string @json.nullable
+```
+
+```typemux
+phoneNumber: string @json.nullable
+```
+
+### @json.omitempty
+
+Omits the field from JSON serialization if it has a zero/empty value
+
+**Applies to:** `all`
+
+
+**Examples:**
+
+```typemux
+description: string @json.omitempty
+```
+
+```typemux
+metadata: map<string, string> @json.omitempty
+```
+
 ---
 
 ## Method-Level Annotations

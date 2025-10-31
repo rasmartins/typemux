@@ -578,5 +578,55 @@
       "@graphql(mutation)",
       "@graphql(subscription)"
     ]
+  },
+  {
+    "name": "@json.name",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "parameters": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "JSON field name override"
+      }
+    ],
+    "description": "Overrides the JSON field name for serialization",
+    "examples": [
+      "userId: string @json.name(\"user_id\")",
+      "createdAt: timestamp @json.name(\"created_at\")"
+    ]
+  },
+  {
+    "name": "@json.nullable",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "description": "Marks a field as explicitly nullable (can be null in JSON)",
+    "examples": [
+      "middleName: string @json.nullable",
+      "phoneNumber: string @json.nullable"
+    ]
+  },
+  {
+    "name": "@json.omitempty",
+    "scope": [
+      "field"
+    ],
+    "formats": [
+      "all"
+    ],
+    "description": "Omits the field from JSON serialization if it has a zero/empty value",
+    "examples": [
+      "description: string @json.omitempty",
+      "metadata: map\u003cstring, string\u003e @json.omitempty"
+    ]
   }
 ]

@@ -488,8 +488,8 @@ func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadin
 				p.parseValidationRules(field.Validation)
 				p.expectToken(lexer.TOKEN_RPAREN)
 			}
-		} else if attrName == "proto" || attrName == "graphql" || attrName == "openapi" {
-			// Parse format-specific annotations like @proto.option([packed = false]) or @proto.name("TypeName")
+		} else if attrName == "proto" || attrName == "graphql" || attrName == "openapi" || attrName == "json" {
+			// Parse format-specific annotations like @proto.option([packed = false]), @proto.name("TypeName"), or @json.name("field_name")
 			// Expect a dot
 			if p.curTok.Type != lexer.TOKEN_DOT {
 				p.addError(fmt.Sprintf("expected . after @%s", attrName))
@@ -504,6 +504,26 @@ func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadin
 			}
 			subtype := p.curTok.Literal
 			p.nextToken()
+
+			// Handle JSON annotations specially (some don't require parentheses)
+			if attrName == "json" {
+				if subtype == "nullable" {
+					field.JSONNullable = true
+				} else if subtype == "omitempty" {
+					field.JSONOmitEmpty = true
+				} else if subtype == "name" {
+					// @json.name requires a parameter
+					if p.curTok.Type == lexer.TOKEN_LPAREN {
+						p.nextToken()
+						content := p.parseAnnotationContent()
+						p.expectToken(lexer.TOKEN_RPAREN)
+						field.JSONName = strings.Trim(content, "\"'")
+					} else {
+						p.addError("@json.name requires a parameter: @json.name(\"field_name\")")
+					}
+				}
+				continue
+			}
 
 			// Parse the content in parentheses
 			if p.curTok.Type == lexer.TOKEN_LPAREN {
