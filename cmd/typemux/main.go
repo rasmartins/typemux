@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -114,7 +115,53 @@ func parseSchemaWithImports(filePath string, visited map[string]bool) (*ast.Sche
 	return schema, nil
 }
 
+func handleAnnotationsCommand() {
+	// Parse flags for annotations command
+	annotationsFlags := flag.NewFlagSet("annotations", flag.ExitOnError)
+	outputFormat := annotationsFlags.String("format", "json", "Output format: json")
+	prettyPrint := annotationsFlags.Bool("pretty", true, "Pretty-print JSON output")
+	scope := annotationsFlags.String("scope", "", "Filter by scope (method, field, type, enum, union, namespace, schema)")
+	formatFilter := annotationsFlags.String("filter-format", "", "Filter by format (proto, graphql, openapi, go)")
+
+	_ = annotationsFlags.Parse(os.Args[2:]) //nolint:errcheck // ExitOnError flag set, Parse calls os.Exit on error
+
+	// Get all built-in annotations
+	registry := annotations.GetBuiltinAnnotations()
+
+	// Apply filters
+	var annotationsList []*annotations.AnnotationMetadata
+	if *scope != "" {
+		annotationsList = registry.GetByScope(*scope)
+	} else if *formatFilter != "" {
+		annotationsList = registry.GetByFormat(*formatFilter)
+	} else {
+		annotationsList = registry.GetAll()
+	}
+
+	// Output based on format
+	switch *outputFormat {
+	case "json":
+		encoder := json.NewEncoder(os.Stdout)
+		if *prettyPrint {
+			encoder.SetIndent("", "  ")
+		}
+		if err := encoder.Encode(annotationsList); err != nil {
+			fmt.Fprintf(os.Stderr, "Error encoding JSON: %v\n", err)
+			os.Exit(1)
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown output format: %s\n", *outputFormat)
+		os.Exit(1)
+	}
+}
+
 func main() {
+	// Handle special commands
+	if len(os.Args) > 1 && os.Args[1] == "annotations" {
+		handleAnnotationsCommand()
+		return
+	}
+
 	// Config file flag
 	configFile := flag.String("config", "", "Configuration file (YAML)")
 
