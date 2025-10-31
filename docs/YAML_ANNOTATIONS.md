@@ -235,7 +235,7 @@ When the same annotation exists in both YAML and inline:
 The parser validates:
 
 1. **Reference validation**: All types, fields, enums, unions, services, and methods referenced in YAML must exist in the schema
-2. **Annotation validity**: Annotations must be valid for their context (e.g., can't use `@http` on a type)
+2. **Annotation validity**: Annotations must be valid for their context (e.g., can't use `@http.method` on a type)
 3. **Value validation**: Annotation values must be the correct type (e.g., `required` must be boolean)
 4. **Conflict detection**: Warns or errors on conflicting annotations
 

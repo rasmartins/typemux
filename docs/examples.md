@@ -253,7 +253,7 @@ typemux -input union_example.typemux -output ./generated
 
 - ✅ Union type definitions
 - ✅ Polymorphic service method parameters and returns
-- ✅ HTTP status code annotations (`@success`, `@errors`)
+- ✅ HTTP status code annotations (`@http.success`, `@http.errors`)
 
 ### Generated Output
 
