@@ -14,6 +14,8 @@ navigation:
     url: /
   - title: Quick Start
     url: /quickstart
+  - title: Library Usage
+    url: /library
   - title: Tutorial
     url: /tutorial
   - title: Reference
