@@ -79,7 +79,7 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
                 usage: 'Specify which generators should include this field',
                 example: '```typemux\ntype User {\n    id: string @required\n    restOnlyField: string @only(openapi)\n    protoOnlyField: bytes @only(proto)\n}\n```'
             }],
-            ['@http', {
+            ['@http.method', {
                 description: 'Specifies the HTTP method for an RPC endpoint',
                 usage: 'Use on service methods to define REST API behavior',
                 example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n}\n```'
@@ -119,12 +119,12 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
                 usage: 'Use leading or trailing annotation to override the default name',
                 example: '```typemux\n@openapi.name("UserProfile")\ntype User {\n    id: string @required\n}\n```'
             }],
-            ['@success', {
+            ['@http.success', {
                 description: 'Specifies additional HTTP success status codes',
                 usage: 'Use comma-separated status codes (201, 202, 204, etc.)',
                 example: '```typemux\nservice UserService {\n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,500)\n    \n    rpc DeleteUser(Request) returns (Response)\n        @http.method(DELETE)\n        @http.path("/api/users/{id}")\n        @http.success(204)\n        @http.errors(404,500)\n}\n```'
             }],
-            ['@errors', {
+            ['@http.errors', {
                 description: 'Specifies expected HTTP error status codes',
                 usage: 'Use comma-separated status codes (400, 404, 500, etc.)',
                 example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n        @http.errors(404,500)\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n        @http.success(201)\n        @http.errors(400,409,422,500)\n}\n```'

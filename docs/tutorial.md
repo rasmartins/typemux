@@ -268,7 +268,7 @@ type Product {
 
 ### Method Annotations
 
-#### @http
+#### @http.method
 
 Specify HTTP method:
 
@@ -340,7 +340,7 @@ service ProductService {
 }
 ```
 
-#### @success and @errors
+#### @http.success and @http.errors
 
 Define HTTP status codes:
 

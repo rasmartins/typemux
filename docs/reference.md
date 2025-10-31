@@ -461,7 +461,7 @@ type Product {
 
 Annotations provide metadata for service methods.
 
-### @http
+### @http.method
 
 Specifies the HTTP method for REST endpoints.
 
@@ -541,7 +541,7 @@ service UserService {
 - `Create*`, `Update*`, `Delete*`, `Set*` → `mutation`
 - `Subscribe*`, `Watch*` → `subscription`
 
-### @success
+### @http.success
 
 Lists HTTP success status codes.
 
@@ -567,7 +567,7 @@ service UserService {
 - `201` - Created
 - `204` - No Content
 
-### @errors
+### @http.errors
 
 Lists HTTP error status codes.
 

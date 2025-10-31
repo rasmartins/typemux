@@ -887,15 +887,6 @@ func (p *Parser) parseMethod() *ast.Method {
 						p.expectToken(lexer.TOKEN_RPAREN)
 					}
 				}
-			} else if p.curTok.Type == lexer.TOKEN_LPAREN {
-				if p.curTok.Type == lexer.TOKEN_LPAREN {
-					p.nextToken()
-					if p.curTok.Type == lexer.TOKEN_IDENT {
-						method.HTTPMethod = strings.ToUpper(p.curTok.Literal)
-						p.nextToken()
-						p.expectToken(lexer.TOKEN_RPAREN)
-					}
-				}
 			}
 		} else if attrName == "graphql" {
 			// Parse @graphql(query) or @graphql(mutation)
@@ -906,22 +897,6 @@ func (p *Parser) parseMethod() *ast.Method {
 					p.nextToken()
 					p.expectToken(lexer.TOKEN_RPAREN)
 				}
-			}
-		} else if attrName == "success" {
-			// Backward compatibility: @success(201,204) - old style
-			if p.curTok.Type == lexer.TOKEN_LPAREN {
-				p.nextToken()
-				successCodes := p.parseStatusCodeList()
-				method.SuccessCodes = successCodes
-				p.expectToken(lexer.TOKEN_RPAREN)
-			}
-		} else if attrName == "errors" {
-			// Backward compatibility: @errors(400,404,500) - old style
-			if p.curTok.Type == lexer.TOKEN_LPAREN {
-				p.nextToken()
-				errorCodes := p.parseStatusCodeList()
-				method.ErrorCodes = errorCodes
-				p.expectToken(lexer.TOKEN_RPAREN)
 			}
 		}
 	}
