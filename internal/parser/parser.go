@@ -907,16 +907,6 @@ func (p *Parser) parseMethod() *ast.Method {
 					p.expectToken(lexer.TOKEN_RPAREN)
 				}
 			}
-		} else if attrName == "path" {
-			// Backward compatibility: @path("/users/{id}") - old style
-			if p.curTok.Type == lexer.TOKEN_LPAREN {
-				p.nextToken()
-				if p.curTok.Type == lexer.TOKEN_STRING {
-					method.PathTemplate = p.curTok.Literal
-					p.nextToken()
-					p.expectToken(lexer.TOKEN_RPAREN)
-				}
-			}
 		} else if attrName == "success" {
 			// Backward compatibility: @success(201,204) - old style
 			if p.curTok.Type == lexer.TOKEN_LPAREN {

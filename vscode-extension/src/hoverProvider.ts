@@ -84,11 +84,6 @@ export class TypeMuxHoverProvider implements vscode.HoverProvider {
                 usage: 'Use on service methods to define REST API behavior',
                 example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/users/{id}")\n    \n    rpc CreateUser(Request) returns (Response)\n        @http.method(POST)\n        @http.path("/api/users")\n}\n```'
             }],
-            ['@path', {
-                description: 'Specifies the URL path template for a REST endpoint',
-                usage: 'Use path parameters in curly braces like {id}',
-                example: '```typemux\nservice UserService {\n    rpc GetUser(Request) returns (Response)\n        @http.method(GET)\n        @http.path("/api/v1/users/{id}")\n    \n    rpc UpdateUser(Request) returns (Response)\n        @http.method(PUT)\n        @http.path("/api/v1/users/{userId}")\n}\n```'
-            }],
             ['@graphql', {
                 description: 'Specifies the GraphQL operation type',
                 usage: 'Use query, mutation, or subscription',

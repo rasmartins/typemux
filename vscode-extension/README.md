@@ -7,7 +7,7 @@ VS Code extension providing language support for TypeMUX IDL schema files (`.typ
 - **Syntax Highlighting**: Full syntax highlighting for TypeMUX schema files
   - Keywords: `enum`, `type`, `service`, `rpc`, `returns`
   - Types: `string`, `int32`, `int64`, `float32`, `float64`, `bool`, `timestamp`, `bytes`
-  - Attributes: `@required`, `@default`, `@exclude`, `@only`, `@http`, `@graphql`, `@path`
+  - Attributes: `@required`, `@default`, `@exclude`, `@only`, `@http`, `@graphql`, `@http.path`
   - Format-specific annotations: `@proto.name()`, `@graphql.name()`, `@openapi.name()`
   - Comments: Single-line (`//`) and documentation (`///`)
 

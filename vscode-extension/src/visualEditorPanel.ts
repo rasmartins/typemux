@@ -848,7 +848,7 @@ export class VisualEditorPanel {
                             <input type="text" id="methodAnnotationName_${service.name}_${method.name}" list="methodAnnotations" placeholder="@annotation" style="width: 180px;" />
                             <datalist id="methodAnnotations">
                                 <option value="@http">@http.method(GET|POST|PUT|DELETE|PATCH) - HTTP method</option>
-                                <option value="@path">@http.path("/api/v1/...") - URL path</option>
+                                <option value="@http.path">@http.path("/api/v1/...") - URL path</option>
                                 <option value="@graphql">@graphql(query|mutation|subscription) - GraphQL operation</option>
                                 <option value="@success">@http.success(201|204) - Success status code</option>
                                 <option value="@errors">@http.errors(400,404,500) - Error status codes</option>

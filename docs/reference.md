@@ -486,7 +486,7 @@ service UserService {
 }
 ```
 
-### @path
+### @http.path
 
 Defines the URL path template.
 

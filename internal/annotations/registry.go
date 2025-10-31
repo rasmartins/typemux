@@ -494,24 +494,6 @@ func GetBuiltinAnnotations() *AnnotationRegistry {
 	})
 
 	registry.Register(&AnnotationMetadata{
-		Name:              "@path",
-		Scope:             []string{"method"},
-		Formats:           []string{"openapi"},
-		Description:       "Specifies URL path (deprecated, use @http.path instead)",
-		Deprecated:        true,
-		DeprecatedMessage: "Use @http.path() instead. This annotation is maintained for backward compatibility.",
-		Parameters: []ParameterMetadata{
-			{
-				Name:        "path",
-				Type:        "string",
-				Required:    true,
-				Description: "URL path template",
-			},
-		},
-		Examples: []string{`@path("/api/v1/users/{id}")`},
-	})
-
-	registry.Register(&AnnotationMetadata{
 		Name:              "@success",
 		Scope:             []string{"method"},
 		Formats:           []string{"openapi"},

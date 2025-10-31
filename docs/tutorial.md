@@ -288,7 +288,7 @@ service ProductService {
 }
 ```
 
-#### @path
+#### @http.path
 
 Define URL path templates:
 
