@@ -474,6 +474,36 @@
 
     <!-- Custom Scripts -->
     <script>
+      // Enable Prism syntax highlighting for all code blocks
+      document.addEventListener('DOMContentLoaded', function() {
+        // Get all pre elements with code inside
+        document.querySelectorAll('pre.highlight code').forEach(function(codeBlock) {
+          const pre = codeBlock.parentElement;
+          const text = codeBlock.textContent;
+
+          // Detect language from code content patterns
+          let lang = '';
+          if (text.includes('package main') || text.includes('func ') || text.includes('import (')) {
+            lang = 'go';
+          } else if (text.includes('npm ') || text.includes('git ') || text.includes('#!/bin/')) {
+            lang = 'bash';
+          } else if (text.includes('openapi:') || text.includes('  -') && text.includes(':')) {
+            lang = 'yaml';
+          } else if (text.includes('syntax = "proto3"') || text.includes('message ')) {
+            lang = 'protobuf';
+          } else if (text.includes('type ') && text.includes('{') || text.includes('enum ')) {
+            lang = 'typescript';
+          }
+
+          if (lang) {
+            codeBlock.className = 'language-' + lang;
+            if (typeof Prism !== 'undefined') {
+              Prism.highlightElement(codeBlock);
+            }
+          }
+        });
+      });
+
       // Scroll to top button
       const scrollTopBtn = document.getElementById('scrollTop');
 
