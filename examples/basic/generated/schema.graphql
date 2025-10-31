@@ -1,0 +1,108 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+"StringStringEntry represents a key-value pair for map<string, string>"
+type StringStringEntry {
+  key: String!
+  value: String!
+}
+
+"StringStringEntryInput represents a key-value pair for map<string, string>"
+input StringStringEntryInput {
+  key: String!
+  value: String!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"User role enumeration Defines the different roles a user can have in the system"
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+
+"Status enumeration for various entities"
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+"User type for GraphQL queries"
+type User {
+  id: String!
+  name: String!
+  email: String!
+  age: Int
+  role: UserRole!
+  isActive: Boolean
+  createdAt: String!
+  tags: [String]
+  metadata: [StringStringEntry!]
+}
+
+input PostInput {
+  id: String!
+  title: String!
+  content: String
+  authorId: String!
+  status: Status!
+  publishedAt: String
+  viewCount: Int
+  tags: [String]
+}
+
+type Post {
+  id: String!
+  title: String!
+  content: String
+  authorId: String!
+  status: Status!
+  publishedAt: String
+  viewCount: Int
+  tags: [String]
+}
+
+input CreateUserRequest {
+  name: String!
+  email: String!
+  role: UserRole!
+}
+
+type CreateUserResponse {
+  user: User!
+  success: Boolean!
+}
+
+input GetUserRequest {
+  id: String!
+}
+
+type GetUserResponse {
+  user: User
+}
+
+input ListUsersRequest {
+  limit: Int
+  offset: Int
+  role: UserRole
+}
+
+type ListUsersResponse {
+  users: [User]!
+  total: Int!
+}
+
+type Query {
+  getUser(input: GetUserRequest): GetUserResponse
+  listUsers(input: ListUsersRequest): ListUsersResponse
+  getPost(input: GetUserRequest): Post
+}
+
+type Mutation {
+  createUser(input: CreateUserRequest): CreateUserResponse
+  deleteUser(input: GetUserRequest): GetUserResponse
+  createPost(input: PostInput): Post
+}
+

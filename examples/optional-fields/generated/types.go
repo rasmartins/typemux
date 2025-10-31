@@ -37,7 +37,7 @@ type UserProfile struct {
 
 // Product with pricing information
 type Product struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 	// Optional description
 	Description string `json:"description,omitempty"`
@@ -54,11 +54,11 @@ type GetProfileRequest struct {
 }
 
 type UpdateProfileRequest struct {
-	UserId string `json:"userId"`
-	Email string `json:"email,omitempty"`
+	UserId      string `json:"userId"`
+	Email       string `json:"email,omitempty"`
 	DisplayName string `json:"displayName,omitempty"`
-	Bio string `json:"bio,omitempty"`
-	AvatarUrl string `json:"avatarUrl,omitempty"`
+	Bio         string `json:"bio,omitempty"`
+	AvatarUrl   string `json:"avatarUrl,omitempty"`
 }
 
 type UserService interface {
@@ -67,4 +67,3 @@ type UserService interface {
 	// Update user profile
 	UpdateProfile(input *UpdateProfileRequest) (*UserProfile, error)
 }
-

@@ -14,10 +14,10 @@ const (
 )
 
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Role UserRole `json:"role"`
+	Id        string    `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Role      UserRole  `json:"role"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -26,25 +26,25 @@ type GetUserRequest struct {
 }
 
 type CreateUserRequest struct {
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Role UserRole `json:"role"`
+	Username string   `json:"username"`
+	Email    string   `json:"email"`
+	Role     UserRole `json:"role"`
 }
 
 type UpdateUserRequest struct {
-	Id string `json:"id"`
+	Id       string `json:"id"`
 	Username string `json:"username"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 }
 
 type ListUsersRequest struct {
-	Limit int32 `json:"limit"`
+	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
 type UserListResponse struct {
 	Users []User `json:"users"`
-	Total int32 `json:"total"`
+	Total int32  `json:"total"`
 }
 
 type Empty struct {
@@ -57,4 +57,3 @@ type UserService interface {
 	UpdateUser(input *UpdateUserRequest) (*User, error)
 	DeleteUser(input *GetUserRequest) (*Empty, error)
 }
-

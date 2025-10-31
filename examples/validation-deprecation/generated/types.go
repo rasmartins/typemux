@@ -6,26 +6,26 @@ import (
 )
 
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
-	FullName string `json:"fullName"`
-	DisplayName string `json:"displayName"`
-	Website string `json:"website"`
-	Balance int64 `json:"balance"`
-	CreatedAt time.Time `json:"createdAt"`
-	LastLogin time.Time `json:"lastLogin"`
-	IsActive bool `json:"isActive"`
-	Tags []string `json:"tags"`
-	LegacyEmail string `json:"legacyEmail"`
+	Id          string    `json:"id"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	Age         int32     `json:"age"`
+	FullName    string    `json:"fullName"`
+	DisplayName string    `json:"displayName"`
+	Website     string    `json:"website"`
+	Balance     int64     `json:"balance"`
+	CreatedAt   time.Time `json:"createdAt"`
+	LastLogin   time.Time `json:"lastLogin"`
+	IsActive    bool      `json:"isActive"`
+	Tags        []string  `json:"tags"`
+	LegacyEmail string    `json:"legacyEmail"`
 }
 
 type UserPreferences struct {
-	UserId string `json:"userId"`
-	Theme string `json:"theme"`
-	Language string `json:"language"`
-	NotificationsEnabled bool `json:"notificationsEnabled"`
+	UserId               string `json:"userId"`
+	Theme                string `json:"theme"`
+	Language             string `json:"language"`
+	NotificationsEnabled bool   `json:"notificationsEnabled"`
 }
 
 type UserIdRequest struct {
@@ -33,12 +33,12 @@ type UserIdRequest struct {
 }
 
 type ListUsersRequest struct {
-	PageSize int32 `json:"pageSize"`
+	PageSize  int32  `json:"pageSize"`
 	PageToken string `json:"pageToken"`
 }
 
 type ListUsersResponse struct {
-	Users []User `json:"users"`
+	Users         []User `json:"users"`
 	NextPageToken string `json:"nextPageToken"`
 }
 
@@ -52,4 +52,3 @@ type UserService interface {
 	DeleteUser(input *UserIdRequest) (*EmptyResponse, error)
 	ListUsers(input *ListUsersRequest) (*ListUsersResponse, error)
 }
-

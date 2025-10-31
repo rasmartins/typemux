@@ -5,23 +5,23 @@ package api
 // This shows how to add Protobuf options, GraphQL directives, and OpenAPI extensions
 // User type with GraphQL Federation support
 type User struct {
-	Id string `json:"id"`
-	Email string `json:"email"`
-	Name string `json:"name"`
-	Tags []string `json:"tags"`
+	Id    string   `json:"id"`
+	Email string   `json:"email"`
+	Name  string   `json:"name"`
+	Tags  []string `json:"tags"`
 }
 
 // Product with OpenAPI extensions
 type Product struct {
-	Id string `json:"id"`
-	Price float64 `json:"price"`
-	InStock bool `json:"inStock"`
+	Id      string  `json:"id"`
+	Price   float64 `json:"price"`
+	InStock bool    `json:"inStock"`
 }
 
 // Configuration with retention and nested OpenAPI metadata
 type Config struct {
-	ApiKey []byte `json:"apiKey"`
-	Timeout int32 `json:"timeout"`
+	ApiKey  []byte `json:"apiKey"`
+	Timeout int32  `json:"timeout"`
 }
 
 type GetUserRequest struct {
@@ -35,4 +35,3 @@ type GetUserResponse struct {
 type UserService interface {
 	GetUser(input *GetUserRequest) (*GetUserResponse, error)
 }
-

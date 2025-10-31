@@ -5,20 +5,19 @@ type Status int
 
 const (
 	StatusSTATUS_UNSPECIFIED Status = 0
-	StatusSTATUS_ACTIVE Status = 1
-	StatusSTATUS_INACTIVE Status = 2
+	StatusSTATUS_ACTIVE      Status = 1
+	StatusSTATUS_INACTIVE    Status = 2
 )
 
 type Address struct {
-	Street string `json:"street"`
-	City string `json:"city"`
-	State string `json:"state"`
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	State   string `json:"state"`
 	ZipCode string `json:"zip_code"`
 	Country string `json:"country"`
 }
 
 type Metadata struct {
 	Labels map[string]string `json:"labels"`
-	Tags []string `json:"tags"`
+	Tags   []string          `json:"tags"`
 }
-

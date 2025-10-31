@@ -3,13 +3,13 @@ package api
 
 // Example demonstrating @success and @errors annotations
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
 type CreateUserRequest struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
@@ -27,8 +27,8 @@ type GetUserResponse struct {
 
 type UpdateUserRequest struct {
 	UserId string `json:"userId"`
-	Name string `json:"name"`
-	Email string `json:"email"`
+	Name   string `json:"name"`
+	Email  string `json:"email"`
 }
 
 type UpdateUserResponse struct {
@@ -43,4 +43,3 @@ type UserService interface {
 	// Update a user - can return 200 or 204
 	UpdateUser(input *UpdateUserRequest) (*UpdateUserResponse, error)
 }
-

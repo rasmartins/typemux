@@ -9,18 +9,18 @@ import (
 type UserStatus int
 
 const (
-	UserStatusACTIVE UserStatus = 1
-	UserStatusINACTIVE UserStatus = 2
+	UserStatusACTIVE    UserStatus = 1
+	UserStatusINACTIVE  UserStatus = 2
 	UserStatusSUSPENDED UserStatus = 3
 )
 
 // User entity
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Status UserStatus `json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
+	Id        string     `json:"id"`
+	Username  string     `json:"username"`
+	Email     string     `json:"email"`
+	Status    UserStatus `json:"status"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 type GetUserRequest struct {
@@ -33,11 +33,11 @@ type GetUserResponse struct {
 
 type CreateUserRequest struct {
 	Username string `json:"username"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 }
 
 type CreateUserResponse struct {
-	User User `json:"user"`
+	User    User `json:"user"`
 	Success bool `json:"success"`
 }
 
@@ -48,4 +48,3 @@ type UserService interface {
 	// Create a new user
 	CreateUser(input *CreateUserRequest) (*CreateUserResponse, error)
 }
-

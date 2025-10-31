@@ -6,15 +6,15 @@ import (
 )
 
 type Message struct {
-	Id string `json:"id"`
-	Content string `json:"content"`
-	Sender string `json:"sender"`
+	Id        string    `json:"id"`
+	Content   string    `json:"content"`
+	Sender    string    `json:"sender"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 type MessageRequest struct {
 	Content string `json:"content"`
-	Sender string `json:"sender"`
+	Sender  string `json:"sender"`
 }
 
 type MessageQuery struct {
@@ -33,4 +33,3 @@ type ChatService interface {
 	WatchMessages(input *Empty, stream chan *Message) error
 	WatchMessagesBySender(input *MessageQuery, stream chan *Message) error
 }
-

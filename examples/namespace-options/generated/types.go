@@ -2,8 +2,8 @@
 package users
 
 type User struct {
-	Id string `json:"id"`
-	Email string `json:"email"`
+	Id       string `json:"id"`
+	Email    string `json:"email"`
 	Username string `json:"username"`
 }
 
@@ -14,4 +14,3 @@ type GetUserRequest struct {
 type UserService interface {
 	GetUser(input *GetUserRequest) (*User, error)
 }
-

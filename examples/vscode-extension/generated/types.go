@@ -10,22 +10,22 @@ import (
 type Status int
 
 const (
-	StatusACTIVE Status = 1
+	StatusACTIVE   Status = 1
 	StatusINACTIVE Status = 2
-	StatusPENDING Status = 3
+	StatusPENDING  Status = 3
 )
 
 // User entity with custom field numbers
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
-	Status Status `json:"status"`
-	IsActive bool `json:"isActive"`
-	CreatedAt time.Time `json:"createdAt"`
-	Tags []string `json:"tags"`
-	Metadata map[string]string `json:"metadata"`
+	Id        string            `json:"id"`
+	Name      string            `json:"name"`
+	Email     string            `json:"email"`
+	Age       int32             `json:"age"`
+	Status    Status            `json:"status"`
+	IsActive  bool              `json:"isActive"`
+	CreatedAt time.Time         `json:"createdAt"`
+	Tags      []string          `json:"tags"`
+	Metadata  map[string]string `json:"metadata"`
 	// Internal field excluded from GraphQL and OpenAPI
 	DbVersion int32 `json:"dbVersion"`
 }
@@ -35,7 +35,7 @@ type GetUserRequest struct {
 }
 
 type GetUserResponse struct {
-	User User `json:"user"`
+	User    User `json:"user"`
 	Success bool `json:"success"`
 }
 
@@ -44,4 +44,3 @@ type UserService interface {
 	// Get a user by ID
 	GetUser(input *GetUserRequest) (*GetUserResponse, error)
 }
-

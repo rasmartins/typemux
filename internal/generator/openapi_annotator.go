@@ -81,7 +81,9 @@ func (a *OpenAPIAnnotator) annotateSchemas(spec *OpenAPISpec, schema *ast.Schema
 	}
 
 	// Annotate each schema
-	for schemaName, schemaObj := range spec.Components.Schemas {
+	for schemaName := range spec.Components.Schemas {
+		schemaObj := spec.Components.Schemas[schemaName]
+
 		// Check if this is a TypeMUX type
 		if _, isType := typeMap[schemaName]; isType {
 			a.annotateTypeSchema(schemaName, &schemaObj, opts)
@@ -117,8 +119,9 @@ func (a *OpenAPIAnnotator) annotateTypeSchema(typeName string, schema *OpenAPISc
 
 	// Annotate properties with x-go-name if needed (for proper casing)
 	if schema.Properties != nil {
-		for propName, prop := range schema.Properties {
-			a.annotateProperty(propName, &prop, opts)
+		for propName := range schema.Properties {
+			prop := schema.Properties[propName]
+			a.annotateProperty(&prop, nil)
 			schema.Properties[propName] = prop
 		}
 	}
@@ -139,7 +142,7 @@ func (a *OpenAPIAnnotator) annotateEnumSchema(enumName string, schema *OpenAPISc
 }
 
 // annotateUnionSchema adds x-go-type annotation for unions (interfaces)
-func (a *OpenAPIAnnotator) annotateUnionSchema(unionName string, schema *OpenAPISchema, union *ast.Union, opts *OpenAPIAnnotatorOptions) {
+func (a *OpenAPIAnnotator) annotateUnionSchema(unionName string, schema *OpenAPISchema, _ *ast.Union, opts *OpenAPIAnnotatorOptions) {
 	if schema.Extensions == nil {
 		schema.Extensions = make(map[string]interface{})
 	}
@@ -153,7 +156,7 @@ func (a *OpenAPIAnnotator) annotateUnionSchema(unionName string, schema *OpenAPI
 }
 
 // annotateProperty adds x-go-name annotation to properties if needed
-func (a *OpenAPIAnnotator) annotateProperty(propName string, prop *OpenAPIProperty, opts *OpenAPIAnnotatorOptions) {
+func (a *OpenAPIAnnotator) annotateProperty(prop *OpenAPIProperty, _ *OpenAPIAnnotatorOptions) {
 	// oapi-codegen uses the property name as-is, but we want proper Go casing
 	// The Go generator already handles this, so we just need to mark it
 	// Only add if the property references a custom type

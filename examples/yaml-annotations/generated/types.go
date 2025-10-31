@@ -8,22 +8,22 @@ import (
 type Status int
 
 const (
-	StatusACTIVE Status = 1
+	StatusACTIVE   Status = 1
 	StatusINACTIVE Status = 2
-	StatusDELETED Status = 3
+	StatusDELETED  Status = 3
 )
 
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Status Status `json:"status"`
+	Id        string    `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Status    Status    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Product struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id    string  `json:"id"`
+	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
@@ -32,12 +32,12 @@ type GetUserRequest struct {
 }
 
 type GetUserResponse struct {
-	User User `json:"user"`
+	User    User `json:"user"`
 	Success bool `json:"success"`
 }
 
 type CreateProductRequest struct {
-	Name string `json:"name"`
+	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
@@ -49,4 +49,3 @@ type UserService interface {
 	GetUser(input *GetUserRequest) (*GetUserResponse, error)
 	CreateProduct(input *CreateProductRequest) (*CreateProductResponse, error)
 }
-

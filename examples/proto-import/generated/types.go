@@ -9,26 +9,26 @@ type UserStatus int
 
 const (
 	UserStatusUSER_STATUS_UNSPECIFIED UserStatus = 0
-	UserStatusUSER_STATUS_ACTIVE UserStatus = 1
-	UserStatusUSER_STATUS_INACTIVE UserStatus = 2
-	UserStatusUSER_STATUS_SUSPENDED UserStatus = 3
+	UserStatusUSER_STATUS_ACTIVE      UserStatus = 1
+	UserStatusUSER_STATUS_INACTIVE    UserStatus = 2
+	UserStatusUSER_STATUS_SUSPENDED   UserStatus = 3
 )
 
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
-	Status UserStatus `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	Tags []string `json:"tags"`
-	Metadata map[string]string `json:"metadata"`
+	Id        string            `json:"id"`
+	Name      string            `json:"name"`
+	Email     string            `json:"email"`
+	Age       int32             `json:"age"`
+	Status    UserStatus        `json:"status"`
+	CreatedAt time.Time         `json:"created_at"`
+	Tags      []string          `json:"tags"`
+	Metadata  map[string]string `json:"metadata"`
 }
 
 type CreateUserRequest struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
-	Age int32 `json:"age"`
+	Age   int32  `json:"age"`
 }
 
 type CreateUserResponse struct {
@@ -44,12 +44,12 @@ type GetUserResponse struct {
 }
 
 type ListUsersRequest struct {
-	PageSize int32 `json:"page_size"`
+	PageSize  int32  `json:"page_size"`
 	PageToken string `json:"page_token"`
 }
 
 type ListUsersResponse struct {
-	Users []User `json:"users"`
+	Users         []User `json:"users"`
 	NextPageToken string `json:"next_page_token"`
 }
 
@@ -67,4 +67,3 @@ type UserService interface {
 	ListUsers(input *ListUsersRequest) (*ListUsersResponse, error)
 	StreamUsers(input *StreamUsersRequest, stream chan *StreamUsersResponse) error
 }
-

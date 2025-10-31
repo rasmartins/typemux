@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/v1/posts:
+        post:
+            summary: CreatePost operation
+            operationId: CreatePost
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Post'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Post'
+    /api/v1/posts/{id}:
+        get:
+            summary: GetPost operation
+            operationId: GetPost
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Post'
+    /api/v1/users:
+        get:
+            summary: ListUsers operation
+            operationId: ListUsers
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListUsersResponse'
+        post:
+            summary: CreateUser operation
+            operationId: CreateUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateUserRequest'
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateUserResponse'
+    /api/v1/users/{id}:
+        delete:
+            summary: DeleteUser operation
+            operationId: DeleteUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetUserResponse'
+components:
+    schemas:
+        CreateUserRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                name:
+                    type: string
+                role:
+                    $ref: '#/components/schemas/UserRole'
+            required:
+                - name
+                - email
+                - role
+        CreateUserResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+                - success
+        GetUserRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+            required:
+                - id
+        GetUserResponse:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/User'
+        ListUsersRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+                    default: 10
+                offset:
+                    type: integer
+                    format: int32
+                    default: 0
+                role:
+                    $ref: '#/components/schemas/UserRole'
+        ListUsersResponse:
+            type: object
+            properties:
+                total:
+                    type: integer
+                    format: int32
+                users:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/User'
+            required:
+                - users
+                - total
+        Post:
+            type: object
+            properties:
+                authorId:
+                    type: string
+                content:
+                    type: string
+                id:
+                    type: string
+                publishedAt:
+                    type: string
+                    format: date-time
+                status:
+                    $ref: '#/components/schemas/Status'
+                tags:
+                    type: array
+                    items:
+                        type: string
+                title:
+                    type: string
+                viewCount:
+                    type: integer
+                    format: int64
+                    default: 0
+            required:
+                - id
+                - title
+                - authorId
+                - status
+        Status:
+            type: string
+            description: Status enumeration for various entities
+            enum:
+                - ACTIVE
+                - INACTIVE
+                - PENDING
+        User:
+            type: object
+            description: User schema for REST API
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                    description: User's age in years
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the user was created
+                email:
+                    type: string
+                    description: Email address for contact
+                id:
+                    type: string
+                    description: Unique identifier for the user
+                isActive:
+                    type: boolean
+                    description: Whether the user account is active
+                    default: true
+                metadata:
+                    type: object
+                    description: Map of string to string
+                    additionalProperties:
+                        type: string
+                name:
+                    type: string
+                    description: Full name of the user
+                role:
+                    description: Role assigned to the user
+                    $ref: '#/components/schemas/UserRole'
+                tags:
+                    type: array
+                    description: Custom tags for categorization
+                    items:
+                        type: string
+            required:
+                - id
+                - name
+                - email
+                - role
+                - createdAt
+        UserRole:
+            type: string
+            description: |-
+                User role enumeration
+                Defines the different roles a user can have in the system
+            enum:
+                - ADMIN
+                - USER
+                - GUEST

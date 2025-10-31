@@ -5,23 +5,23 @@ package api
 type Status int
 
 const (
-	StatusACTIVE Status = 1
+	StatusACTIVE   Status = 1
 	StatusINACTIVE Status = 2
-	StatusPENDING Status = 3
+	StatusPENDING  Status = 3
 )
 
 // User service types
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
+	Id      string  `json:"id"`
+	Name    string  `json:"name"`
+	Email   string  `json:"email"`
 	Address Address `json:"address"`
-	Status Status `json:"status"`
+	Status  Status  `json:"status"`
 }
 
 type CreateUserRequest struct {
-	Name string `json:"name"`
-	Email string `json:"email"`
+	Name    string  `json:"name"`
+	Email   string  `json:"email"`
 	Address Address `json:"address"`
 }
 
@@ -38,8 +38,8 @@ type GetUserResponse struct {
 }
 
 type Address struct {
-	Street string `json:"street"`
-	City string `json:"city"`
+	Street  string `json:"street"`
+	City    string `json:"city"`
 	Country string `json:"country"`
 	ZipCode string `json:"zipCode"`
 }
@@ -50,4 +50,3 @@ type UserService interface {
 	// Get a user by ID
 	GetUser(input *GetUserRequest) (*GetUserResponse, error)
 }
-

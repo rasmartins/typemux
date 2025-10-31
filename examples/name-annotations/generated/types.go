@@ -8,30 +8,30 @@ import (
 type Status int
 
 const (
-	StatusACTIVE Status = 1
+	StatusACTIVE   Status = 1
 	StatusINACTIVE Status = 2
-	StatusDELETED Status = 3
+	StatusDELETED  Status = 3
 )
 
 // User type with different names in each format:
 // - Protobuf: UserV2
 // - GraphQL: UserAccount
 // - OpenAPI: UserProfile
-// 
+//
 // This example uses LEADING annotations (before the type keyword)
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Status Status `json:"status"`
+	Id        string    `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	Status    Status    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
 // Product type with custom Protobuf name for versioning
 // This example uses TRAILING annotation (after the type name)
 type Product struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id    string  `json:"id"`
+	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
@@ -40,12 +40,12 @@ type GetUserRequest struct {
 }
 
 type GetUserResponse struct {
-	User User `json:"user"`
+	User    User `json:"user"`
 	Success bool `json:"success"`
 }
 
 type CreateProductRequest struct {
-	Name string `json:"name"`
+	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
@@ -60,4 +60,3 @@ type UserService interface {
 	// Create a new product
 	CreateProduct(input *CreateProductRequest) (*CreateProductResponse, error)
 }
-

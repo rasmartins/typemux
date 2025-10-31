@@ -7,31 +7,31 @@ import (
 
 // Example demonstrating union/oneOf types
 type TextMessage struct {
-	Content string `json:"content"`
+	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 type ImageMessage struct {
-	ImageUrl string `json:"imageUrl"`
-	Thumbnail string `json:"thumbnail"`
+	ImageUrl  string    `json:"imageUrl"`
+	Thumbnail string    `json:"thumbnail"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 type VideoMessage struct {
-	VideoUrl string `json:"videoUrl"`
-	Duration int32 `json:"duration"`
-	Thumbnail string `json:"thumbnail"`
+	VideoUrl  string    `json:"videoUrl"`
+	Duration  int32     `json:"duration"`
+	Thumbnail string    `json:"thumbnail"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
 type SendMessageRequest struct {
-	ChatId string `json:"chatId"`
+	ChatId  string  `json:"chatId"`
 	Message Message `json:"message"`
 }
 
 type SendMessageResponse struct {
 	MessageId string `json:"messageId"`
-	Success bool `json:"success"`
+	Success   bool   `json:"success"`
 }
 
 type GetMessageRequest struct {
@@ -65,11 +65,9 @@ type MessageVideoMessage struct {
 
 func (MessageVideoMessage) isMessage() {}
 
-
 type MessageService interface {
 	// Send a message (text, image, or video)
 	SendMessage(input *SendMessageRequest) (*SendMessageResponse, error)
 	// Get a message by ID
 	GetMessage(input *GetMessageRequest) (*GetMessageResponse, error)
 }
-

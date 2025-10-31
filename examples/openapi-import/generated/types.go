@@ -9,55 +9,55 @@ type PetStatus int
 
 const (
 	PetStatusAVAILABLE PetStatus = 0
-	PetStatusPENDING PetStatus = 1
-	PetStatusSOLD PetStatus = 2
+	PetStatusPENDING   PetStatus = 1
+	PetStatusSOLD      PetStatus = 2
 )
 
 type Error struct {
-	Code string `json:"code"`
+	Code    string `json:"code"`
 	Message string `json:"message"`
 	Details string `json:"details"`
 }
 
 type Pet struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Status string `json:"status"`
-	Species string `json:"species"`
-	Breed string `json:"breed"`
-	Age int32 `json:"age"`
-	Tags []string `json:"tags"`
+	Id        string    `json:"id"`
+	Name      string    `json:"name"`
+	Status    string    `json:"status"`
+	Species   string    `json:"species"`
+	Breed     string    `json:"breed"`
+	Age       int32     `json:"age"`
+	Tags      []string  `json:"tags"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
 type NewPet struct {
-	Name string `json:"name"`
-	Status string `json:"status"`
-	Species string `json:"species"`
-	Breed string `json:"breed"`
-	Age int32 `json:"age"`
-	Tags []string `json:"tags"`
+	Name    string   `json:"name"`
+	Status  string   `json:"status"`
+	Species string   `json:"species"`
+	Breed   string   `json:"breed"`
+	Age     int32    `json:"age"`
+	Tags    []string `json:"tags"`
 }
 
 type UpdatePet struct {
-	Age int32 `json:"age"`
-	Tags []string `json:"tags"`
-	Name string `json:"name"`
-	Status string `json:"status"`
-	Breed string `json:"breed"`
+	Age    int32    `json:"age"`
+	Tags   []string `json:"tags"`
+	Name   string   `json:"name"`
+	Status string   `json:"status"`
+	Breed  string   `json:"breed"`
 }
 
 type PetList struct {
-	Total int32 `json:"total"`
+	Total      int32 `json:"total"`
 	NextOffset int32 `json:"nextOffset"`
-	Pets []Pet `json:"pets"`
+	Pets       []Pet `json:"pets"`
 }
 
 type Empty struct {
 }
 
 type ListPetsRequest struct {
-	Limit int32 `json:"limit"`
+	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
 
@@ -70,8 +70,8 @@ type GetPetByIdRequest struct {
 }
 
 type UpdatePetRequest struct {
-	PetId string `json:"petId"`
-	Pet UpdatePet `json:"pet"`
+	PetId string    `json:"petId"`
+	Pet   UpdatePet `json:"pet"`
 }
 
 type DeletePetRequest struct {
@@ -85,4 +85,3 @@ type PetStoreAPIService interface {
 	UpdatePet(input *UpdatePetRequest) (*Pet, error)
 	DeletePet(input *DeletePetRequest) (*Empty, error)
 }
-

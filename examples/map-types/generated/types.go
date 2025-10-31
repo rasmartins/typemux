@@ -3,24 +3,24 @@ package maps
 
 // Product information
 type Product struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Price float64 `json:"price"`
-	Description string `json:"description"`
+	Id          string  `json:"id"`
+	Name        string  `json:"name"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
 }
 
 // User profile
 type User struct {
-	Id string `json:"id"`
+	Id       string `json:"id"`
 	Username string `json:"username"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 }
 
 // Configuration settings
 type Settings struct {
-	Theme string `json:"theme"`
-	Language string `json:"language"`
-	Notifications bool `json:"notifications"`
+	Theme         string `json:"theme"`
+	Language      string `json:"language"`
+	Notifications bool   `json:"notifications"`
 }
 
 // Inventory tracking with maps of custom types
@@ -72,9 +72,9 @@ type GetInventoryRequest struct {
 
 // Request to update cart
 type UpdateCartRequest struct {
-	CartId string `json:"cartId"`
+	CartId    string `json:"cartId"`
 	ProductId string `json:"productId"`
-	Quantity int32 `json:"quantity"`
+	Quantity  int32  `json:"quantity"`
 }
 
 // Response with cart details
@@ -89,4 +89,3 @@ type InventoryService interface {
 	// Update shopping cart
 	UpdateCart(input *UpdateCartRequest) (*CartResponse, error)
 }
-

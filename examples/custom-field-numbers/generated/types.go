@@ -8,32 +8,32 @@ import (
 type Priority int
 
 const (
-	PriorityLOW Priority = 1
+	PriorityLOW    Priority = 1
 	PriorityMEDIUM Priority = 2
-	PriorityHIGH Priority = 3
+	PriorityHIGH   Priority = 3
 	PriorityURGENT Priority = 10
 )
 
 // Example demonstrating custom protobuf field numbers
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
 	Email string `json:"email"`
-	Age int32 `json:"age"`
+	Age   int32  `json:"age"`
 	// This field will auto-assign number 11 (next after 10)
 	CreatedAt time.Time `json:"createdAt"`
 }
 
 type Product struct {
 	// Custom sparse numbering (e.g., for backward compatibility)
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 	// Reserved space for future fields (3-9)
-	Price float64 `json:"price"`
-	Description string `json:"description"`
+	Price       float64 `json:"price"`
+	Description string  `json:"description"`
 	// Auto-assigned fields continue from 12
 	Category string `json:"category"`
-	InStock bool `json:"inStock"`
+	InStock  bool   `json:"inStock"`
 }
 
 type GetUserRequest struct {
@@ -47,4 +47,3 @@ type GetUserResponse struct {
 type UserService interface {
 	GetUser(input *GetUserRequest) (*GetUserResponse, error)
 }
-

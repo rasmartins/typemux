@@ -8,38 +8,38 @@ import (
 type UserStatus int
 
 const (
-	UserStatusACTIVE UserStatus = 0
-	UserStatusINACTIVE UserStatus = 1
+	UserStatusACTIVE    UserStatus = 0
+	UserStatusINACTIVE  UserStatus = 1
 	UserStatusSUSPENDED UserStatus = 2
 )
 
 type CreateUserInput struct {
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
-	Tags []string `json:"tags"`
+	Name  string   `json:"name"`
+	Email string   `json:"email"`
+	Age   int32    `json:"age"`
+	Tags  []string `json:"tags"`
 }
 
 type UpdateUserInput struct {
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
+	Name   string     `json:"name"`
+	Email  string     `json:"email"`
+	Age    int32      `json:"age"`
 	Status UserStatus `json:"status"`
 }
 
 type User struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Email string `json:"email"`
-	Age int32 `json:"age"`
-	Status UserStatus `json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
-	Tags []string `json:"tags"`
-	IsVerified bool `json:"isVerified"`
+	Id         string     `json:"id"`
+	Name       string     `json:"name"`
+	Email      string     `json:"email"`
+	Age        int32      `json:"age"`
+	Status     UserStatus `json:"status"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	Tags       []string   `json:"tags"`
+	IsVerified bool       `json:"isVerified"`
 }
 
 type CreateUserResult struct {
-	User User `json:"user"`
+	User    User   `json:"user"`
 	Message string `json:"message"`
 }
 
@@ -52,8 +52,8 @@ type GetUserRequest struct {
 }
 
 type ListUsersRequest struct {
-	Limit int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Limit  int32      `json:"limit"`
+	Offset int32      `json:"offset"`
 	Status UserStatus `json:"status"`
 }
 
@@ -66,7 +66,7 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Id string `json:"id"`
+	Id    string          `json:"id"`
 	Input UpdateUserInput `json:"input"`
 }
 
@@ -76,7 +76,7 @@ type DeleteUserRequest struct {
 
 type VerifyUserEmailRequest struct {
 	UserId string `json:"userId"`
-	Token string `json:"token"`
+	Token  string `json:"token"`
 }
 
 type GraphQLService interface {
@@ -88,4 +88,3 @@ type GraphQLService interface {
 	DeleteUser(input *DeleteUserRequest) (*Boolean, error)
 	VerifyUserEmail(input *VerifyUserEmailRequest) (*Boolean, error)
 }
-

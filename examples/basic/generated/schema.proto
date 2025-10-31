@@ -1,0 +1,114 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// User role enumeration
+// Defines the different roles a user can have in the system
+enum UserRole {
+  USERROLE_UNSPECIFIED = 0;
+  // Administrator with full access
+  ADMIN = 10;
+  // Regular user with limited access
+  USER = 20;
+  // Guest user with read-only access
+  GUEST = 30;
+}
+
+// Status enumeration for various entities
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  ACTIVE = 1;
+  INACTIVE = 2;
+  PENDING = 3;
+}
+
+// User message containing all user information
+message User {
+  // Unique identifier for the user
+  string id = 1;
+  // Full name of the user
+  string name = 2;
+  // Email address for contact
+  string email = 3;
+  // User's age in years
+  int32 age = 4;
+  // Role assigned to the user
+  UserRole role = 5;
+  // Whether the user account is active
+  bool isActive = 6;
+  // Timestamp when the user was created
+  google.protobuf.Timestamp createdAt = 7;
+  // Custom tags for categorization
+  repeated string tags = 8;
+  // Additional metadata key-value pairs
+  map<string, string> metadata = 9;
+  // Internal database version (excluded from GraphQL and OpenAPI)
+  int32 dbVersion = 10;
+  // Password hash (only in Protobuf for internal services)
+  string passwordHash = 11;
+}
+
+message Post {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string authorId = 4;
+  Status status = 5;
+  google.protobuf.Timestamp publishedAt = 6;
+  int64 viewCount = 7;
+  repeated string tags = 8;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  string email = 2;
+  UserRole role = 3;
+}
+
+message CreateUserResponse {
+  User user = 1;
+  bool success = 2;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  UserRole role = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+}
+
+// User service for managing users
+service UserService {
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // List all users with pagination
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  // Delete a user
+  rpc DeleteUser(GetUserRequest) returns (GetUserResponse);
+}
+
+// Post service for managing blog posts
+service PostService {
+  // Create a new post
+  rpc CreatePost(Post) returns (Post);
+  // Get a post by ID
+  rpc GetPost(GetUserRequest) returns (Post);
+}
+

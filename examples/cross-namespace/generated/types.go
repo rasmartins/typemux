@@ -8,26 +8,25 @@ import (
 type UserStatus int
 
 const (
-	UserStatusACTIVE UserStatus = 1
-	UserStatusINACTIVE UserStatus = 2
+	UserStatusACTIVE    UserStatus = 1
+	UserStatusINACTIVE  UserStatus = 2
 	UserStatusSUSPENDED UserStatus = 3
 )
 
 type UserRole int
 
 const (
-	UserRoleCUSTOMER UserRole = 1
-	UserRoleADMIN UserRole = 2
+	UserRoleCUSTOMER  UserRole = 1
+	UserRoleADMIN     UserRole = 2
 	UserRoleMODERATOR UserRole = 3
 )
 
 // User entity for the users service
 type User struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Email string `json:"email"`
-	Status UserStatus `json:"status"`
-	Role UserRole `json:"role"`
-	CreatedAt time.Time `json:"createdAt"`
+	Id        string     `json:"id"`
+	Username  string     `json:"username"`
+	Email     string     `json:"email"`
+	Status    UserStatus `json:"status"`
+	Role      UserRole   `json:"role"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
-
