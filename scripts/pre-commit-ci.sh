@@ -26,15 +26,23 @@ if ! docker info &> /dev/null; then
 fi
 
 # Run the CI workflow
-# Note: act uses medium runners by default (ubuntu-latest)
-# --no-cache-actions disables GitHub Actions caching (not supported locally)
+# Note: Using catthehacker images which approximate GitHub's hosted runners
+# GitHub runners are VMs, not containers, so these are community-maintained approximations
+# - runner-latest: Most accurate simulation of GitHub runners (~18GB, includes all pre-installed tools)
+# - act-latest: Medium size with common tools (~500MB) - good balance
+# --no-cache-server disables the cache server to avoid cache-related errors
 echo "Running CI workflow..."
+echo ""
+echo "Note: This uses Docker images that approximate GitHub's hosted runners."
+echo "Some OS-specific tests (macOS, Windows) won't run locally."
 echo ""
 
 act push \
     --workflows .github/workflows/ci.yml \
-    --platform ubuntu-latest=catthehacker/ubuntu:act-latest \
-    --no-cache-actions \
+    --platform ubuntu-latest=catthehacker/ubuntu:runner-latest \
+    --platform ubuntu-22.04=catthehacker/ubuntu:runner-22.04 \
+    --platform ubuntu-20.04=catthehacker/ubuntu:runner-20.04 \
+    --no-cache-server \
     --verbose
 
 # Check exit code
