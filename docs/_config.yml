@@ -18,6 +18,8 @@ navigation:
     url: /tutorial
   - title: Reference
     url: /reference
+  - title: Annotations
+    url: /annotations
   - title: Examples
     url: /examples
   - title: Configuration

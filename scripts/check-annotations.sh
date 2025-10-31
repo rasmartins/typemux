@@ -35,7 +35,7 @@ fi
 
 rm -f annotations.json.tmp
 
-# Also check VS Code extension copy
+# Check VS Code extension copy
 if ! diff -q annotations.json vscode-extension/annotations.json > /dev/null 2>&1; then
     echo ""
     echo "❌ ERROR: vscode-extension/annotations.json is out of sync!"
@@ -47,4 +47,23 @@ if ! diff -q annotations.json vscode-extension/annotations.json > /dev/null 2>&1
     exit 1
 fi
 
-echo "✅ annotations.json is up to date"
+# Check documentation is up to date
+echo "Checking if annotation documentation is up to date..."
+node scripts/generate-annotation-docs.js > /dev/null 2>&1
+
+if ! git diff --quiet docs/annotations.md; then
+    echo ""
+    echo "❌ ERROR: docs/annotations.md is out of date!"
+    echo ""
+    echo "The generated documentation does not match the committed file."
+    echo "Please regenerate it with:"
+    echo ""
+    echo "  node scripts/generate-annotation-docs.js"
+    echo ""
+    echo "Then commit the updated file."
+    echo ""
+    git diff docs/annotations.md
+    exit 1
+fi
+
+echo "✅ annotations.json and documentation are up to date"
