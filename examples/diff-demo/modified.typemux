@@ -1,0 +1,85 @@
+@typemux("1.0.0")
+
+// Modified version with breaking changes
+namespace com.example.api
+
+type User {
+  id: string @required
+  email: string @required
+  fullName: string @required  // BREAKING: renamed from 'name'
+  age: int64                  // BREAKING: type changed from int32 to int64
+  role: UserRole @required
+  // BREAKING: removed 'name' field
+  // NON-BREAKING: added new optional field
+  createdAt: timestamp
+}
+
+enum UserRole {
+  ADMIN = 1
+  USER = 2
+  // BREAKING: removed GUEST
+  MODERATOR = 4  // NON-BREAKING: added new value
+}
+
+type Product {
+  id: string @required
+  title: string @required
+  price: float64 @required
+  inStock: bool @required
+  description: string  // NON-BREAKING: added optional field
+}
+
+// NON-BREAKING: added new type
+type UserProfile {
+  user: User @required
+  bio: string
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User)
+    @http.method(GET)
+    @http.path("/api/users/{id}")
+    @http.success(200)
+    @http.errors(404,500)
+
+  rpc CreateUser(CreateUserRequest) returns (User)
+    @http.method(POST)
+    @http.path("/api/users")
+    @http.success(201)
+    @http.errors(400,409,500)
+
+  // BREAKING: removed DeleteUser method
+
+  // NON-BREAKING: added new method
+  rpc UpdateUser(UpdateUserRequest) returns (User)
+    @http.method(PUT)
+    @http.path("/api/users/{id}")
+    @http.success(200)
+    @http.errors(400,404,500)
+}
+
+type GetUserRequest {
+  id: string @required
+}
+
+type CreateUserRequest {
+  email: string @required
+  fullName: string @required  // BREAKING: renamed from 'name'
+  age: int32
+  role: UserRole @required
+  phoneNumber: string @required  // BREAKING: new required field
+}
+
+type UpdateUserRequest {
+  id: string @required
+  email: string
+  fullName: string
+}
+
+type DeleteUserRequest {
+  id: string @required
+}
+
+type DeleteUserResponse {
+  success: bool @required
+}

@@ -11,6 +11,7 @@ import (
 	"github.com/rasmartins/typemux/internal/annotations"
 	"github.com/rasmartins/typemux/internal/ast"
 	"github.com/rasmartins/typemux/internal/config"
+	"github.com/rasmartins/typemux/internal/diff"
 	"github.com/rasmartins/typemux/internal/docgen"
 	"github.com/rasmartins/typemux/internal/generator"
 	"github.com/rasmartins/typemux/internal/lexer"
@@ -155,10 +156,69 @@ func handleAnnotationsCommand() {
 	}
 }
 
+func handleDiffCommand() {
+	// Parse flags for diff command
+	diffFlags := flag.NewFlagSet("diff", flag.ExitOnError)
+	baseFile := diffFlags.String("base", "", "Base schema file (required)")
+	headFile := diffFlags.String("head", "", "Head schema file (required)")
+	compact := diffFlags.Bool("compact", false, "Show compact one-line summary")
+	exitOnBreaking := diffFlags.Bool("exit-on-breaking", false, "Exit with code 1 if breaking changes detected")
+
+	_ = diffFlags.Parse(os.Args[2:]) //nolint:errcheck // ExitOnError flag set
+
+	// Validate required flags
+	if *baseFile == "" || *headFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: both -base and -head are required\n\n")
+		fmt.Fprintf(os.Stderr, "Usage: typemux diff -base <base-schema> -head <head-schema> [options]\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		diffFlags.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Parse base schema
+	baseSchema, err := parseSchemaWithImports(*baseFile, make(map[string]bool))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing base schema: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Parse head schema
+	headSchema, err := parseSchemaWithImports(*headFile, make(map[string]bool))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing head schema: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Perform diff
+	differ := diff.NewDiffer(baseSchema, headSchema)
+	result := differ.Compare()
+
+	// Output results
+	reporter := diff.NewReporter(result, os.Stdout)
+	if *compact {
+		fmt.Println(reporter.CompactReport())
+	} else {
+		if err := reporter.Report(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error generating report: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// Exit with error code if requested and breaking changes found
+	if *exitOnBreaking && result.HasBreakingChanges() {
+		os.Exit(1)
+	}
+}
+
 func main() {
 	// Handle special commands
 	if len(os.Args) > 1 && os.Args[1] == "annotations" {
 		handleAnnotationsCommand()
+		return
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "diff" {
+		handleDiffCommand()
 		return
 	}
 

@@ -60,6 +60,7 @@ typemux -input schema.typemux -output ./generated
 ## Features
 
 - **Single Source of Truth** - Write once, generate multiple formats
+- **Breaking Change Detection** - Analyze schema diffs and detect breaking changes across all protocols
 - **Type Safety** - Strongly typed with primitives, enums, arrays, maps, and unions
 - **Namespace Support** - Organize types across multiple namespaces
 - **Union Types** - OneOf/sum types for polymorphic data
@@ -137,6 +138,8 @@ components:
 
 ## CLI Usage
 
+### Code Generation
+
 ```bash
 # Generate all formats
 typemux -input schema.typemux -output ./generated
@@ -149,6 +152,31 @@ typemux -input schema.typemux -format openapi -output ./gen
 # With external annotations
 typemux -input schema.typemux -annotations annotations.yaml -output ./gen
 ```
+
+### Breaking Change Detection
+
+```bash
+# Compare two schema versions
+typemux diff -base v1.0.0/schema.typemux -head v2.0.0/schema.typemux
+
+# Compact one-line summary
+typemux diff -base old.typemux -head new.typemux -compact
+
+# Exit with error code if breaking changes (CI/CD)
+typemux diff -base main.typemux -head feature.typemux -exit-on-breaking
+```
+
+**Detects:**
+- ❌ Breaking changes (field removals, type changes, enum value removals)
+- ⚠️  Dangerous changes (likely to cause issues)
+- ✨ Safe changes (additions, deprecations)
+
+**Per-protocol analysis:**
+- Protobuf: Field number changes, reserved fields
+- GraphQL: Type system changes
+- OpenAPI: Required field changes, endpoint modifications
+
+**Recommends semver bump:** MAJOR / MINOR / PATCH
 
 ## Building from Source
 

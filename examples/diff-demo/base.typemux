@@ -1,0 +1,64 @@
+@typemux("1.0.0")
+
+// Base version of the schema
+namespace com.example.api
+
+type User {
+  id: string @required
+  email: string @required
+  name: string @required
+  age: int32
+  role: UserRole @required
+}
+
+enum UserRole {
+  ADMIN = 1
+  USER = 2
+  GUEST = 3
+}
+
+type Product {
+  id: string @required
+  title: string @required
+  price: float64 @required
+  inStock: bool @required
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (User)
+    @http.method(GET)
+    @http.path("/api/users/{id}")
+    @http.success(200)
+    @http.errors(404,500)
+
+  rpc CreateUser(CreateUserRequest) returns (User)
+    @http.method(POST)
+    @http.path("/api/users")
+    @http.success(201)
+    @http.errors(400,409,500)
+
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse)
+    @http.method(DELETE)
+    @http.path("/api/users/{id}")
+    @http.success(204)
+    @http.errors(404,500)
+}
+
+type GetUserRequest {
+  id: string @required
+}
+
+type CreateUserRequest {
+  email: string @required
+  name: string @required
+  age: int32
+  role: UserRole @required
+}
+
+type DeleteUserRequest {
+  id: string @required
+}
+
+type DeleteUserResponse {
+  success: bool @required
+}
