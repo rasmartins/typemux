@@ -887,8 +887,7 @@ func (p *Parser) parseMethod() *ast.Method {
 						p.expectToken(lexer.TOKEN_RPAREN)
 					}
 				}
-			} else {
-				// Backward compatibility: @http(GET) - old style
+			} else if p.curTok.Type == lexer.TOKEN_LPAREN {
 				if p.curTok.Type == lexer.TOKEN_LPAREN {
 					p.nextToken()
 					if p.curTok.Type == lexer.TOKEN_IDENT {
