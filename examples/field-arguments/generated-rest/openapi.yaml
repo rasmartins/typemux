@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /api/users/{userId}:
+        get:
+            summary: GetUser operation
+            operationId: GetUser
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /api/users/{userId}/posts:
+        get:
+            summary: GetUserPostsAPI operation
+            operationId: GetUserPostsAPI
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostList'
+    /users/{userId}/comments:
+        get:
+            summary: GetUserComments operation
+            operationId: GetUserComments
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CommentList'
+    /users/{userId}/posts:
+        get:
+            summary: GetUserPosts operation
+            operationId: GetUserPosts
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostList'
+    /users/{userId}/profile:
+        get:
+            summary: GetUserProfile operation
+            operationId: GetUserProfile
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserProfileData'
+components:
+    schemas:
+        Comment:
+            type: object
+            description: Comment entity
+            properties:
+                authorId:
+                    type: string
+                content:
+                    type: string
+                id:
+                    type: string
+            required:
+                - id
+                - content
+                - authorId
+        CommentList:
+            type: object
+            properties:
+                comments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Comment'
+            required:
+                - comments
+        GetUserCommentsRequest:
+            type: object
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+                    default: 10
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserPostsRequest:
+            type: object
+            description: |-
+                APPROACH 2: REST-style (separate endpoints via services)
+                This is the recommended way for OpenAPI/REST
+                Request types for parameterized queries
+            properties:
+                limit:
+                    type: integer
+                    format: int32
+                    default: 5
+                published:
+                    type: boolean
+                    default: true
+                userId:
+                    type: string
+            required:
+                - userId
+        GetUserProfileRequest:
+            type: object
+            properties:
+                userId:
+                    type: string
+            required:
+                - userId
+        Post:
+            type: object
+            description: Post entity
+            properties:
+                authorId:
+                    type: string
+                content:
+                    type: string
+                id:
+                    type: string
+                title:
+                    type: string
+            required:
+                - id
+                - title
+                - content
+                - authorId
+        PostList:
+            type: object
+            properties:
+                posts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Post'
+            required:
+                - posts
+        Query:
+            type: object
+            description: |-
+                APPROACH 3: Hybrid - Use field arguments for GraphQL, services for REST
+                GraphQL Query type with field arguments
+            properties:
+                posts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Post'
+                user:
+                    description: Also available as direct queries
+                    $ref: '#/components/schemas/User'
+                userProfile:
+                    description: 'For GraphQL: query { userProfile(userId: "123") { user { name } posts(limit: 5) { title } } }'
+                    $ref: '#/components/schemas/UserProfile'
+        User:
+            type: object
+            description: User entity
+            properties:
+                email:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+            required:
+                - id
+                - name
+                - email
+        UserProfile:
+            type: object
+            description: |-
+                APPROACH 1: GraphQL-style (field arguments)
+                This is great for GraphQL but doesn't directly map to REST
+            properties:
+                followerCount:
+                    type: integer
+                    format: int32
+                posts:
+                    type: array
+                    description: These field arguments work perfectly in GraphQL
+                    items:
+                        $ref: '#/components/schemas/Post'
+                recentComments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Comment'
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+        UserProfileData:
+            type: object
+            description: Response type - simple data structure without arguments
+            properties:
+                followerCount:
+                    type: integer
+                    format: int32
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user
+                - followerCount

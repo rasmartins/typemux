@@ -1,0 +1,114 @@
+# Generated GraphQL Schema
+# Namespace: api
+
+"StringIntEntry represents a key-value pair for map<string, int32>"
+type StringIntEntry {
+  key: String!
+  value: Int!
+}
+
+"StringIntEntryInput represents a key-value pair for map<string, int32>"
+input StringIntEntryInput {
+  key: String!
+  value: Int!
+}
+
+directive @oneOf on INPUT_OBJECT
+
+"Field Arguments Example This example demonstrates the new field-level parameterized query feature similar to GraphQL field arguments User entity"
+type User {
+  id: String!
+  name: String!
+  email: String!
+  username: String!
+  age: Int
+  isActive: Boolean
+}
+
+"Post entity"
+type Post {
+  id: String!
+  title: String!
+  content: String!
+  authorId: String!
+  published: Boolean!
+  createdAt: String!
+}
+
+"Comment entity"
+type Comment {
+  id: String!
+  postId: String!
+  authorId: String!
+  content: String!
+  createdAt: String!
+}
+
+"Search result metadata"
+type SearchMetadata {
+  totalResults: Int!
+  page: Int!
+  pageSize: Int!
+  hasNextPage: Boolean!
+}
+
+"Search results for posts"
+type PostSearchResults {
+  posts: [Post]!
+  metadata: SearchMetadata!
+}
+
+"Filter options for posts"
+type PostFilter {
+  published: Boolean
+  authorId: String
+  minDate: String
+  maxDate: String
+}
+
+"Query type demonstrating various field argument patterns"
+type Query {
+  user(id: String!): User
+  users(limit: Int = 10, offset: Int = 0): [User]
+  searchUsers(query: String!, limit: Int = 20): [User]
+  findUser(username: String, email: String): User
+  posts(authorId: String, published: Boolean = true, limit: Int = 10, offset: Int = 0, sortBy: String = "createdAt"): [Post]
+  searchPosts(query: String!, filter: PostFilter, page: Int = 1, pageSize: Int = 10): PostSearchResults
+  post(id: String!): Post
+  comments(postId: String!, limit: Int = 10, offset: Int = 0, sortOrder: String = "desc"): [Comment]
+  allPosts: [Post]
+  featuredPosts: [Post]
+}
+
+"Mutation type demonstrating field arguments for mutations"
+type Mutation {
+  createUser(name: String!, email: String!, username: String!, age: Int): User
+  updateUser(id: String!, name: String, email: String, age: Int): User
+  deleteUser(id: String!): Boolean
+  createPost(title: String!, content: String!, published: Boolean = false): Post
+  publishPost(id: String!, publishedAt: String): Post
+  addComment(postId: String!, content: String!): Comment
+}
+
+"Example with format-specific annotations on arguments"
+type AdminQuery {
+  userById(id: String!): User
+  advancedSearch(query: String!, filters: String): [Post]
+}
+
+"Nested type to show field arguments work at any level"
+type UserProfile {
+  user: User!
+  posts(limit: Int = 5, published: Boolean = true): [Post]
+  recentComments(limit: Int = 10): [Comment]
+  followerCount: Int
+}
+
+"Type showing mix of fields with and without arguments"
+type Dashboard {
+  currentUser: User!
+  notifications(limit: Int = 20, unreadOnly: Boolean = false): [String]
+  activityFeed(limit: Int = 50, types: String): [String]
+  stats: [StringIntEntry!]
+}
+

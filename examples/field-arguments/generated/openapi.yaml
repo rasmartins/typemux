@@ -1,0 +1,587 @@
+openapi: 3.0.0
+info:
+    title: api API
+    version: 1.0.0
+paths:
+    /add-comment:
+        get:
+            summary: Get addComment for Mutation
+            operationId: GetMutationAddComment
+            parameters:
+                - name: postId
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: content
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Comment'
+    /admin-query/{userById}/advanced-search:
+        get:
+            summary: Get advancedSearch for AdminQuery
+            operationId: GetAdminQueryAdvancedSearch
+            parameters:
+                - name: userById
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: query
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: filters
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Post'
+    /admin-query/{userById}/user-by-id:
+        get:
+            summary: Get userById for AdminQuery
+            operationId: GetAdminQueryUserById
+            parameters:
+                - name: userById
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /comments:
+        get:
+            summary: Get comments for Query
+            operationId: GetQueryComments
+            parameters:
+                - name: postId
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "10"
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "0"
+                - name: sortOrder
+                  in: query
+                  schema:
+                    type: string
+                    default: desc
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Comment'
+    /create-post:
+        get:
+            summary: Get createPost for Mutation
+            operationId: GetMutationCreatePost
+            parameters:
+                - name: title
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: content
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: published
+                  in: query
+                  schema:
+                    type: boolean
+                    default: "false"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Post'
+    /create-user:
+        get:
+            summary: Get createUser for Mutation
+            operationId: GetMutationCreateUser
+            parameters:
+                - name: name
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: email
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: username
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: age
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /delete-user:
+        get:
+            summary: Get deleteUser for Mutation
+            operationId: GetMutationDeleteUser
+            parameters:
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: boolean
+    /find-user:
+        get:
+            summary: Get findUser for Query
+            operationId: GetQueryFindUser
+            parameters:
+                - name: username
+                  in: query
+                  schema:
+                    type: string
+                - name: email
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /post:
+        get:
+            summary: Get post for Query
+            operationId: GetQueryPost
+            parameters:
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Post'
+    /posts:
+        get:
+            summary: Get posts for Query
+            operationId: GetQueryPosts
+            parameters:
+                - name: authorId
+                  in: query
+                  schema:
+                    type: string
+                - name: published
+                  in: query
+                  schema:
+                    type: boolean
+                    default: "true"
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "10"
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "0"
+                - name: sortBy
+                  in: query
+                  schema:
+                    type: string
+                    default: createdAt
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Post'
+    /publish-post:
+        get:
+            summary: Get publishPost for Mutation
+            operationId: GetMutationPublishPost
+            parameters:
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: publishedAt
+                  in: query
+                  schema:
+                    type: string
+                    format: date-time
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Post'
+    /search-posts:
+        get:
+            summary: Get searchPosts for Query
+            operationId: GetQuerySearchPosts
+            parameters:
+                - name: query
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: filter
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "1"
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "10"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostSearchResults'
+    /search-users:
+        get:
+            summary: Get searchUsers for Query
+            operationId: GetQuerySearchUsers
+            parameters:
+                - name: query
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "20"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/User'
+    /update-user:
+        get:
+            summary: Get updateUser for Mutation
+            operationId: GetMutationUpdateUser
+            parameters:
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: name
+                  in: query
+                  schema:
+                    type: string
+                - name: email
+                  in: query
+                  schema:
+                    type: string
+                - name: age
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /user:
+        get:
+            summary: Get user for Query
+            operationId: GetQueryUser
+            parameters:
+                - name: id
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+    /users:
+        get:
+            summary: Get users for Query
+            operationId: GetQueryUsers
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "10"
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                    default: "0"
+            responses:
+                "200":
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/User'
+components:
+    schemas:
+        AdminQuery:
+            type: object
+            description: Example with format-specific annotations on arguments
+        Comment:
+            type: object
+            description: Comment entity
+            properties:
+                authorId:
+                    type: string
+                content:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                id:
+                    type: string
+                postId:
+                    type: string
+            required:
+                - id
+                - postId
+                - authorId
+                - content
+                - createdAt
+        Dashboard:
+            type: object
+            description: Type showing mix of fields with and without arguments
+            properties:
+                currentUser:
+                    description: Current user (no arguments)
+                    $ref: '#/components/schemas/User'
+                stats:
+                    type: object
+                    description: Map of string to int32
+                    additionalProperties:
+                        type: integer
+                        format: int32
+            required:
+                - currentUser
+        Mutation:
+            type: object
+            description: Mutation type demonstrating field arguments for mutations
+        Post:
+            type: object
+            description: Post entity
+            properties:
+                authorId:
+                    type: string
+                content:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                id:
+                    type: string
+                published:
+                    type: boolean
+                title:
+                    type: string
+            required:
+                - id
+                - title
+                - content
+                - authorId
+                - published
+                - createdAt
+        PostFilter:
+            type: object
+            description: Filter options for posts
+            properties:
+                authorId:
+                    type: string
+                maxDate:
+                    type: string
+                    format: date-time
+                minDate:
+                    type: string
+                    format: date-time
+                published:
+                    type: boolean
+        PostSearchResults:
+            type: object
+            description: Search results for posts
+            properties:
+                metadata:
+                    $ref: '#/components/schemas/SearchMetadata'
+                posts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Post'
+            required:
+                - posts
+                - metadata
+        Query:
+            type: object
+            description: Query type demonstrating various field argument patterns
+            properties:
+                allPosts:
+                    type: array
+                    description: Field without arguments (traditional style)
+                    items:
+                        $ref: '#/components/schemas/Post'
+                featuredPosts:
+                    type: array
+                    description: Get featured posts (no arguments)
+                    items:
+                        $ref: '#/components/schemas/Post'
+        SearchMetadata:
+            type: object
+            description: Search result metadata
+            properties:
+                hasNextPage:
+                    type: boolean
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                totalResults:
+                    type: integer
+                    format: int32
+            required:
+                - totalResults
+                - page
+                - pageSize
+                - hasNextPage
+        User:
+            type: object
+            description: |-
+                Field Arguments Example
+                This example demonstrates the new field-level parameterized query feature
+                similar to GraphQL field arguments
+                User entity
+            properties:
+                age:
+                    type: integer
+                    format: int32
+                email:
+                    type: string
+                id:
+                    type: string
+                isActive:
+                    type: boolean
+                    default: true
+                name:
+                    type: string
+                username:
+                    type: string
+            required:
+                - id
+                - name
+                - email
+                - username
+        UserProfile:
+            type: object
+            description: Nested type to show field arguments work at any level
+            properties:
+                followerCount:
+                    type: integer
+                    format: int32
+                    description: Follower count (no arguments)
+                user:
+                    $ref: '#/components/schemas/User'
+            required:
+                - user

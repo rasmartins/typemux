@@ -1,0 +1,111 @@
+@typemux("1.0.0")
+
+/// User entity
+type User {
+  id: string @required
+  name: string @required
+  email: string @required
+}
+
+/// Post entity
+type Post {
+  id: string @required
+  title: string @required
+  content: string @required
+  authorId: string @required
+}
+
+/// Comment entity
+type Comment {
+  id: string @required
+  content: string @required
+  authorId: string @required
+}
+
+/// APPROACH 1: GraphQL-style (field arguments)
+/// This is great for GraphQL but doesn't directly map to REST
+type UserProfile {
+  user: User @required
+
+  /// These field arguments work perfectly in GraphQL
+  posts(limit: int32 @default(5), published: bool @default(true)): []Post
+  recentComments(limit: int32 @default(10)): []Comment
+  followerCount: int32
+}
+
+/// APPROACH 2: REST-style (separate endpoints via services)
+/// This is the recommended way for OpenAPI/REST
+
+/// Request types for parameterized queries
+type GetUserPostsRequest {
+  userId: string @required
+  limit: int32 @default(5)
+  published: bool @default(true)
+}
+
+type GetUserCommentsRequest {
+  userId: string @required
+  limit: int32 @default(10)
+}
+
+type GetUserProfileRequest {
+  userId: string @required
+}
+
+/// Response type - simple data structure without arguments
+type UserProfileData {
+  user: User @required
+  followerCount: int32 @required
+}
+
+type PostList {
+  posts: []Post @required
+}
+
+type CommentList {
+  comments: []Comment @required
+}
+
+/// Service defining REST endpoints
+service UserProfileService {
+  /// GET /users/{userId}/profile
+  rpc GetUserProfile(GetUserProfileRequest) returns (UserProfileData)
+    @http.method(GET)
+    @http.path("/users/{userId}/profile")
+    @graphql(query)
+
+  /// GET /users/{userId}/posts?limit=5&published=true
+  rpc GetUserPosts(GetUserPostsRequest) returns (PostList)
+    @http.method(GET)
+    @http.path("/users/{userId}/posts")
+
+  /// GET /users/{userId}/comments?limit=10
+  rpc GetUserComments(GetUserCommentsRequest) returns (CommentList)
+    @http.method(GET)
+    @http.path("/users/{userId}/comments")
+}
+
+/// APPROACH 3: Hybrid - Use field arguments for GraphQL, services for REST
+
+/// GraphQL Query type with field arguments
+type Query {
+  /// For GraphQL: query { userProfile(userId: "123") { user { name } posts(limit: 5) { title } } }
+  userProfile(userId: string @required): UserProfile
+
+  /// Also available as direct queries
+  user(id: string @required): User
+  posts(userId: string @required, limit: int32 @default(10)): []Post
+}
+
+/// The same functionality exposed as REST endpoints
+service RESTUserService {
+  /// GET /api/users/{id}
+  rpc GetUser(GetUserProfileRequest) returns (User)
+    @http.method(GET)
+    @http.path("/api/users/{userId}")
+
+  /// GET /api/users/{userId}/posts?limit=10
+  rpc GetUserPostsAPI(GetUserPostsRequest) returns (PostList)
+    @http.method(GET)
+    @http.path("/api/users/{userId}/posts")
+}

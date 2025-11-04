@@ -1,0 +1,329 @@
+// Generated Protobuf Schema
+syntax = "proto3";
+
+package api;
+
+import "google/protobuf/timestamp.proto";
+
+// Field Arguments Example
+// This example demonstrates the new field-level parameterized query feature
+// similar to GraphQL field arguments
+// User entity
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string username = 4;
+  int32 age = 5;
+  bool isActive = 6;
+}
+
+// Post entity
+message Post {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string authorId = 4;
+  bool published = 5;
+  google.protobuf.Timestamp createdAt = 6;
+}
+
+// Comment entity
+message Comment {
+  string id = 1;
+  string postId = 2;
+  string authorId = 3;
+  string content = 4;
+  google.protobuf.Timestamp createdAt = 5;
+}
+
+// Search result metadata
+message SearchMetadata {
+  int32 totalResults = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+  bool hasNextPage = 4;
+}
+
+// Search results for posts
+message PostSearchResults {
+  repeated Post posts = 1;
+  SearchMetadata metadata = 2;
+}
+
+// Filter options for posts
+message PostFilter {
+  optional bool published = 1;
+  optional string authorId = 2;
+  optional google.protobuf.Timestamp minDate = 3;
+  optional google.protobuf.Timestamp maxDate = 4;
+}
+
+// Query type demonstrating various field argument patterns
+message Query {
+  // Field without arguments (traditional style)
+  repeated Post allPosts = 1;
+  // Get featured posts (no arguments)
+  repeated Post featuredPosts = 2;
+}
+
+// Mutation type demonstrating field arguments for mutations
+message Mutation {
+}
+
+// Example with format-specific annotations on arguments
+message AdminQuery {
+}
+
+// Nested type to show field arguments work at any level
+message UserProfile {
+  User user = 1;
+  // Follower count (no arguments)
+  int32 followerCount = 2;
+}
+
+// Type showing mix of fields with and without arguments
+message Dashboard {
+  // Current user (no arguments)
+  User currentUser = 1;
+  // Summary stats (no arguments)
+  map<string, int32> stats = 2;
+}
+
+// Request message for Query.user
+message QueryUserRequest {
+  string id = 1;
+}
+
+// Request message for Query.users
+message QueryUsersRequest {
+  optional int32 limit = 1;
+  optional int32 offset = 2;
+}
+
+// Response message for Query.users
+message QueryUsersResponse {
+  repeated User items = 1;
+}
+
+// Request message for Query.searchUsers
+message QuerySearchUsersRequest {
+  string query = 1;
+  optional int32 limit = 2;
+}
+
+// Response message for Query.searchUsers
+message QuerySearchUsersResponse {
+  repeated User items = 1;
+}
+
+// Request message for Query.findUser
+message QueryFindUserRequest {
+  optional string username = 1;
+  optional string email = 2;
+}
+
+// Request message for Query.posts
+message QueryPostsRequest {
+  optional string authorId = 1;
+  optional bool published = 2;
+  optional int32 limit = 3;
+  optional int32 offset = 4;
+  optional string sortBy = 5;
+}
+
+// Response message for Query.posts
+message QueryPostsResponse {
+  repeated Post items = 1;
+}
+
+// Request message for Query.searchPosts
+message QuerySearchPostsRequest {
+  string query = 1;
+  optional PostFilter filter = 2;
+  optional int32 page = 3;
+  optional int32 pageSize = 4;
+}
+
+// Request message for Query.post
+message QueryPostRequest {
+  string id = 1;
+}
+
+// Request message for Query.comments
+message QueryCommentsRequest {
+  string postId = 1;
+  optional int32 limit = 2;
+  optional int32 offset = 3;
+  optional string sortOrder = 4;
+}
+
+// Response message for Query.comments
+message QueryCommentsResponse {
+  repeated Comment items = 1;
+}
+
+// Service for Query field resolvers
+service QueryService {
+  // Get a single user by ID
+  // Simple required argument
+  rpc User(QueryUserRequest) returns (User);
+  // Get multiple users with optional pagination
+  // Multiple arguments with defaults
+  rpc Users(QueryUsersRequest) returns (QueryUsersResponse);
+  // Search users with validation
+  // Argument with validation constraints
+  rpc SearchUsers(QuerySearchUsersRequest) returns (QuerySearchUsersResponse);
+  // Get user by username or email
+  // Optional arguments - at least one should be provided
+  rpc FindUser(QueryFindUserRequest) returns (User);
+  // Get posts with complex filtering
+  // Mix of required, optional, and filter objects
+  rpc Posts(QueryPostsRequest) returns (QueryPostsResponse);
+  // Advanced search with complex filter
+  rpc SearchPosts(QuerySearchPostsRequest) returns (PostSearchResults);
+  // Get a specific post
+  rpc Post(QueryPostRequest) returns (Post);
+  // Get comments for a post with pagination
+  rpc Comments(QueryCommentsRequest) returns (QueryCommentsResponse);
+}
+
+// Request message for Mutation.createUser
+message MutationCreateUserRequest {
+  string name = 1;
+  string email = 2;
+  string username = 3;
+  optional int32 age = 4;
+}
+
+// Request message for Mutation.updateUser
+message MutationUpdateUserRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string email = 3;
+  optional int32 age = 4;
+}
+
+// Request message for Mutation.deleteUser
+message MutationDeleteUserRequest {
+  string id = 1;
+}
+
+// Request message for Mutation.createPost
+message MutationCreatePostRequest {
+  string title = 1;
+  string content = 2;
+  optional bool published = 3;
+}
+
+// Request message for Mutation.publishPost
+message MutationPublishPostRequest {
+  string id = 1;
+  optional google.protobuf.Timestamp publishedAt = 2;
+}
+
+// Request message for Mutation.addComment
+message MutationAddCommentRequest {
+  string postId = 1;
+  string content = 2;
+}
+
+// Service for Mutation field resolvers
+service MutationService {
+  // Create a new user
+  rpc CreateUser(MutationCreateUserRequest) returns (User);
+  // Update user information
+  rpc UpdateUser(MutationUpdateUserRequest) returns (User);
+  // Delete a user
+  rpc DeleteUser(MutationDeleteUserRequest) returns (bool);
+  // Create a new post
+  rpc CreatePost(MutationCreatePostRequest) returns (Post);
+  // Publish a post
+  rpc PublishPost(MutationPublishPostRequest) returns (Post);
+  // Add a comment to a post
+  rpc AddComment(MutationAddCommentRequest) returns (Comment);
+}
+
+// Request message for AdminQuery.userById
+message AdminQueryUserByIdRequest {
+  string id = 1;
+}
+
+// Request message for AdminQuery.advancedSearch
+message AdminQueryAdvancedSearchRequest {
+  string query = 1;
+  optional string filters = 2;
+}
+
+// Response message for AdminQuery.advancedSearch
+message AdminQueryAdvancedSearchResponse {
+  repeated Post items = 1;
+}
+
+// Service for AdminQuery field resolvers
+service AdminQueryService {
+  // Get user with GraphQL-specific annotations on arguments
+  rpc UserById(AdminQueryUserByIdRequest) returns (User);
+  // Search with multiple format-specific customizations
+  rpc AdvancedSearch(AdminQueryAdvancedSearchRequest) returns (AdminQueryAdvancedSearchResponse);
+}
+
+// Request message for UserProfile.posts
+message UserProfilePostsRequest {
+  optional int32 limit = 1;
+  optional bool published = 2;
+}
+
+// Response message for UserProfile.posts
+message UserProfilePostsResponse {
+  repeated Post items = 1;
+}
+
+// Request message for UserProfile.recentComments
+message UserProfileRecentCommentsRequest {
+  optional int32 limit = 1;
+}
+
+// Response message for UserProfile.recentComments
+message UserProfileRecentCommentsResponse {
+  repeated Comment items = 1;
+}
+
+// Service for UserProfile field resolvers
+service UserProfileService {
+  // Posts authored by this user with arguments
+  rpc Posts(UserProfilePostsRequest) returns (UserProfilePostsResponse);
+  // Recent comments with pagination
+  rpc RecentComments(UserProfileRecentCommentsRequest) returns (UserProfileRecentCommentsResponse);
+}
+
+// Request message for Dashboard.notifications
+message DashboardNotificationsRequest {
+  optional int32 limit = 1;
+  optional bool unreadOnly = 2;
+}
+
+// Response message for Dashboard.notifications
+message DashboardNotificationsResponse {
+  repeated string items = 1;
+}
+
+// Request message for Dashboard.activityFeed
+message DashboardActivityFeedRequest {
+  optional int32 limit = 1;
+  repeated string types = 2;
+}
+
+// Response message for Dashboard.activityFeed
+message DashboardActivityFeedResponse {
+  repeated string items = 1;
+}
+
+// Service for Dashboard field resolvers
+service DashboardService {
+  // Notifications with pagination
+  rpc Notifications(DashboardNotificationsRequest) returns (DashboardNotificationsResponse);
+  // Recent activity feed
+  rpc ActivityFeed(DashboardActivityFeedRequest) returns (DashboardActivityFeedResponse);
+}
+

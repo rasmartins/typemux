@@ -817,4 +817,4 @@ Specifies the GraphQL operation type
 - Browse the full [Reference](reference) documentation
 
 **Generated from:** [`annotations.json`](https://github.com/rasmartins/typemux/blob/main/annotations.json)
-**Last updated:** 2025-10-31
+**Last updated:** 2025-11-04

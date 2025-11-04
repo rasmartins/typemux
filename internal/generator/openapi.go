@@ -52,7 +52,9 @@ type OpenAPIParameter struct {
 
 // OpenAPIParameterSchema describes the schema of a parameter.
 type OpenAPIParameterSchema struct {
-	Type string `json:"type" yaml:"type"`
+	Type    string      `json:"type" yaml:"type"`
+	Format  string      `json:"format,omitempty" yaml:"format,omitempty"`
+	Default interface{} `json:"default,omitempty" yaml:"default,omitempty"`
 }
 
 // OpenAPIRequestBody describes a request body.
@@ -74,9 +76,12 @@ type OpenAPIResponse struct {
 
 // OpenAPISchemaRef is a reference to a schema or an inline schema definition.
 type OpenAPISchemaRef struct {
-	Ref        string                     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
-	Type       string                     `json:"type,omitempty" yaml:"type,omitempty"`
-	Properties map[string]OpenAPIProperty `json:"properties,omitempty" yaml:"properties,omitempty"`
+	Ref                  string                     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
+	Type                 string                     `json:"type,omitempty" yaml:"type,omitempty"`
+	Format               string                     `json:"format,omitempty" yaml:"format,omitempty"`
+	Properties           map[string]OpenAPIProperty `json:"properties,omitempty" yaml:"properties,omitempty"`
+	Items                *OpenAPISchemaRef          `json:"items,omitempty" yaml:"items,omitempty"`
+	AdditionalProperties interface{}                `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
 }
 
 // OpenAPIComponents holds reusable schema definitions.
@@ -230,6 +235,11 @@ func (g *OpenAPIGenerator) Generate(schema *ast.Schema) string {
 		}
 	}
 
+	// Generate sub-resource paths from types with field arguments
+	for _, typ := range schema.Types {
+		g.addFieldArgumentPaths(&spec, typ, typeNameMap)
+	}
+
 	yamlBytes, err := yaml.Marshal(spec)
 	if err != nil {
 		return fmt.Sprintf("Error generating OpenAPI spec: %v", err)
@@ -263,6 +273,11 @@ func (g *OpenAPIGenerator) generateSchema(typ *ast.Type, typeNameMap map[string]
 	for _, field := range typ.Fields {
 		// Skip excluded fields
 		if !field.ShouldIncludeInGenerator("openapi") {
+			continue
+		}
+
+		// Skip fields with arguments - they become sub-resource endpoints
+		if len(field.Arguments) > 0 {
 			continue
 		}
 
@@ -756,6 +771,264 @@ func (g *OpenAPIGenerator) getErrorDescription(code string) string {
 		return desc
 	}
 	return fmt.Sprintf("Error response (%s)", code)
+}
+
+// addFieldArgumentPaths generates REST sub-resource endpoints for fields with arguments
+func (g *OpenAPIGenerator) addFieldArgumentPaths(spec *OpenAPISpec, typ *ast.Type, typeNameMap map[string]string) {
+	// Skip if type has no fields with arguments
+	hasFieldsWithArgs := false
+	for _, field := range typ.Fields {
+		if len(field.Arguments) > 0 && field.ShouldIncludeInGenerator("openapi") {
+			hasFieldsWithArgs = true
+			break
+		}
+	}
+	if !hasFieldsWithArgs {
+		return
+	}
+
+	// Special handling for Query and Mutation types - they generate top-level endpoints
+	isQueryOrMutation := typ.Name == "Query" || typ.Name == "Mutation"
+
+	// Find the ID field to use as path parameter (not needed for Query/Mutation)
+	var idFieldName string
+	var basePath string
+
+	if isQueryOrMutation {
+		// For Query/Mutation, generate top-level paths like /users, /posts, etc.
+		basePath = ""
+	} else {
+		idFieldName = g.findIDField(typ)
+		if idFieldName == "" {
+			// No ID field found and not Query/Mutation, can't generate paths
+			return
+		}
+		// Convert type name to kebab-case for URL
+		basePath = "/" + g.toKebabCase(typ.Name)
+	}
+
+	// Generate a path for each field with arguments
+	for _, field := range typ.Fields {
+		if len(field.Arguments) == 0 || !field.ShouldIncludeInGenerator("openapi") {
+			continue
+		}
+
+		// Create path: For Query/Mutation: /users, /posts
+		//              For other types: /user-profiles/{id}/posts
+		var fieldPath string
+		if isQueryOrMutation {
+			fieldPath = "/" + g.toKebabCase(field.Name)
+		} else {
+			fieldPath = fmt.Sprintf("%s/{%s}/%s", basePath, idFieldName, g.toKebabCase(field.Name))
+		}
+
+		// Create operation
+		operation := OpenAPIOperation{
+			Summary:     fmt.Sprintf("Get %s for %s", field.Name, typ.Name),
+			OperationID: fmt.Sprintf("Get%s%s", typ.Name, g.capitalize(field.Name)),
+			Responses:   make(map[string]OpenAPIResponse),
+			Parameters:  []OpenAPIParameter{},
+		}
+
+		// Add path parameter for parent ID (only if not Query/Mutation)
+		if !isQueryOrMutation {
+			operation.Parameters = append(operation.Parameters, OpenAPIParameter{
+				Name:     idFieldName,
+				In:       "path",
+				Required: true,
+				Schema: OpenAPIParameterSchema{
+					Type: "string",
+				},
+			})
+		}
+
+		// Convert field arguments to query parameters
+		for _, arg := range field.Arguments {
+			param := OpenAPIParameter{
+				Name:     arg.Name,
+				In:       "query",
+				Required: arg.Required,
+				Schema:   g.convertFieldTypeToParameterSchema(arg.Type, arg.Default),
+			}
+			if arg.Doc != nil {
+				param.Description = arg.Doc.GetDoc("openapi")
+			}
+			operation.Parameters = append(operation.Parameters, param)
+		}
+
+		// Generate response schema based on field type
+		responseSchema := g.convertFieldTypeToSchema(field.Type, typeNameMap)
+
+		operation.Responses["200"] = OpenAPIResponse{
+			Description: "Successful response",
+			Content: map[string]OpenAPIMediaType{
+				"application/json": {
+					Schema: responseSchema,
+				},
+			},
+		}
+
+		// Add the operation to the spec
+		if spec.Paths[fieldPath] == nil {
+			spec.Paths[fieldPath] = make(map[string]OpenAPIOperation)
+		}
+		spec.Paths[fieldPath]["get"] = operation
+	}
+}
+
+// findIDField looks for an "id" field in the type
+func (g *OpenAPIGenerator) findIDField(typ *ast.Type) string {
+	for _, field := range typ.Fields {
+		if strings.EqualFold(field.Name, "id") {
+			return field.Name
+		}
+	}
+	// Try to find field ending with "Id" or "ID"
+	for _, field := range typ.Fields {
+		if strings.HasSuffix(field.Name, "Id") || strings.HasSuffix(field.Name, "ID") {
+			return field.Name
+		}
+	}
+	return ""
+}
+
+// toKebabCase converts a string to kebab-case
+func (g *OpenAPIGenerator) toKebabCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result.WriteRune('-')
+		}
+		result.WriteRune(r)
+	}
+	return strings.ToLower(result.String())
+}
+
+// capitalize capitalizes the first letter
+func (g *OpenAPIGenerator) capitalize(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// convertFieldTypeToParameterSchema converts a field type to OpenAPI parameter schema
+func (g *OpenAPIGenerator) convertFieldTypeToParameterSchema(fieldType *ast.FieldType, defaultValue string) OpenAPIParameterSchema {
+	schema := OpenAPIParameterSchema{}
+
+	switch fieldType.Name {
+	case "string":
+		schema.Type = "string"
+	case "int32", "int64", "uint8", "uint16", "uint32", "uint64":
+		schema.Type = "integer"
+		if fieldType.Name == "int64" || fieldType.Name == "uint64" {
+			schema.Format = "int64"
+		} else {
+			schema.Format = "int32"
+		}
+	case "float32", "float64":
+		schema.Type = "number"
+		if fieldType.Name == "float64" {
+			schema.Format = "double"
+		} else {
+			schema.Format = "float"
+		}
+	case "bool":
+		schema.Type = "boolean"
+	case "timestamp":
+		schema.Type = "string"
+		schema.Format = "date-time"
+	case "bytes":
+		schema.Type = "string"
+		schema.Format = "byte"
+	default:
+		// Custom type - use string for simplicity in query params
+		schema.Type = "string"
+	}
+
+	// Add default value if present
+	if defaultValue != "" {
+		schema.Default = g.convertDefaultValue(defaultValue, schema.Type)
+	}
+
+	return schema
+}
+
+// convertFieldTypeToSchema converts a field type to OpenAPI schema reference
+func (g *OpenAPIGenerator) convertFieldTypeToSchema(fieldType *ast.FieldType, typeNameMap map[string]string) OpenAPISchemaRef {
+	schema := OpenAPISchemaRef{}
+
+	if fieldType.IsArray {
+		// Array type
+		elementTypeName := fieldType.Name
+		if customName, ok := typeNameMap[elementTypeName]; ok {
+			elementTypeName = customName
+		}
+
+		if ast.IsBuiltinType(fieldType.Name) {
+			// Array of primitives
+			schema.Type = "array"
+			schema.Items = &OpenAPISchemaRef{
+				Type: g.mapBuiltinTypeToOpenAPI(fieldType.Name),
+			}
+		} else {
+			// Array of custom types
+			schema.Type = "array"
+			schema.Items = &OpenAPISchemaRef{
+				Ref: fmt.Sprintf("#/components/schemas/%s", elementTypeName),
+			}
+		}
+	} else if fieldType.IsMap {
+		// Map type - represented as object with additionalProperties
+		schema.Type = "object"
+		valueType := fieldType.GetMapValueType()
+		if ast.IsBuiltinType(valueType.Name) {
+			schema.AdditionalProperties = map[string]interface{}{
+				"type": g.mapBuiltinTypeToOpenAPI(valueType.Name),
+			}
+		} else {
+			valueName := valueType.Name
+			if customName, ok := typeNameMap[valueName]; ok {
+				valueName = customName
+			}
+			schema.AdditionalProperties = map[string]interface{}{
+				"$ref": fmt.Sprintf("#/components/schemas/%s", valueName),
+			}
+		}
+	} else if ast.IsBuiltinType(fieldType.Name) {
+		// Builtin type
+		schema.Type = g.mapBuiltinTypeToOpenAPI(fieldType.Name)
+		if fieldType.Name == "timestamp" {
+			schema.Format = "date-time"
+		} else if fieldType.Name == "bytes" {
+			schema.Format = "byte"
+		}
+	} else {
+		// Custom type
+		typeName := fieldType.Name
+		if customName, ok := typeNameMap[typeName]; ok {
+			typeName = customName
+		}
+		schema.Ref = fmt.Sprintf("#/components/schemas/%s", typeName)
+	}
+
+	return schema
+}
+
+// mapBuiltinTypeToOpenAPI maps TypeMUX builtin types to OpenAPI types
+func (g *OpenAPIGenerator) mapBuiltinTypeToOpenAPI(typeName string) string {
+	switch typeName {
+	case "string", "timestamp", "bytes":
+		return "string"
+	case "int32", "int64", "uint8", "uint16", "uint32", "uint64":
+		return "integer"
+	case "float32", "float64":
+		return "number"
+	case "bool":
+		return "boolean"
+	default:
+		return "string"
+	}
 }
 
 func (g *OpenAPIGenerator) extractPathParameters(path string) []OpenAPIParameter {

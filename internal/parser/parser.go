@@ -385,6 +385,14 @@ func (p *Parser) parseFieldWithLeadingAnnotations(doc *ast.Documentation, leadin
 
 	p.nextToken()
 
+	// Check for field arguments (like GraphQL field arguments)
+	if p.curTok.Type == lexer.TOKEN_LPAREN {
+		field.Arguments = p.parseFieldArguments()
+		if field.Arguments == nil && len(p.errors) > 0 {
+			return nil
+		}
+	}
+
 	if !p.expectToken(lexer.TOKEN_COLON) {
 		return nil
 	}
@@ -749,6 +757,144 @@ func (p *Parser) parseFieldTypeInternal(allowOptional bool) *ast.FieldType {
 	}
 
 	return fieldType
+}
+
+// parseFieldArguments parses field arguments like: (id: string @required, limit: int32 @default(10))
+func (p *Parser) parseFieldArguments() []*ast.FieldArgument {
+	if p.curTok.Type != lexer.TOKEN_LPAREN {
+		return nil
+	}
+
+	p.nextToken() // consume '('
+
+	var arguments []*ast.FieldArgument
+
+	// Parse arguments until we hit ')'
+	for p.curTok.Type != lexer.TOKEN_RPAREN && p.curTok.Type != lexer.TOKEN_EOF {
+		arg := &ast.FieldArgument{
+			Attributes: make(map[string]string),
+		}
+
+		// Parse argument name
+		if p.curTok.Type != lexer.TOKEN_IDENT {
+			p.addError("expected argument name")
+			return nil
+		}
+		arg.Name = p.curTok.Literal
+		p.nextToken()
+
+		// Expect colon
+		if !p.expectToken(lexer.TOKEN_COLON) {
+			return nil
+		}
+
+		// Parse argument type
+		arg.Type = p.parseFieldType()
+		if arg.Type == nil {
+			return nil
+		}
+
+		// Parse argument annotations (@required, @default, @validate, etc.)
+		argLine := p.curTok.Line
+		annotations := ast.NewFormatAnnotations()
+		for p.curTok.Type == lexer.TOKEN_AT && p.curTok.Line == argLine {
+			p.nextToken()
+			if p.curTok.Type != lexer.TOKEN_IDENT {
+				p.addError("expected annotation name")
+				return nil
+			}
+
+			attrName := p.curTok.Literal
+			p.nextToken()
+
+			if attrName == "required" {
+				arg.Required = true
+				arg.Attributes[attrName] = ""
+			} else if attrName == "default" {
+				if p.curTok.Type == lexer.TOKEN_LPAREN {
+					p.nextToken()
+					if p.curTok.Type == lexer.TOKEN_IDENT || p.curTok.Type == lexer.TOKEN_NUMBER || p.curTok.Type == lexer.TOKEN_STRING {
+						arg.Default = strings.Trim(p.curTok.Literal, "\"'")
+						p.nextToken()
+						p.expectToken(lexer.TOKEN_RPAREN)
+					}
+				}
+				arg.Attributes[attrName] = ""
+			} else if attrName == "validate" {
+				// Parse @validate(format="email", min=0, max=100, etc.)
+				if arg.Validation == nil {
+					arg.Validation = &ast.ValidationRules{}
+				}
+				if p.curTok.Type == lexer.TOKEN_LPAREN {
+					p.nextToken()
+					p.parseValidationRules(arg.Validation)
+					p.expectToken(lexer.TOKEN_RPAREN)
+				}
+			} else if attrName == "proto" || attrName == "graphql" || attrName == "openapi" {
+				// Parse format-specific annotations like @proto.name("argName")
+				if p.curTok.Type != lexer.TOKEN_DOT {
+					p.addError(fmt.Sprintf("expected . after @%s", attrName))
+					return nil
+				}
+				p.nextToken()
+
+				if p.curTok.Type != lexer.TOKEN_IDENT {
+					p.addError(fmt.Sprintf("expected subtype after @%s.", attrName))
+					return nil
+				}
+				subtype := p.curTok.Literal
+				p.nextToken()
+
+				// Parse the content in parentheses
+				if p.curTok.Type == lexer.TOKEN_LPAREN {
+					p.nextToken()
+					content := p.parseAnnotationContent()
+					p.expectToken(lexer.TOKEN_RPAREN)
+
+					// Handle name annotation specially
+					if subtype == "name" {
+						name := strings.Trim(content, "\"'")
+						if attrName == "proto" {
+							annotations.ProtoName = name
+						} else if attrName == "graphql" {
+							annotations.GraphQLName = name
+						} else if attrName == "openapi" {
+							annotations.OpenAPIName = name
+						}
+					} else {
+						// Store in appropriate list for other subtypes
+						if attrName == "proto" {
+							annotations.Proto = append(annotations.Proto, content)
+						} else if attrName == "graphql" {
+							annotations.GraphQL = append(annotations.GraphQL, content)
+						} else if attrName == "openapi" {
+							annotations.OpenAPI = append(annotations.OpenAPI, content)
+						}
+					}
+				}
+			} else {
+				arg.Attributes[attrName] = ""
+			}
+		}
+
+		arg.Annotations = annotations
+		arguments = append(arguments, arg)
+
+		// Check for comma (more arguments) or closing paren
+		if p.curTok.Type == lexer.TOKEN_COMMA {
+			p.nextToken()
+			// Skip any whitespace or newlines by continuing the loop
+		} else if p.curTok.Type != lexer.TOKEN_RPAREN {
+			p.addError("expected ',' or ')' in argument list")
+			return nil
+		}
+	}
+
+	if !p.expectToken(lexer.TOKEN_RPAREN) {
+		return nil
+	}
+
+	return arguments
 }
 
 func (p *Parser) parseServiceWithDocAndAnnotations(doc *ast.Documentation, leadingAnnotations *ast.FormatAnnotations, namespace string) *ast.Service {

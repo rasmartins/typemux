@@ -626,19 +626,59 @@ func (g *GraphQLGenerator) generateType(typ *ast.Type, isInput bool, addInputSuf
 			fieldDirectives = " " + strings.Join(fieldDirectiveParts, " ")
 		}
 
+		// Generate field arguments (only for non-input types)
+		fieldArgs := ""
+		if !isInput {
+			fieldArgs = g.generateFieldArguments(field)
+		}
+
 		// Use UnionInput type for union fields in input types
 		if isInput && unionNames[field.Type.Name] {
 			gqlType := field.Type.Name + "Input"
 			if field.Required {
 				gqlType += "!"
 			}
-			sb.WriteString(fmt.Sprintf("  %s: %s%s\n", field.Name, gqlType, fieldDirectives))
+			sb.WriteString(fmt.Sprintf("  %s%s: %s%s\n", field.Name, fieldArgs, gqlType, fieldDirectives))
 		} else {
-			sb.WriteString(fmt.Sprintf("  %s: %s%s\n", field.Name, g.convertFieldType(field, isInput, typeUsage, typeNameMap, registry), fieldDirectives))
+			sb.WriteString(fmt.Sprintf("  %s%s: %s%s\n", field.Name, fieldArgs, g.convertFieldType(field, isInput, typeUsage, typeNameMap, registry), fieldDirectives))
 		}
 	}
 	sb.WriteString("}")
 	return sb.String()
+}
+
+// generateFieldArguments generates the GraphQL argument list for a field
+func (g *GraphQLGenerator) generateFieldArguments(field *ast.Field) string {
+	if len(field.Arguments) == 0 {
+		return ""
+	}
+
+	argParts := make([]string, 0, len(field.Arguments))
+	for _, arg := range field.Arguments {
+		argType := g.mapTypeToGraphQL(arg.Type)
+
+		// Add ! for required arguments
+		if arg.Required {
+			argType += "!"
+		}
+
+		// Build argument string
+		argStr := fmt.Sprintf("%s: %s", arg.Name, argType)
+
+		// Add default value if present
+		if arg.Default != "" {
+			defaultValue := arg.Default
+			// Quote string default values if not already quoted
+			if arg.Type.Name == "string" && !strings.HasPrefix(defaultValue, "\"") {
+				defaultValue = fmt.Sprintf("\"%s\"", defaultValue)
+			}
+			argStr += fmt.Sprintf(" = %s", defaultValue)
+		}
+
+		argParts = append(argParts, argStr)
+	}
+
+	return "(" + strings.Join(argParts, ", ") + ")"
 }
 
 func (g *GraphQLGenerator) convertFieldType(field *ast.Field, isInput bool, typeUsage map[string]string, typeNameMap map[string]string, registry *wrapperRegistry) string {

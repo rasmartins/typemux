@@ -1357,3 +1357,259 @@ func TestGraphQLGenerator_Subscriptions(t *testing.T) {
 		}
 	}
 }
+
+func TestGraphQLGenerator_FieldArguments(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	// Test field with simple required argument
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "Query",
+				Fields: []*ast.Field{
+					{
+						Name: "user",
+						Type: &ast.FieldType{
+							Name:      "User",
+							IsBuiltin: false,
+						},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name: "id",
+								Type: &ast.FieldType{
+									Name:      "string",
+									IsBuiltin: true,
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Check that field arguments are generated correctly
+	if !strings.Contains(output, "user(id: String!): User") {
+		t.Errorf("Expected 'user(id: String!): User' in output, got:\n%s", output)
+	}
+}
+
+func TestGraphQLGenerator_FieldArgumentsWithDefaults(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	// Test field with multiple arguments including defaults
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "Query",
+				Fields: []*ast.Field{
+					{
+						Name: "users",
+						Type: &ast.FieldType{
+							Name:    "User",
+							IsArray: true,
+						},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name: "limit",
+								Type: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+								Default: "10",
+							},
+							{
+								Name: "offset",
+								Type: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+								Default: "0",
+							},
+							{
+								Name: "sortBy",
+								Type: &ast.FieldType{
+									Name:      "string",
+									IsBuiltin: true,
+								},
+								Default: "createdAt",
+							},
+						},
+					},
+				},
+			},
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Check that arguments with defaults are generated correctly
+	if !strings.Contains(output, "users(limit: Int = 10, offset: Int = 0, sortBy: String = \"createdAt\"): [User]") {
+		t.Errorf("Expected 'users(limit: Int = 10, offset: Int = 0, sortBy: String = \"createdAt\"): [User]' in output, got:\n%s", output)
+	}
+}
+
+func TestGraphQLGenerator_FieldArgumentsMixed(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	// Test type with fields that have arguments and fields without
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "UserProfile",
+				Fields: []*ast.Field{
+					{
+						Name: "user",
+						Type: &ast.FieldType{
+							Name:      "User",
+							IsBuiltin: false,
+						},
+						Required: true,
+					},
+					{
+						Name: "posts",
+						Type: &ast.FieldType{
+							Name:    "Post",
+							IsArray: true,
+						},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name: "limit",
+								Type: &ast.FieldType{
+									Name:      "int32",
+									IsBuiltin: true,
+								},
+								Default: "5",
+							},
+						},
+					},
+				},
+			},
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+				},
+			},
+			{
+				Name: "Post",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Check that field without arguments is generated correctly
+	if !strings.Contains(output, "user: User!") {
+		t.Errorf("Expected 'user: User!' (no arguments) in output, got:\n%s", output)
+	}
+
+	// Check that field with arguments is generated correctly
+	if !strings.Contains(output, "posts(limit: Int = 5): [Post]") {
+		t.Errorf("Expected 'posts(limit: Int = 5): [Post]' in output, got:\n%s", output)
+	}
+}
+
+func TestGraphQLGenerator_FieldArgumentsNotInInput(t *testing.T) {
+	gen := NewGraphQLGenerator()
+
+	// Verify that field arguments are not generated for input types
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "CreateUserInput",
+				Fields: []*ast.Field{
+					{
+						Name: "name",
+						Type: &ast.FieldType{
+							Name:      "string",
+							IsBuiltin: true,
+						},
+						Required: true,
+						// Even if we mistakenly add arguments to an input field,
+						// they should not be generated
+						Arguments: []*ast.FieldArgument{
+							{
+								Name: "shouldNotAppear",
+								Type: &ast.FieldType{
+									Name:      "string",
+									IsBuiltin: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Services: []*ast.Service{
+			{
+				Name: "UserService",
+				Methods: []*ast.Method{
+					{
+						Name:       "CreateUser",
+						InputType:  "CreateUserInput",
+						OutputType: "User",
+					},
+				},
+			},
+		},
+	}
+
+	output := gen.Generate(schema)
+
+	// Arguments should not appear in input types
+	if strings.Contains(output, "shouldNotAppear") {
+		t.Error("Field arguments should not be generated for input types")
+	}
+
+	// Input field should be generated without arguments
+	if !strings.Contains(output, "input CreateUserInput") {
+		t.Error("Expected input type to be generated")
+	}
+}

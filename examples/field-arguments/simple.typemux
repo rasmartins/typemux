@@ -1,0 +1,10 @@
+@typemux("1.0.0")
+
+type User {
+  id: string @required
+  name: string @required
+}
+
+type Query {
+  user(id: string): User
+}

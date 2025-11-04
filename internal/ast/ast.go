@@ -55,6 +55,7 @@ type Union struct {
 type Field struct {
 	Name          string
 	Type          *FieldType
+	Arguments     []*FieldArgument // Field arguments (for parameterized queries like GraphQL)
 	Required      bool
 	Default       string
 	Attributes    map[string]string
@@ -70,6 +71,18 @@ type Field struct {
 	JSONName      string             // JSON field name override (from @json.name annotation)
 	JSONNullable  bool               // Whether field is explicitly nullable in JSON (from @json.nullable annotation)
 	JSONOmitEmpty bool               // Whether to omit field if empty in JSON (from @json.omitempty annotation)
+}
+
+// FieldArgument represents an argument/parameter to a field (like GraphQL field arguments)
+type FieldArgument struct {
+	Name        string
+	Type        *FieldType
+	Required    bool
+	Default     string
+	Attributes  map[string]string
+	Doc         *Documentation
+	Validation  *ValidationRules   // Validation rules for the argument
+	Annotations *FormatAnnotations // Format-specific annotations for the argument
 }
 
 // ShouldIncludeInGenerator checks if a field should be included in a specific generator

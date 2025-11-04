@@ -1496,3 +1496,207 @@ func TestProtobufGenerator_NestedMaps(t *testing.T) {
 		t.Error("Expected 'map<string, map<string, map<string, bool>>> triple_nested_map = 3;' in output")
 	}
 }
+
+func TestProtobufGenerator_FieldArguments(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+					{
+						Name: "name",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+				},
+			},
+			{
+				Name: "Query",
+				Fields: []*ast.Field{
+					{
+						Name: "user",
+						Type: &ast.FieldType{Name: "User"},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name:     "id",
+								Type:     &ast.FieldType{Name: "string", IsBuiltin: true},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewProtobufGenerator()
+	output := gen.Generate(schema)
+
+	// Check that Query message doesn't contain the user field
+	queryMsg := extractMessage(output, "Query")
+	if strings.Contains(queryMsg, "User user") {
+		t.Error("Query message should not contain user field (it has arguments)")
+	}
+
+	// Check that request message was generated
+	if !strings.Contains(output, "message QueryUserRequest") {
+		t.Error("Expected QueryUserRequest message")
+	}
+
+	// Check that request has the id field
+	if !strings.Contains(output, "string id = 1;") {
+		t.Error("Expected 'string id = 1;' in QueryUserRequest")
+	}
+
+	// Check that service was generated
+	if !strings.Contains(output, "service QueryService") {
+		t.Error("Expected QueryService")
+	}
+
+	// Check that RPC method was generated
+	if !strings.Contains(output, "rpc User(QueryUserRequest) returns (User)") {
+		t.Error("Expected 'rpc User(QueryUserRequest) returns (User)'")
+	}
+}
+
+func TestProtobufGenerator_FieldArgumentsArray(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "User",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+				},
+			},
+			{
+				Name: "Query",
+				Fields: []*ast.Field{
+					{
+						Name: "users",
+						Type: &ast.FieldType{Name: "User", IsArray: true},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name:     "limit",
+								Type:     &ast.FieldType{Name: "int32", IsBuiltin: true},
+								Required: false,
+								Default:  "10",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewProtobufGenerator()
+	output := gen.Generate(schema)
+
+	// Check that request message was generated
+	if !strings.Contains(output, "message QueryUsersRequest") {
+		t.Error("Expected QueryUsersRequest message")
+	}
+
+	// Check that request has optional limit field
+	if !strings.Contains(output, "optional int32 limit = 1;") {
+		t.Error("Expected 'optional int32 limit = 1;' in QueryUsersRequest")
+	}
+
+	// Check that response wrapper was generated for array return
+	if !strings.Contains(output, "message QueryUsersResponse") {
+		t.Error("Expected QueryUsersResponse message")
+	}
+
+	// Check that response contains repeated items
+	if !strings.Contains(output, "repeated User items = 1;") {
+		t.Error("Expected 'repeated User items = 1;' in QueryUsersResponse")
+	}
+
+	// Check that RPC uses response wrapper
+	if !strings.Contains(output, "rpc Users(QueryUsersRequest) returns (QueryUsersResponse)") {
+		t.Error("Expected 'rpc Users(QueryUsersRequest) returns (QueryUsersResponse)'")
+	}
+}
+
+func TestProtobufGenerator_FieldArgumentsMultiple(t *testing.T) {
+	schema := &ast.Schema{
+		Types: []*ast.Type{
+			{
+				Name: "Post",
+				Fields: []*ast.Field{
+					{
+						Name: "id",
+						Type: &ast.FieldType{Name: "string", IsBuiltin: true},
+					},
+				},
+			},
+			{
+				Name: "Query",
+				Fields: []*ast.Field{
+					{
+						Name: "posts",
+						Type: &ast.FieldType{Name: "Post", IsArray: true},
+						Arguments: []*ast.FieldArgument{
+							{
+								Name:     "limit",
+								Type:     &ast.FieldType{Name: "int32", IsBuiltin: true},
+								Required: false,
+							},
+							{
+								Name:     "offset",
+								Type:     &ast.FieldType{Name: "int32", IsBuiltin: true},
+								Required: false,
+							},
+							{
+								Name:     "authorId",
+								Type:     &ast.FieldType{Name: "string", IsBuiltin: true},
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	gen := NewProtobufGenerator()
+	output := gen.Generate(schema)
+
+	// Check that request has all three arguments
+	requestMsg := extractMessage(output, "QueryPostsRequest")
+	if !strings.Contains(requestMsg, "optional int32 limit = 1;") {
+		t.Error("Expected 'optional int32 limit = 1;'")
+	}
+	if !strings.Contains(requestMsg, "optional int32 offset = 2;") {
+		t.Error("Expected 'optional int32 offset = 2;'")
+	}
+	if !strings.Contains(requestMsg, "string authorId = 3;") {
+		t.Error("Expected 'string authorId = 3;' (required, no optional)")
+	}
+}
+
+// Helper function to extract a specific message from protobuf output
+func extractMessage(output, messageName string) string {
+	lines := strings.Split(output, "\n")
+	var msg strings.Builder
+	inMessage := false
+
+	for _, line := range lines {
+		if strings.Contains(line, "message "+messageName) {
+			inMessage = true
+		}
+		if inMessage {
+			msg.WriteString(line + "\n")
+			if strings.TrimSpace(line) == "}" {
+				break
+			}
+		}
+	}
+
+	return msg.String()
+}

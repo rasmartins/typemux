@@ -1,0 +1,214 @@
+@typemux("1.0.0")
+
+/// Field Arguments Example
+/// This example demonstrates the new field-level parameterized query feature
+/// similar to GraphQL field arguments
+
+/// User entity
+type User {
+  id: string @required
+  name: string @required
+  email: string @required
+  username: string @required
+  age: int32
+  isActive: bool @default(true)
+}
+
+/// Post entity
+type Post {
+  id: string @required
+  title: string @required
+  content: string @required
+  authorId: string @required
+  published: bool @required
+  createdAt: timestamp @required
+}
+
+/// Comment entity
+type Comment {
+  id: string @required
+  postId: string @required
+  authorId: string @required
+  content: string @required
+  createdAt: timestamp @required
+}
+
+/// Search result metadata
+type SearchMetadata {
+  totalResults: int32 @required
+  page: int32 @required
+  pageSize: int32 @required
+  hasNextPage: bool @required
+}
+
+/// Search results for posts
+type PostSearchResults {
+  posts: []Post @required
+  metadata: SearchMetadata @required
+}
+
+/// Filter options for posts
+type PostFilter {
+  published: bool?
+  authorId: string?
+  minDate: timestamp?
+  maxDate: timestamp?
+}
+
+/// Query type demonstrating various field argument patterns
+type Query {
+  /// Get a single user by ID
+  /// Simple required argument
+  user(id: string @required): User
+
+  /// Get multiple users with optional pagination
+  /// Multiple arguments with defaults
+  users(
+    limit: int32 @default(10),
+    offset: int32 @default(0)
+  ): []User
+
+  /// Search users with validation
+  /// Argument with validation constraints
+  searchUsers(
+    query: string @required @validate(minLength=3, maxLength=100),
+    limit: int32 @default(20) @validate(min=1, max=100)
+  ): []User
+
+  /// Get user by username or email
+  /// Optional arguments - at least one should be provided
+  findUser(
+    username: string?,
+    email: string?
+  ): User?
+
+  /// Get posts with complex filtering
+  /// Mix of required, optional, and filter objects
+  posts(
+    authorId: string?,
+    published: bool @default(true),
+    limit: int32 @default(10),
+    offset: int32 @default(0),
+    sortBy: string @default("createdAt")
+  ): []Post
+
+  /// Advanced search with complex filter
+  searchPosts(
+    query: string @required @validate(minLength=2),
+    filter: PostFilter?,
+    page: int32 @default(1) @validate(min=1),
+    pageSize: int32 @default(10) @validate(min=1, max=100)
+  ): PostSearchResults
+
+  /// Get a specific post
+  post(id: string @required): Post?
+
+  /// Get comments for a post with pagination
+  comments(
+    postId: string @required,
+    limit: int32 @default(10),
+    offset: int32 @default(0),
+    sortOrder: string @default("desc")
+  ): []Comment
+
+  /// Field without arguments (traditional style)
+  allPosts: []Post
+
+  /// Get featured posts (no arguments)
+  featuredPosts: []Post
+}
+
+/// Mutation type demonstrating field arguments for mutations
+type Mutation {
+  /// Create a new user
+  createUser(
+    name: string @required @validate(minLength=2, maxLength=100),
+    email: string @required @validate(format="email"),
+    username: string @required @validate(minLength=3, maxLength=30),
+    age: int32? @validate(min=13, max=150)
+  ): User
+
+  /// Update user information
+  updateUser(
+    id: string @required,
+    name: string?,
+    email: string? @validate(format="email"),
+    age: int32? @validate(min=13, max=150)
+  ): User
+
+  /// Delete a user
+  deleteUser(id: string @required): bool
+
+  /// Create a new post
+  createPost(
+    title: string @required @validate(minLength=5, maxLength=200),
+    content: string @required @validate(minLength=10),
+    published: bool @default(false)
+  ): Post
+
+  /// Publish a post
+  publishPost(
+    id: string @required,
+    publishedAt: timestamp?
+  ): Post
+
+  /// Add a comment to a post
+  addComment(
+    postId: string @required,
+    content: string @required @validate(minLength=1, maxLength=1000)
+  ): Comment
+}
+
+/// Example with format-specific annotations on arguments
+type AdminQuery {
+  /// Get user with GraphQL-specific annotations on arguments
+  userById(
+    id: string @required @graphql.name("userId")
+  ): User
+
+  /// Search with multiple format-specific customizations
+  advancedSearch(
+    query: string @required,
+    filters: string? @graphql.name("filterJSON")
+  ): []Post
+}
+
+/// Nested type to show field arguments work at any level
+type UserProfile {
+  user: User @required
+
+  /// Posts authored by this user with arguments
+  posts(
+    limit: int32 @default(5),
+    published: bool @default(true)
+  ): []Post
+
+  /// Recent comments with pagination
+  recentComments(
+    limit: int32 @default(10)
+  ): []Comment
+
+  /// Follower count (no arguments)
+  followerCount: int32
+}
+
+/// Type showing mix of fields with and without arguments
+type Dashboard {
+  /// Current user (no arguments)
+  currentUser: User @required
+
+  /// Notifications with pagination
+  notifications(
+    limit: int32 @default(20),
+    unreadOnly: bool @default(false)
+  ): []string
+
+  /// Recent activity feed
+  activityFeed(
+    limit: int32 @default(50),
+    types: []string?
+  ): []string
+
+  /// Summary stats (no arguments)
+  stats: map<string, int32>
+}
