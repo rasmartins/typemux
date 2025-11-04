@@ -1,0 +1,33 @@
+// Schema Version 1 - Base version
+type User {
+  id: string @required
+  name: string @required
+  email: string @required
+  age: int32
+}
+
+type Post {
+  id: string @required
+  title: string @required
+  content: string
+  authorId: string @required
+}
+
+type Query {
+  // Field with single required argument
+  user(id: string @required): User
+
+  // Field with optional argument
+  users(limit: int32 @default(10)): []User
+
+  // Field with multiple arguments
+  posts(authorId: string, published: bool @default(true)): []Post
+
+  // Field without arguments
+  allPosts: []Post
+}
+
+type Mutation {
+  createUser(name: string @required, email: string @required, age: int32): User
+  updateUser(id: string @required, name: string, email: string): User
+}

@@ -240,6 +240,113 @@ func (d *Differ) compareFieldChanges(typeName string, baseField, headField *ast.
 			NewValue:    string(rune(headField.Number)),
 		})
 	}
+
+	// Check for field arguments changes
+	d.compareFieldArguments(typeName, baseField, headField)
+}
+
+// compareFieldArguments compares field arguments between two fields
+func (d *Differ) compareFieldArguments(typeName string, baseField, headField *ast.Field) {
+	// Build argument maps
+	baseArgs := make(map[string]*ast.FieldArgument)
+	headArgs := make(map[string]*ast.FieldArgument)
+
+	for _, arg := range baseField.Arguments {
+		baseArgs[arg.Name] = arg
+	}
+	for _, arg := range headField.Arguments {
+		headArgs[arg.Name] = arg
+	}
+
+	// Check for removed arguments
+	for argName := range baseArgs {
+		if _, exists := headArgs[argName]; !exists {
+			path := typeName + "." + baseField.Name + "(" + argName + ")"
+			d.addChange(&Change{
+				Type:        ChangeTypeFieldArgRemoved,
+				Severity:    SeverityBreaking,
+				Protocol:    ProtocolGraphQL,
+				Path:        path,
+				Description: "Field argument removed",
+				OldValue:    argName,
+				NewValue:    "",
+			})
+		}
+	}
+
+	// Check for added arguments
+	for argName, headArg := range headArgs {
+		if _, exists := baseArgs[argName]; !exists {
+			path := typeName + "." + headField.Name + "(" + argName + ")"
+
+			// Adding a required argument is breaking
+			if headArg.Required {
+				d.addChange(&Change{
+					Type:        ChangeTypeRequiredFieldArgAdded,
+					Severity:    SeverityBreaking,
+					Protocol:    ProtocolGraphQL,
+					Path:        path,
+					Description: "Required field argument added",
+					OldValue:    "",
+					NewValue:    argName,
+				})
+			} else {
+				// Adding an optional argument is non-breaking
+				d.addChange(&Change{
+					Type:        ChangeTypeFieldArgAdded,
+					Severity:    SeverityNonBreaking,
+					Protocol:    ProtocolGraphQL,
+					Path:        path,
+					Description: "Optional field argument added",
+					OldValue:    "",
+					NewValue:    argName,
+				})
+			}
+		}
+	}
+
+	// Check for modified arguments
+	for argName, baseArg := range baseArgs {
+		if headArg, exists := headArgs[argName]; exists {
+			path := typeName + "." + baseField.Name + "(" + argName + ")"
+
+			// Check for type changes
+			if baseArg.Type.Name != headArg.Type.Name {
+				d.addChange(&Change{
+					Type:        ChangeTypeFieldArgTypeChanged,
+					Severity:    SeverityBreaking,
+					Protocol:    ProtocolGraphQL,
+					Path:        path,
+					Description: "Field argument type changed",
+					OldValue:    baseArg.Type.Name,
+					NewValue:    headArg.Type.Name,
+				})
+			}
+
+			// Check for required changes
+			if !baseArg.Required && headArg.Required {
+				d.addChange(&Change{
+					Type:        ChangeTypeFieldArgMadeRequired,
+					Severity:    SeverityBreaking,
+					Protocol:    ProtocolGraphQL,
+					Path:        path,
+					Description: "Field argument made required",
+					OldValue:    "optional",
+					NewValue:    "required",
+				})
+			} else if baseArg.Required && !headArg.Required {
+				d.addChange(&Change{
+					Type:        ChangeTypeFieldArgMadeOptional,
+					Severity:    SeverityNonBreaking,
+					Protocol:    ProtocolGraphQL,
+					Path:        path,
+					Description: "Field argument made optional",
+					OldValue:    "required",
+					NewValue:    "optional",
+				})
+			}
+		}
+	}
 }
 
 // compareEnums compares enum definitions

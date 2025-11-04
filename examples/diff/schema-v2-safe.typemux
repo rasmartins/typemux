@@ -1,0 +1,43 @@
+// Schema Version 2 - With only safe changes
+type User {
+  id: string @required
+  name: string @required
+  email: string @required
+  age: int32
+  // SAFE: New optional field added
+  username: string
+}
+
+type Post {
+  id: string @required
+  title: string @required
+  content: string
+  authorId: string @required
+  // SAFE: New optional field added
+  publishedAt: timestamp
+}
+
+type Query {
+  // Field with single required argument (unchanged)
+  user(id: string @required): User
+
+  // SAFE: New optional argument added
+  users(limit: int32 @default(10), offset: int32 @default(0)): []User
+
+  // Field with multiple arguments (unchanged)
+  posts(authorId: string, published: bool @default(true)): []Post
+
+  // Field without arguments (unchanged)
+  allPosts: []Post
+
+  // SAFE: New field added
+  searchPosts(query: string @required): []Post
+}
+
+type Mutation {
+  createUser(name: string @required, email: string @required, age: int32): User
+  updateUser(id: string @required, name: string, email: string): User
+
+  // SAFE: New mutation added
+  deleteUser(id: string @required): bool
+}

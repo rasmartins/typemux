@@ -26,6 +26,14 @@ const (
 	ChangeTypeProtoFieldNumChanged ChangeType = "proto_field_num_changed"
 	// ChangeTypeRequiredParamAdded indicates a required parameter was added (breaking change)
 	ChangeTypeRequiredParamAdded ChangeType = "required_param_added"
+	// ChangeTypeFieldArgRemoved indicates a field argument was removed (breaking change)
+	ChangeTypeFieldArgRemoved ChangeType = "field_arg_removed"
+	// ChangeTypeFieldArgTypeChanged indicates a field argument type was changed (breaking change)
+	ChangeTypeFieldArgTypeChanged ChangeType = "field_arg_type_changed"
+	// ChangeTypeFieldArgMadeRequired indicates a field argument became required (breaking change)
+	ChangeTypeFieldArgMadeRequired ChangeType = "field_arg_made_required"
+	// ChangeTypeRequiredFieldArgAdded indicates a required field argument was added (breaking change)
+	ChangeTypeRequiredFieldArgAdded ChangeType = "required_field_arg_added"
 
 	// ChangeTypeFieldRemovedNoReserve indicates a field was removed without reserving the field number (dangerous change)
 	ChangeTypeFieldRemovedNoReserve ChangeType = "field_removed_no_reserve"
@@ -48,6 +56,10 @@ const (
 	ChangeTypeAnnotationAdded ChangeType = "annotation_added"
 	// ChangeTypeAnnotationChanged indicates an annotation was modified (non-breaking change)
 	ChangeTypeAnnotationChanged ChangeType = "annotation_changed"
+	// ChangeTypeFieldArgAdded indicates a non-required field argument was added (non-breaking change)
+	ChangeTypeFieldArgAdded ChangeType = "field_arg_added"
+	// ChangeTypeFieldArgMadeOptional indicates a field argument became optional (non-breaking change)
+	ChangeTypeFieldArgMadeOptional ChangeType = "field_arg_made_optional"
 )
 
 // Severity indicates how severe a change is

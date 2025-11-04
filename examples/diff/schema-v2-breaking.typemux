@@ -1,0 +1,37 @@
+// Schema Version 2 - With breaking changes
+type User {
+  id: string @required
+  name: string @required
+  email: string @required
+  // BREAKING: Field removed
+  // age: int32
+}
+
+type Post {
+  id: string @required
+  title: string @required
+  content: string
+  authorId: string @required
+}
+
+type Query {
+  // BREAKING: Argument removed
+  user(): User
+
+  // BREAKING: Argument type changed
+  users(limit: string @default("10")): []User
+
+  // BREAKING: Required argument added
+  posts(authorId: string @required, published: bool @default(true), category: string @required): []Post
+
+  // Field without arguments (unchanged)
+  allPosts: []Post
+}
+
+type Mutation {
+  // BREAKING: Argument made required
+  createUser(name: string @required, email: string @required, age: int32 @required): User
+
+  // BREAKING: Method signature changed
+  updateUser(id: string @required, fullName: string): User
+}
