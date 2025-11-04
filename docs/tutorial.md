@@ -183,6 +183,160 @@ service ProductService {
 }
 ```
 
+## Field Arguments (GraphQL-Style Queries)
+
+Field arguments allow you to add parameters directly to fields, similar to GraphQL field arguments. This is an alternative to defining separate service methods and request/response types.
+
+### Basic Field Arguments
+
+```typemux
+type Query {
+  // Simple field with required argument
+  user(id: string @required): User
+
+  // Field with optional arguments and defaults
+  users(limit: int32 @default(10), offset: int32 @default(0)): []User
+
+  // Field with multiple arguments
+  posts(
+    authorId: string,
+    published: bool @default(true),
+    limit: int32 @default(10)
+  ): []Post
+}
+```
+
+### How Field Arguments Map to Different Formats
+
+Field arguments are automatically converted to the appropriate pattern for each output format:
+
+#### GraphQL
+Fields with arguments generate native GraphQL field arguments:
+
+```graphql
+type Query {
+  user(id: String!): User
+  users(limit: Int = 10, offset: Int = 0): [User]
+  posts(authorId: String, published: Boolean = true, limit: Int = 10): [Post]
+}
+```
+
+#### OpenAPI/REST
+Fields with arguments become separate REST endpoints:
+
+```yaml
+paths:
+  /user:
+    get:
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users:
+    get:
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+```
+
+#### Protobuf/gRPC
+Fields with arguments become gRPC service methods with auto-generated request/response messages:
+
+```protobuf
+message QueryUserRequest {
+  string id = 1;
+}
+
+message QueryUsersRequest {
+  optional int32 limit = 1;
+  optional int32 offset = 2;
+}
+
+message QueryUsersResponse {
+  repeated User items = 1;
+}
+
+service QueryService {
+  rpc User(QueryUserRequest) returns (User);
+  rpc Users(QueryUsersRequest) returns (QueryUsersResponse);
+  rpc Posts(QueryPostsRequest) returns (QueryPostsResponse);
+}
+```
+
+### Argument Annotations
+
+Field arguments support the same annotations as regular fields:
+
+```typemux
+type Query {
+  // Required argument
+  user(id: string @required): User
+
+  // Default values
+  users(limit: int32 @default(10)): []User
+
+  // Validation constraints
+  searchUsers(
+    query: string @required @validate(minLength=3, maxLength=100),
+    limit: int32 @default(20) @validate(min=1, max=100)
+  ): []User
+}
+```
+
+### When to Use Field Arguments vs Services
+
+**Use Field Arguments when:**
+- Building GraphQL-style query APIs
+- You want a more concise, field-oriented syntax
+- Arguments are simple query parameters
+- You're primarily targeting GraphQL or REST
+
+**Use Services when:**
+- Building traditional RPC-style APIs
+- You need complex request/response structures
+- You want explicit control over request/response types
+- You need streaming (Protobuf server/client streaming)
+
+Both patterns can coexist in the same schema:
+
+```typemux
+// GraphQL-style queries using field arguments
+type Query {
+  user(id: string @required): User
+  users(limit: int32 @default(10)): []User
+}
+
+// Traditional RPC-style mutations using services
+type CreateUserRequest {
+  name: string @required
+  email: string @required
+}
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (User)
+    @http.method(POST)
+    @http.path("/api/v1/users")
+    @graphql(mutation)
+}
+```
+
 ## Annotations and Attributes
 
 Annotations add metadata to control code generation.

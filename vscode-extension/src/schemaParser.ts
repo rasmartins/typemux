@@ -24,6 +24,14 @@ export interface FieldDefinition {
     defaultValue?: string;
     documentation: string;
     annotations: AnnotationDefinition[];
+    arguments?: FieldArgument[];
+}
+
+export interface FieldArgument {
+    name: string;
+    type: string;
+    required: boolean;
+    defaultValue?: string;
 }
 
 export interface EnumDefinition {
@@ -175,11 +183,18 @@ export class SchemaParser {
                         continue;
                     }
 
-                    // Parse field
-                    const fieldMatch = fieldTrimmed.match(/^(\w+)\s*:\s*(\S+)/);
+                    // Parse field (with optional arguments)
+                    const fieldMatch = fieldTrimmed.match(/^(\w+)\s*(?:\(([^)]*)\))?\s*:\s*(\S+)/);
                     if (fieldMatch) {
                         const fieldName = fieldMatch[1];
-                        let fieldType = fieldMatch[2];
+                        const argsString = fieldMatch[2];
+                        let fieldType = fieldMatch[3];
+
+                        // Parse field arguments if present
+                        let fieldArgs: FieldArgument[] | undefined;
+                        if (argsString) {
+                            fieldArgs = this.parseFieldArguments(argsString);
+                        }
 
                         // Extract field number
                         const fieldNumMatch = fieldTrimmed.match(/=\s*(\d+)/);
@@ -205,7 +220,8 @@ export class SchemaParser {
                             required: isRequired,
                             defaultValue,
                             documentation: fieldDoc.trim(),
-                            annotations: [...fieldAnnotations, ...fieldTrailingAnn]
+                            annotations: [...fieldAnnotations, ...fieldTrailingAnn],
+                            arguments: fieldArgs
                         });
 
                         fieldDoc = '';
@@ -402,5 +418,69 @@ export class SchemaParser {
             });
         }
         return annotations;
+    }
+
+    private parseFieldArguments(argsString: string): FieldArgument[] {
+        const args: FieldArgument[] = [];
+
+        // Split by comma (but not inside parentheses or angle brackets)
+        const argParts = this.splitArguments(argsString);
+
+        for (const argPart of argParts) {
+            const trimmed = argPart.trim();
+            if (!trimmed) continue;
+
+            // Match: argName: argType [@annotations]*
+            const argMatch = trimmed.match(/^(\w+)\s*:\s*([^\s@]+)/);
+            if (argMatch) {
+                const argName = argMatch[1];
+                const argType = argMatch[2];
+
+                // Check for @required annotation
+                const isRequired = trimmed.includes('@required');
+
+                // Extract default value
+                const defaultMatch = trimmed.match(/@default\(([^)]+)\)/);
+                const defaultValue = defaultMatch ? defaultMatch[1] : undefined;
+
+                args.push({
+                    name: argName,
+                    type: argType,
+                    required: isRequired,
+                    defaultValue
+                });
+            }
+        }
+
+        return args;
+    }
+
+    private splitArguments(argsString: string): string[] {
+        const result: string[] = [];
+        let current = '';
+        let depth = 0;
+
+        for (let i = 0; i < argsString.length; i++) {
+            const char = argsString[i];
+
+            if (char === '(' || char === '<') {
+                depth++;
+                current += char;
+            } else if (char === ')' || char === '>') {
+                depth--;
+                current += char;
+            } else if (char === ',' && depth === 0) {
+                result.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+
+        if (current.trim()) {
+            result.push(current);
+        }
+
+        return result;
     }
 }

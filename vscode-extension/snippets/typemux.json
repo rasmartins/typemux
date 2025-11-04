@@ -370,5 +370,69 @@
       "}"
     ],
     "description": "Create a paginated list response type"
+  },
+  "Field with Arguments": {
+    "prefix": "fieldargs",
+    "body": [
+      "${1:users}(${2:limit}: ${3:int32} @default(${4:10})): []${5:User}"
+    ],
+    "description": "Create a field with arguments (GraphQL-style)"
+  },
+  "Field with Single Required Argument": {
+    "prefix": "fieldargreq",
+    "body": [
+      "${1:user}(${2:id}: ${3:string} @required): ${4:User}"
+    ],
+    "description": "Create a field with a single required argument"
+  },
+  "Field with Multiple Arguments": {
+    "prefix": "fieldargmulti",
+    "body": [
+      "${1:posts}(",
+      "\t${2:authorId}: ${3:string},",
+      "\t${4:published}: ${5:bool} @default(${6:true}),",
+      "\t${7:limit}: ${8:int32} @default(${9:10})",
+      "): []${10:Post}"
+    ],
+    "description": "Create a field with multiple arguments"
+  },
+  "Query Type with Field Arguments": {
+    "prefix": "query",
+    "body": [
+      "type Query {",
+      "\t/// Get a single ${1:entity} by ID",
+      "\t${2:entity}(id: string @required): ${3:Entity}",
+      "",
+      "\t/// List ${1:entity}s with optional pagination",
+      "\t${4:entities}(limit: int32 @default(10), offset: int32 @default(0)): []${3:Entity}",
+      "",
+      "\t/// Search ${1:entity}s",
+      "\t${5:search}(query: string @required, limit: int32 @default(20)): []${3:Entity}",
+      "}"
+    ],
+    "description": "Create a Query type with field arguments"
+  },
+  "Mutation Type with Field Arguments": {
+    "prefix": "mutation",
+    "body": [
+      "type Mutation {",
+      "\t/// Create a new ${1:entity}",
+      "\t${2:create}(",
+      "\t\tname: string @required,",
+      "\t\t${3:field}: ${4:string} @required",
+      "\t): ${5:Entity}",
+      "",
+      "\t/// Update an existing ${1:entity}",
+      "\t${6:update}(",
+      "\t\tid: string @required,",
+      "\t\tname: string,",
+      "\t\t${3:field}: ${4:string}",
+      "\t): ${5:Entity}",
+      "",
+      "\t/// Delete ${1:entity}",
+      "\t${7:delete}(id: string @required): bool",
+      "}"
+    ],
+    "description": "Create a Mutation type with field arguments"
   }
 }

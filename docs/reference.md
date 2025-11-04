@@ -157,6 +157,46 @@ type User {
 }
 ```
 
+### Field Arguments
+
+Fields can have arguments (parameters), similar to GraphQL field arguments:
+
+**Syntax:**
+```
+fieldName(argName: argType [@annotations]*, ...): returnType
+```
+
+**Example:**
+```typemux
+type Query {
+  // Single required argument
+  user(id: string @required): User
+
+  // Multiple arguments with defaults
+  users(limit: int32 @default(10), offset: int32 @default(0)): []User
+
+  // Complex arguments with validation
+  searchPosts(
+    query: string @required @validate(minLength=3),
+    published: bool @default(true),
+    limit: int32 @default(20) @validate(min=1, max=100)
+  ): []Post
+}
+```
+
+**Argument properties:**
+- Arguments can use any type (primitives, user-defined types, arrays, maps)
+- Arguments support the same annotations as fields (`@required`, `@default`, `@validate`, etc.)
+- Multiple arguments are comma-separated
+- Arguments can span multiple lines for readability
+
+**Code generation:**
+- **GraphQL**: Generates native field arguments
+- **OpenAPI**: Creates separate REST endpoints with query parameters
+- **Protobuf**: Generates gRPC service methods with request/response messages
+
+**See also:** [Tutorial: Field Arguments](tutorial.md#field-arguments-graphql-style-queries)
+
 ## Enum Definitions
 
 ### Basic Syntax
