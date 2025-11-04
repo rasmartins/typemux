@@ -1,0 +1,3 @@
+# TypeMUX syntax highlighting on GitHub
+# Map .typemux files to Protobuf syntax highlighting (closest match)
+*.typemux linguist-language=Protocol-Buffer
