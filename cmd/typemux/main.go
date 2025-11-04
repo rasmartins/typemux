@@ -210,6 +210,41 @@ func handleDiffCommand() {
 	}
 }
 
+func handleDocsCommand() {
+	// Parse flags for docs command
+	docsFlags := flag.NewFlagSet("docs", flag.ExitOnError)
+	inputFile := docsFlags.String("input", "", "Input schema file (required)")
+	outputDir := docsFlags.String("output", "./docs", "Output directory for documentation")
+
+	_ = docsFlags.Parse(os.Args[2:]) //nolint:errcheck // ExitOnError flag set
+
+	// Validate required flags
+	if *inputFile == "" {
+		fmt.Fprintf(os.Stderr, "Error: -input is required\n\n")
+		fmt.Fprintf(os.Stderr, "Usage: typemux docs -input <schema-file> [options]\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		docsFlags.PrintDefaults()
+		os.Exit(1)
+	}
+
+	// Parse schema
+	schema, err := parseSchemaWithImports(*inputFile, make(map[string]bool))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing schema: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Generate documentation
+	docGenerator := docgen.NewGenerator(schema, *outputDir)
+	if err := docGenerator.Generate(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error generating documentation: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("✨ Documentation generated successfully in %s\n", *outputDir)
+	fmt.Printf("📖 Open %s/README.md to get started\n", *outputDir)
+}
+
 func main() {
 	// Handle special commands
 	if len(os.Args) > 1 && os.Args[1] == "annotations" {
@@ -219,6 +254,11 @@ func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "diff" {
 		handleDiffCommand()
+		return
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "docs" {
+		handleDocsCommand()
 		return
 	}
 
